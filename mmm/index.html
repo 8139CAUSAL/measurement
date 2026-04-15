@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Mix Modeling — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === MMM Page Styles === */
+    .visualization-wrapper { position: relative; width: 100%; height: 320px; margin: 0 auto; }
+    .chart-svg { width: 100%; height: 100%; }
+    .chart-tooltip {
+      position: absolute; pointer-events: none; background: rgba(0,0,0,0.88);
+      border: 1px solid var(--brand-border); border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: #fff; white-space: nowrap; z-index: 10;
+      display: none; line-height: 1.5;
+    }
+    .chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--brand-text-muted); }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    .legend-detail { font-family: var(--font-mono); font-size: 12px; color: var(--brand-text); font-weight: 600; }
+    .warning-callout {
+      background: var(--warning-tint); border-left: 3px solid var(--brand-warning);
+      padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
+      font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .warning-callout strong { color: var(--brand-text); }
+    .warning-callout .callout-title { color: var(--brand-warning); font-weight: 700; font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .danger-callout {
+      background: var(--danger-tint); border-left: 3px solid var(--brand-danger);
+      padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
+      font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .danger-callout strong { color: var(--brand-text); }
+    .danger-callout .callout-title { color: var(--brand-danger); font-weight: 700; font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+    .result-item {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--brand-border-dim);
+      border-radius: 8px; padding: 14px 16px; text-align: center;
+    }
+    .result-item .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
+    .result-item .label { font-size: 13px; color: var(--brand-text-muted); margin-top: 4px; }
+    @media (max-width: 600px) {
+      .visualization-wrapper { height: 260px; }
+      .results-grid { grid-template-columns: 1fr 1fr; }
+      .chart-legend { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../uplift/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Marketing Mix Modeling</h1>
+      <a href="../mmm-readiness/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      MMM uses regression to decompose total sales into the contribution of each marketing channel,
+      baseline demand, and external factors &mdash; so you can see what actually drove results.
+    </p>
+
+    <div class="tab-selector" id="mmm-tabs">
+      <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+      <button class="tab-btn" data-tab="waterfall" type="button">Waterfall</button>
+      <button class="tab-btn" data-tab="response" type="button">Response Curves</button>
+      <a href="../mmm-readiness/" class="tab-btn">Readiness</a>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-panel active" id="mmm-panel-overview">
+      <div class="stage">
+        <p class="prose">
+          <strong>Marketing Mix Modeling (MMM)</strong> is a top-down statistical technique that uses
+          aggregate time-series data &mdash; weekly spend, impressions, sales, seasonality, promotions &mdash;
+          to estimate the <em>contribution</em> of each marketing input to business outcomes.
+        </p>
+        <div class="callout">
+          <div class="callout-title">The Core Equation</div>
+          At its heart, every MMM fits a regression of this form:
+        </div>
+        <div class="formula-box" style="text-align:center; margin: 16px 0;">
+          Sales = Baseline + (Media &times; Efficiency) + External Factors
+        </div>
+        <p class="prose">
+          <strong>Baseline</strong> represents demand that would exist without any marketing &mdash;
+          brand equity, organic traffic, seasonal patterns, and pricing effects. <strong>Media terms</strong>
+          capture the incremental contribution of each channel (TV, social, search, email, etc.),
+          typically transformed through saturation curves to model diminishing returns.
+          <strong>External factors</strong> include weather, competitor activity, macroeconomic trends,
+          and any other variable that influences sales but is not under your control.
+        </p>
+        <p class="prose">
+          The model decomposes <em>observed sales</em> into these components. By doing so, it answers
+          the question every marketer asks: <strong>&ldquo;How much of our revenue did each channel
+          actually drive?&rdquo;</strong>
+        </p>
+        <div class="callout warning">
+          <div class="callout-title">Key Assumption</div>
+          MMM assumes the past is a reasonable guide to the future. If your media mix, creative,
+          or competitive landscape changes dramatically, historical coefficients may not hold.
+          Always <strong>calibrate</strong> MMM outputs with incrementality experiments.
+        </div>
+        <p class="prose">
+          Unlike attribution models that track individual user journeys, MMM works with
+          <em>aggregate data</em> and does not require cookies or user-level tracking. This makes it
+          <strong>privacy-safe</strong> and well-suited to channels like TV, radio, and out-of-home
+          where individual-level tracking is impossible.
+        </p>
+      </div>
+    </div>
+
+    <!-- TAB 2: WATERFALL -->
+    <div class="tab-panel" id="mmm-panel-waterfall">
+      <div class="stage">
+        <p class="prose" style="text-align:center;">
+          Each bar shows a channel&rsquo;s incremental contribution, stacking left to right from baseline to total sales.
+        </p>
+        <div class="visualization-wrapper" id="wf-wrapper">
+          <svg class="chart-svg" id="wf-svg"></svg>
+          <div class="chart-tooltip" id="wf-tooltip"></div>
+        </div>
+        <div class="results-grid" id="wf-metrics"></div>
+        <div class="callout" style="margin-top:20px;">
+          <div class="callout-title">How to Read a Waterfall Chart</div>
+          Each colored bar represents the <strong>incremental revenue</strong> attributable to that channel.
+          The bars stack from left to right: baseline demand starts the cascade, and each media channel
+          adds its contribution until you reach total observed sales. Connector lines link the end of
+          one bar to the start of the next, showing the running total.
+        </div>
+        <div class="warning-callout">
+          <div class="callout-title">Model Limitations</div>
+          Waterfall decompositions are <strong>point estimates</strong> from a regression model. They do not
+          show uncertainty or confidence intervals. Small channels with limited spend variation may have
+          unreliable coefficients. Always pair MMM results with <strong>incrementality tests</strong> to validate.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RESPONSE CURVES -->
+    <div class="tab-panel" id="mmm-panel-response">
+      <div class="stage">
+        <p class="prose" style="text-align:center;">
+          Each curve shows how revenue responds to spend for a given channel. Dots mark current spend levels.
+        </p>
+        <div class="visualization-wrapper" id="rc-wrapper">
+          <svg class="chart-svg" id="rc-svg"></svg>
+          <div class="chart-tooltip" id="rc-tooltip"></div>
+        </div>
+        <div class="chart-legend" id="rc-legend"></div>
+        <div class="danger-callout" style="margin-top:20px;">
+          <div class="callout-title">Average vs Marginal ROI</div>
+          <strong>Average ROI</strong> divides total revenue by total spend &mdash; it tells you the overall
+          return across all dollars invested. <strong>Marginal ROI (mROI)</strong> measures the return on
+          the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if
+          it is already saturated. Budget optimization should be driven by <strong>marginal ROI</strong>,
+          not average ROI &mdash; the goal is to equalize mROI across channels.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+  'use strict';
+
+  /* --- SVG helpers --- */
+  var NS = 'http://www.w3.org/2000/svg';
+  function cEl(tag) { return document.createElementNS(NS, tag); }
+  function sA(el, attrs) { for (var k in attrs) { if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]); } return el; }
+
+  /* --- Format helper --- */
+  function fmt(v) {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
+    return '$' + Math.round(v);
+  }
+
+  /* --- Hill functions --- */
+  var P = { alpha: 800000, theta: 400000, k: 1.8 };
+  function hill(x) { return (P.alpha * Math.pow(x, P.k)) / (Math.pow(P.theta, P.k) + Math.pow(x, P.k)); }
+  function dhill(x) {
+    var t = Math.max(x, 1e-6), thk = Math.pow(P.theta, P.k), sk1 = Math.pow(t, P.k - 1), sk = t * sk1;
+    return (P.alpha * P.k * thk * sk1) / Math.pow(thk + sk, 2);
+  }
+
+  /* --- Waterfall data --- */
+  var wfData = [
+    { name: 'Baseline', value: 1200000, color: '#94a3b8' },
+    { name: 'TV',       value: 450000,  color: '#60a5fa' },
+    { name: 'Social',   value: 320000,  color: '#a78bfa' },
+    { name: 'Search',   value: 180000,  color: '#2dd4bf' },
+    { name: 'Email',    value: 80000,   color: '#fbbf24' }
+  ];
+  var wfTotal = 0;
+  for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
+
+  /* --- Response curve channels --- */
+  var rcChannels = [
+    { name: 'TV',     spend: 500000, color: '#60a5fa' },
+    { name: 'Social', spend: 300000, color: '#a78bfa' },
+    { name: 'Search', spend: 200000, color: '#2dd4bf' },
+    { name: 'Email',  spend: 50000,  color: '#fbbf24' }
+  ];
+
+  /* --- Tab switching via event delegation --- */
+  var tabSelector = document.getElementById('mmm-tabs');
+  var activeTab = 'overview';
+
+  tabSelector.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (!btn.classList.contains('tab-btn') || btn.tagName === 'A') return;
+    var tabId = btn.getAttribute('data-tab');
+    if (!tabId || tabId === activeTab) return;
+    activeTab = tabId;
+    var btns = tabSelector.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    btn.classList.add('active');
+    var panels = document.querySelectorAll('.tab-panel');
+    for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+    var target = document.getElementById('mmm-panel-' + tabId);
+    if (target) target.classList.add('active');
+    if (tabId === 'waterfall') renderWF();
+    if (tabId === 'response') { renderRC(); buildLegend(); }
+  });
+
+  /* --- Tooltip helpers --- */
+  function showTip(tip, x, y, html) {
+    tip.innerHTML = html;
+    tip.style.display = 'block';
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+  function hideTip(tip) { tip.style.display = 'none'; }
+
+  /* ============================================================
+     WATERFALL CHART
+     ============================================================ */
+  function renderWF() {
+    var svg = document.getElementById('wf-svg');
+    var wrapper = document.getElementById('wf-wrapper');
+    var tip = document.getElementById('wf-tooltip');
+    svg.innerHTML = '';
+    var svgW = svg.clientWidth || 800;
+    var svgH = svg.clientHeight || 320;
+    var m = { top: 24, right: 30, bottom: 50, left: 100 };
+    var W = svgW - m.left - m.right;
+    var H = svgH - m.top - m.bottom;
+    var g = cEl('g');
+    sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
+    svg.appendChild(g);
+
+    var rows = wfData.length + 1; // +1 for total
+    var barH = Math.min(32, (H - (rows - 1) * 6) / rows);
+    var gap = 6;
+    var totalH = rows * barH + (rows - 1) * gap;
+    var yOff = (H - totalH) / 2;
+
+    /* grid lines */
+    for (var gi = 0; gi <= 5; gi++) {
+      var gx = (gi / 5) * W;
+      var gl = cEl('line');
+      sA(gl, { x1: gx, y1: 0, x2: gx, y2: H, stroke: 'rgba(255,255,255,0.1)', 'stroke-width': 1, 'shape-rendering': 'crispEdges' });
+      g.appendChild(gl);
+      var gt = cEl('text');
+      sA(gt, { x: gx, y: H + 18, fill: 'rgba(255,255,255,0.5)', 'font-size': '11px', 'text-anchor': 'middle' });
+      gt.textContent = fmt((gi / 5) * wfTotal);
+      g.appendChild(gt);
+    }
+
+    var cumulative = 0;
+    for (var bi = 0; bi < wfData.length; bi++) {
+      var d = wfData[bi];
+      var bx = (cumulative / wfTotal) * W;
+      var bw = (d.value / wfTotal) * W;
+      var by = yOff + bi * (barH + gap);
+
+      /* bar */
+      var rect = cEl('rect');
+      sA(rect, { x: bx, y: by, width: Math.max(bw, 1), height: barH, fill: d.color, rx: 3, ry: 3 });
+      g.appendChild(rect);
+
+      /* row label */
+      var rl = cEl('text');
+      sA(rl, { x: -10, y: by + barH / 2 + 4, fill: '#fff', 'font-size': '13px', 'font-weight': '600', 'text-anchor': 'end' });
+      rl.textContent = d.name;
+      g.appendChild(rl);
+
+      /* value label */
+      var vl = cEl('text');
+      var vlx = bx + bw + 6;
+      sA(vl, { x: vlx, y: by + barH / 2 + 4, fill: 'rgba(255,255,255,0.7)', 'font-size': '12px', 'font-weight': '600' });
+      vl.textContent = fmt(d.value);
+      g.appendChild(vl);
+
+      /* connector line to next bar */
+      if (bi < wfData.length - 1) {
+        var cx = bx + bw;
+        var ny = yOff + (bi + 1) * (barH + gap);
+        var cl = cEl('line');
+        sA(cl, { x1: cx, y1: by + barH, x2: cx, y2: ny, stroke: 'rgba(255,255,255,0.25)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+        g.appendChild(cl);
+      }
+
+      /* hover overlay */
+      (function(d, bx, bw, by, cumVal) {
+        var overlay = cEl('rect');
+        sA(overlay, { x: bx, y: by, width: Math.max(bw, 1), height: barH, fill: 'transparent', cursor: 'pointer' });
+        overlay.addEventListener('mouseenter', function(e) {
+          var pct = ((d.value / wfTotal) * 100).toFixed(1);
+          var r = wrapper.getBoundingClientRect();
+          showTip(tip, e.clientX - r.left + 12, e.clientY - r.top - 10,
+            '<strong>' + d.name + '</strong><br>' + fmt(d.value) + ' (' + pct + '% of total)');
+        });
+        overlay.addEventListener('mousemove', function(e) {
+          var pct = ((d.value / wfTotal) * 100).toFixed(1);
+          var r = wrapper.getBoundingClientRect();
+          showTip(tip, e.clientX - r.left + 12, e.clientY - r.top - 10,
+            '<strong>' + d.name + '</strong><br>' + fmt(d.value) + ' (' + pct + '% of total)');
+        });
+        overlay.addEventListener('mouseleave', function() { hideTip(tip); });
+        g.appendChild(overlay);
+      })(d, bx, bw, by, cumulative);
+
+      cumulative += d.value;
+    }
+
+    /* total bar (outlined) */
+    var ty = yOff + wfData.length * (barH + gap);
+    var tr = cEl('rect');
+    sA(tr, { x: 0, y: ty, width: W, height: barH, fill: 'none', stroke: '#fff', 'stroke-width': 2, rx: 3, ry: 3, 'stroke-dasharray': '6 3' });
+    g.appendChild(tr);
+    var tl = cEl('text');
+    sA(tl, { x: -10, y: ty + barH / 2 + 4, fill: '#fff', 'font-size': '13px', 'font-weight': '700', 'text-anchor': 'end' });
+    tl.textContent = 'Total';
+    g.appendChild(tl);
+    var tvl = cEl('text');
+    sA(tvl, { x: W + 6, y: ty + barH / 2 + 4, fill: '#fff', 'font-size': '12px', 'font-weight': '700' });
+    tvl.textContent = fmt(wfTotal);
+    g.appendChild(tvl);
+
+    /* connector from last bar to total */
+    var lastEnd = W;
+    var lastBy = yOff + (wfData.length - 1) * (barH + gap);
+    var connT = cEl('line');
+    sA(connT, { x1: lastEnd, y1: lastBy + barH, x2: lastEnd, y2: ty, stroke: 'rgba(255,255,255,0.25)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+    g.appendChild(connT);
+
+    /* metrics */
+    var mediaTotal = wfTotal - wfData[0].value;
+    var baselinePct = ((wfData[0].value / wfTotal) * 100).toFixed(1);
+    var mediaPct = ((mediaTotal / wfTotal) * 100).toFixed(1);
+    var topCh = wfData[1];
+    for (var ti = 2; ti < wfData.length; ti++) { if (wfData[ti].value > topCh.value) topCh = wfData[ti]; }
+    var metricsEl = document.getElementById('wf-metrics');
+    metricsEl.innerHTML =
+      '<div class="result-item"><div class="value">' + fmt(wfTotal) + '</div><div class="label">Total Sales</div></div>' +
+      '<div class="result-item"><div class="value">' + baselinePct + '%</div><div class="label">Baseline Share</div></div>' +
+      '<div class="result-item"><div class="value">' + mediaPct + '%</div><div class="label">Media-Driven Share</div></div>' +
+      '<div class="result-item"><div class="value">' + topCh.name + '</div><div class="label">Top Contributing Channel</div></div>';
+  }
+
+  /* ============================================================
+     RESPONSE CURVES
+     ============================================================ */
+  function renderRC() {
+    var svg = document.getElementById('rc-svg');
+    var wrapper = document.getElementById('rc-wrapper');
+    var tip = document.getElementById('rc-tooltip');
+    svg.innerHTML = '';
+    var svgW = svg.clientWidth || 800;
+    var svgH = svg.clientHeight || 320;
+    var m = { top: 20, right: 30, bottom: 44, left: 70 };
+    var W = svgW - m.left - m.right;
+    var H = svgH - m.top - m.bottom;
+    var g = cEl('g');
+    sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
+    svg.appendChild(g);
+
+    var maxSpend = 1200000;
+    var maxRev = hill(maxSpend) * 1.1;
+
+    /* background zones: green, yellow, red each 1/3 */
+    var zones = [
+      { color: 'rgba(34,197,94,0.08)', label: 'High ROI' },
+      { color: 'rgba(251,191,36,0.08)', label: 'Diminishing' },
+      { color: 'rgba(248,113,113,0.08)', label: 'Saturated' }
+    ];
+    for (var zi = 0; zi < zones.length; zi++) {
+      var zr = cEl('rect');
+      sA(zr, { x: (zi / 3) * W, y: 0, width: W / 3, height: H, fill: zones[zi].color });
+      g.appendChild(zr);
+      var zt = cEl('text');
+      sA(zt, { x: (zi / 3) * W + W / 6, y: 14, fill: 'rgba(255,255,255,0.3)', 'font-size': '11px', 'text-anchor': 'middle' });
+      zt.textContent = zones[zi].label;
+      g.appendChild(zt);
+    }
+
+    /* grid lines */
+    for (var gy = 0; gy <= 4; gy++) {
+      var yy = (gy / 4) * H;
+      var gyl = cEl('line');
+      sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.1)', 'stroke-width': 1, 'shape-rendering': 'crispEdges' });
+      g.appendChild(gyl);
+    }
+    for (var gx = 0; gx <= 4; gx++) {
+      var xx = (gx / 4) * W;
+      var gxl = cEl('line');
+      sA(gxl, { x1: xx, y1: 0, x2: xx, y2: H, stroke: 'rgba(255,255,255,0.06)', 'stroke-width': 1, 'shape-rendering': 'crispEdges' });
+      g.appendChild(gxl);
+    }
+
+    /* axis labels */
+    var axX = cEl('text');
+    sA(axX, { x: W / 2, y: H + 34, fill: 'rgba(255,255,255,0.5)', 'font-size': '13px', 'text-anchor': 'middle' });
+    axX.textContent = 'Channel Spend';
+    g.appendChild(axX);
+    var axY = cEl('text');
+    sA(axY, { transform: 'rotate(-90)', x: -H / 2, y: -50, fill: 'rgba(255,255,255,0.5)', 'font-size': '13px', 'text-anchor': 'middle' });
+    axY.textContent = 'Revenue';
+    g.appendChild(axY);
+
+    /* scale tick labels */
+    for (var tx = 0; tx <= 4; tx++) {
+      var txv = (tx / 4) * maxSpend;
+      var txl = cEl('text');
+      sA(txl, { x: (tx / 4) * W, y: H + 16, fill: 'rgba(255,255,255,0.4)', 'font-size': '10px', 'text-anchor': 'middle' });
+      txl.textContent = fmt(txv);
+      g.appendChild(txl);
+    }
+    for (var ty = 0; ty <= 4; ty++) {
+      var tyv = ((4 - ty) / 4) * maxRev;
+      var tyl = cEl('text');
+      sA(tyl, { x: -8, y: (ty / 4) * H + 4, fill: 'rgba(255,255,255,0.4)', 'font-size': '10px', 'text-anchor': 'end' });
+      tyl.textContent = fmt(tyv);
+      g.appendChild(tyl);
+    }
+
+    /* polyline curves and dots per channel */
+    var steps = 80;
+    for (var ci = 0; ci < rcChannels.length; ci++) {
+      var ch = rcChannels[ci];
+      var pts = [];
+      for (var si = 0; si <= steps; si++) {
+        var s = (si / steps) * maxSpend;
+        var r = hill(s);
+        var px = (s / maxSpend) * W;
+        var py = H - (r / maxRev) * H;
+        pts.push(px.toFixed(1) + ',' + py.toFixed(1));
+      }
+      var pl = cEl('polyline');
+      sA(pl, { points: pts.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+      g.appendChild(pl);
+
+      /* dot at current spend */
+      var dotR = hill(ch.spend);
+      var dotX = (ch.spend / maxSpend) * W;
+      var dotY = H - (dotR / maxRev) * H;
+      var dot = cEl('circle');
+      sA(dot, { cx: dotX, cy: dotY, r: 6, fill: ch.color, stroke: '#fff', 'stroke-width': 2 });
+      g.appendChild(dot);
+
+      /* small label near dot */
+      var dl = cEl('text');
+      sA(dl, { x: dotX + 10, y: dotY - 8, fill: ch.color, 'font-size': '11px', 'font-weight': '600' });
+      dl.textContent = ch.name;
+      g.appendChild(dl);
+    }
+
+    /* mousemove tooltip overlay */
+    var overlay = cEl('rect');
+    sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
+    overlay.addEventListener('mousemove', function(e) {
+      var rect = wrapper.getBoundingClientRect();
+      var svgRect = svg.getBoundingClientRect();
+      var mx = e.clientX - svgRect.left - m.left;
+      if (mx < 0 || mx > W) { hideTip(tip); return; }
+      var spendVal = (mx / W) * maxSpend;
+      var rev = hill(spendVal);
+      var mroi = dhill(spendVal);
+      var html = '<strong>Spend:</strong> ' + fmt(spendVal) + '<br><strong>Revenue:</strong> ' + fmt(rev) + '<br><strong>mROI:</strong> ' + mroi.toFixed(2) + 'x';
+      showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
+    });
+    overlay.addEventListener('mouseleave', function() { hideTip(tip); });
+    g.appendChild(overlay);
+  }
+
+  /* --- Legend --- */
+  function buildLegend() {
+    var legendEl = document.getElementById('rc-legend');
+    legendEl.innerHTML = '';
+    for (var i = 0; i < rcChannels.length; i++) {
+      var ch = rcChannels[i];
+      var rev = hill(ch.spend);
+      var mroi = dhill(ch.spend);
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML =
+        '<span class="legend-swatch" style="background:' + ch.color + ';"></span>' +
+        '<span>' + ch.name + '</span>' +
+        '<span class="legend-detail">' + fmt(ch.spend) + ' &rarr; ' + fmt(rev) + ' (mROI ' + mroi.toFixed(2) + 'x)</span>';
+      legendEl.appendChild(item);
+    }
+  }
+
+  /* --- Resize handler --- */
+  window.addEventListener('resize', function() {
+    if (activeTab === 'waterfall') renderWF();
+    if (activeTab === 'response') renderRC();
+  });
+
+  })();
+  </script>
+</body>
+</html>

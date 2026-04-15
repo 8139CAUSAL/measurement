@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survey Attribution — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Survey Attribution Page Styles === */
+    .channels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+    .channel-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 20px; position: relative; transition: border-color 0.3s;
+    }
+    .channel-card:hover { border-color: var(--brand-accent); }
+    .channel-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .channel-header h4 { margin: 0; font-size: 15px; color: var(--brand-text); }
+    .channel-inputs { display: grid; gap: 10px; }
+    .channel-inputs label { font-size: 12px; color: var(--brand-text-muted); font-weight: 600; display: block; margin-bottom: 4px; }
+    .channel-inputs input { width: 100%; }
+
+    .results-table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--brand-border-dim); }
+    .results-table th, .results-table td { padding: 10px 14px; text-align: center; border: 1px solid var(--brand-border-dim); font-size: 13px; }
+    .results-table th { background: var(--bg-card-raised); color: var(--brand-accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .results-table td { color: var(--brand-text-muted); }
+
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .analytics-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 20px; text-align: center; transition: transform 0.3s, border-color 0.3s;
+    }
+    .analytics-card:hover { transform: translateY(-3px); border-color: var(--brand-accent); }
+    .analytics-card h4 { margin: 0 0 8px; font-size: 14px; color: var(--brand-text); }
+    .analytics-card p { margin: 0; font-size: 13px; color: var(--brand-text-muted); line-height: 1.5; }
+    .analytics-card .card-value { font-size: 1.6rem; font-weight: 700; color: var(--brand-accent); margin-bottom: 6px; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .badge--success { background: rgba(52, 211, 153, 0.15); color: var(--brand-success); }
+    .badge--warning { background: rgba(251, 191, 36, 0.15); color: var(--brand-warning); }
+    .badge--danger { background: rgba(248, 113, 113, 0.15); color: var(--brand-danger); }
+
+    .warning-box {
+      background: var(--danger-tint); border-left: 3px solid var(--brand-danger); padding: 16px 20px;
+      border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .warning-box strong { color: var(--brand-text); }
+
+    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; margin: 16px 0; }
+    .step-list li {
+      counter-increment: step-counter; position: relative; padding-left: 40px; margin-bottom: 16px;
+      font-size: 14px; color: var(--brand-text-muted); line-height: 1.6;
+    }
+    .step-list li::before {
+      content: counter(step-counter); position: absolute; left: 0; top: 0;
+      background: var(--brand-accent); color: var(--brand-background); width: 26px; height: 26px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+    }
+    .step-list li strong { color: var(--brand-text); }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+    .tool-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px; text-align: center;
+    }
+    .tool-card h4 { margin: 0 0 6px; font-size: 14px; color: var(--brand-text); }
+    .tool-card p { margin: 0; font-size: 12px; color: var(--brand-text-muted); }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.2); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px 20px; font-family: var(--font-mono); font-size: 12px; color: var(--brand-text-muted);
+      overflow-x: auto; line-height: 1.7; margin: 16px 0; white-space: pre;
+    }
+
+    .input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .input-row label { font-weight: 600; color: var(--brand-text); font-size: 14px; min-width: 120px; }
+    .input-row input { width: 120px; }
+
+    .multiplier-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+    .multiplier-card {
+      background: var(--bg-card); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px;
+    }
+    .multiplier-card label { font-size: 12px; color: var(--brand-text-muted); font-weight: 600; display: block; margin-bottom: 6px; }
+    .multiplier-card input { width: 100%; }
+
+    @media (max-width: 600px) {
+      .channels-grid { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr 1fr; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+      .multiplier-inputs { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; align-items: flex-start; }
+      .input-row input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../budget-engine/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Survey Attribution</h1>
+      <a href="../response-modeling/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      Use post-purchase surveys to understand where customers truly discovered your brand, then calibrate those self-reported signals against platform data.
+    </p>
+
+    <div class="tab-selector">
+      <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+      <button class="tab-btn" data-tab="methodology" type="button">Methodology</button>
+      <button class="tab-btn" data-tab="calibration" type="button">Calibration</button>
+      <button class="tab-btn" data-tab="analytics" type="button">Survey Analytics</button>
+      <button class="tab-btn" data-tab="bias" type="button">Bias Correction</button>
+      <button class="tab-btn" data-tab="implementation" type="button">Implementation</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-panel active" id="sv-panel-overview">
+      <div class="stage">
+        <p class="prose">
+          <strong>Survey-driven attribution</strong> asks customers directly: <em>"How did you hear about us?"</em>
+          This self-reported data captures channels that digital tracking misses entirely --
+          word-of-mouth, podcasts, billboards, and organic social impressions that never generate a click.
+        </p>
+        <p class="prose">
+          While platform pixels track clicks and views, surveys capture the <strong>perceived influence</strong>
+          behind a purchase decision. Combined with platform data, they form a powerful
+          <strong>triangulation layer</strong> in your measurement stack.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Dark Funnel Visibility</h4>
+            <p>Captures channels invisible to digital tracking -- podcasts, word-of-mouth, offline media, and organic social.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Customer Voice</h4>
+            <p>Reflects actual perceived influence rather than algorithmic guesswork. Customers tell you what mattered.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Platform Calibration</h4>
+            <p>Cross-reference self-reported data against platform-reported conversions to find over- and under-counted channels.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Low Implementation Cost</h4>
+            <p>A single post-purchase question can be deployed in days. No pixel infrastructure or data warehouse required.</p>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <strong>Important limitation:</strong> Survey attribution relies on customer memory and honesty.
+          Response bias, recency bias, and social desirability effects can distort results.
+          Always calibrate survey data against at least one other measurement method before making budget decisions.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: METHODOLOGY -->
+    <div class="tab-panel" id="sv-panel-methodology">
+      <div class="stage">
+        <h2 class="prose"><strong>Step-by-Step Process</strong></h2>
+        <ol class="step-list">
+          <li><strong>Deploy post-purchase survey</strong> -- add a "How did you hear about us?" question to your order confirmation or thank-you page.</li>
+          <li><strong>Collect responses</strong> -- accumulate data over a sufficient period (typically 2-4 weeks minimum) to reach statistical significance.</li>
+          <li><strong>Calculate survey-attributed revenue</strong> -- multiply each channel's response share by total revenue from respondents.</li>
+          <li><strong>Compute implied revenue</strong> -- adjust for response rate to estimate total channel revenue across all customers.</li>
+          <li><strong>Calculate implied ROAS</strong> -- divide implied revenue by ad spend to get the survey-based return on ad spend.</li>
+        </ol>
+
+        <div class="callout">
+          <div class="callout-title">Key Concept</div>
+          Survey ROAS captures the <strong>customer-perceived</strong> return on your spend. When this diverges
+          significantly from platform-reported ROAS, it signals either platform over-counting or a channel
+          whose influence extends beyond trackable clicks.
+        </div>
+
+        <h2 class="prose" style="margin-top: 24px;"><strong>Interactive Calculator</strong></h2>
+
+        <div class="input-row">
+          <label for="response-rate">Response Rate (%):</label>
+          <input type="number" id="response-rate" value="38" min="1" max="100" step="1">
+        </div>
+
+        <div id="channels-container" class="channels-grid"></div>
+
+        <div class="controls" style="margin-top: 16px;">
+          <button class="btn btn-secondary" id="add-channel-btn" type="button">+ Add Channel</button>
+        </div>
+
+        <h3 class="prose" style="margin-top: 24px;"><strong>Results</strong></h3>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="methodology-results">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Ad Spend</th>
+                <th>Survey Revenue</th>
+                <th>Implied Revenue</th>
+                <th>Implied ROAS</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CALIBRATION -->
+    <div class="tab-panel" id="sv-panel-calibration">
+      <div class="stage">
+        <p class="prose">
+          <strong>Calibration</strong> bridges the gap between survey-attributed revenue and platform-reported revenue.
+          The normalization multiplier tells you how much each platform over- or under-reports relative to customer perception.
+        </p>
+
+        <div class="formula-box">
+          <strong>Normalization Multiplier</strong> = Survey ROAS / Platform ROAS<br><br>
+          <span style="color: var(--brand-text-muted); font-size: 12px;">
+            A multiplier &gt; 1.0 means the platform under-reports its true influence.<br>
+            A multiplier &lt; 1.0 means the platform over-reports (takes credit for organic conversions).
+          </span>
+        </div>
+
+        <h3 class="prose" style="margin-top: 24px;"><strong>Platform Revenue Inputs</strong></h3>
+        <p class="prose">
+          Enter each channel's platform-reported revenue. Default values assume a 1.4x platform ROAS on spend.
+        </p>
+        <div id="multiplier-inputs" class="multiplier-inputs"></div>
+
+        <h3 class="prose" style="margin-top: 24px;"><strong>Calibration Results</strong></h3>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="calibration-results">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Survey ROAS</th>
+                <th>Platform ROAS</th>
+                <th>Multiplier (%)</th>
+                <th>Calibrated ROAS</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="calibration-insights" class="callout" style="margin-top: 20px;">
+          <div class="callout-title">Insights</div>
+          <div id="calibration-insights-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SURVEY ANALYTICS -->
+    <div class="tab-panel" id="sv-panel-analytics">
+      <div class="stage">
+        <h2 class="prose"><strong>Survey Quality Metrics</strong></h2>
+        <p class="prose">
+          Before trusting survey results, assess the quality of your response data. These metrics help
+          identify systematic biases that could distort attribution.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <div class="card-value">38%</div>
+            <h4>Response Rate</h4>
+            <p>Percentage of customers who complete the survey. Below 20% risks non-response bias.</p>
+          </div>
+          <div class="analytics-card">
+            <div class="card-value">2.4s</div>
+            <h4>Median Response Time</h4>
+            <p>Time to answer the attribution question. Under 1 second suggests satisficing behavior.</p>
+          </div>
+          <div class="analytics-card">
+            <div class="card-value">12%</div>
+            <h4>Multi-Select Rate</h4>
+            <p>Share of respondents who select multiple channels. High rates indicate genuine multi-touch journeys.</p>
+          </div>
+          <div class="analytics-card">
+            <div class="card-value">4.2%</div>
+            <h4>Other / Write-In Rate</h4>
+            <p>Percentage choosing "Other." Above 10% means your option list has coverage gaps.</p>
+          </div>
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Response Bias Detection</strong></h2>
+        <p class="prose">
+          Three common response styles can systematically distort survey attribution data.
+          Detecting these patterns allows you to apply corrections before drawing conclusions.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Extreme Response Style (ERS)</h4>
+            <p>Tendency to always pick the first or most prominent option. Check if one channel consistently dominates regardless of actual exposure.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Moderacy Bias</h4>
+            <p>Tendency to avoid extreme answers. In multi-select surveys, respondents may hedge by selecting several "safe" middle-ground channels.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Acquiescence Bias</h4>
+            <p>Tendency to agree with all presented options. Manifests as unusually high multi-select rates where respondents check every channel shown.</p>
+          </div>
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Factorial Experiment Analytics</strong></h2>
+        <p class="prose">
+          Run controlled experiments on survey design to isolate the effect of question wording,
+          option ordering, and response format on attribution outcomes.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Question Wording</h4>
+            <p>"How did you first hear about us?" vs. "What most influenced your purchase?" can shift attribution by 15-25%.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Option Order Effects</h4>
+            <p>Primacy bias inflates the first listed option by 8-12%. Randomize option order to control for this.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Single vs. Multi-Select</h4>
+            <p>Single-select forces a "winner take all" model. Multi-select better captures multi-touch journeys but inflates total credit.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Open vs. Closed Format</h4>
+            <p>Open-ended responses yield richer data but require NLP processing. Closed formats are easier to analyze at scale.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: BIAS CORRECTION -->
+    <div class="tab-panel" id="sv-panel-bias">
+      <div class="stage">
+        <h2 class="prose"><strong>Bias Correction Methods</strong></h2>
+        <p class="prose">
+          Survey data is inherently biased. The respondent pool differs from the full customer base
+          along observable (and unobservable) dimensions. These methods help recover unbiased estimates.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Non-Response Adjustment</h4>
+            <p>Respondents differ from non-respondents. Weight survey data to match the full customer population on known demographics.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Recency Correction</h4>
+            <p>Customers over-weight recent touchpoints. Apply temporal decay to normalize credit across the full journey window.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Salience Adjustment</h4>
+            <p>Memorable channels (TV, influencer) get over-reported. Calibrate against click-stream data to deflate salience-inflated channels.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Social Desirability</h4>
+            <p>Respondents under-report ad influence and over-report organic discovery. Use indirect questioning techniques to reduce this bias.</p>
+          </div>
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Weighting Methods</strong></h2>
+
+        <div class="callout">
+          <div class="callout-title">Cell Weighting</div>
+          Divide respondents into demographic cells (age x gender x channel). Weight each cell so its
+          share matches the known population distribution. Simple and transparent, but breaks down
+          with many cells and sparse data.
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Inverse Probability Weighting (IPW)</div>
+          Model the probability of responding given observed covariates. Weight each respondent by
+          <strong>1 / P(respond)</strong>. More flexible than cell weighting but sensitive to extreme weights.
+          Trim or winsorize weights above the 95th percentile.
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Raking (Iterative Proportional Fitting)</div>
+          Iteratively adjust weights so marginal distributions match known population totals.
+          Does not require cross-tabulated population data -- only marginals. The standard method
+          for survey weighting in market research.
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Model-Based Approaches</strong></h2>
+        <p class="prose">
+          When weighting alone is insufficient, model-based methods can account for unobserved confounders.
+        </p>
+
+        <div class="callout">
+          <div class="callout-title">Multilevel Regression with Post-Stratification (MRP)</div>
+          Fit a multilevel model predicting channel attribution from respondent characteristics,
+          then post-stratify predictions to the full population. Handles sparse cells well and
+          produces stable estimates even with low response rates.
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Imputation Methods</strong></h2>
+        <p class="prose">
+          For non-respondents, impute likely attribution based on observable behavior.
+        </p>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Hot-Deck Imputation</h4>
+            <p>Match each non-respondent to a similar respondent and assign their attribution. Preserves the empirical distribution.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Multiple Imputation</h4>
+            <p>Generate several plausible imputations to capture uncertainty. Combine estimates using Rubin's rules for valid inference.</p>
+          </div>
+          <div class="analytics-card">
+            <h4>Predictive Mean Matching</h4>
+            <p>Use a regression model to predict attribution, then match to the closest observed value. Avoids impossible imputed values.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: IMPLEMENTATION -->
+    <div class="tab-panel" id="sv-panel-implementation">
+      <div class="stage">
+        <h2 class="prose"><strong>Survey Design Guide</strong></h2>
+        <ol class="step-list">
+          <li><strong>Keep it short</strong> -- a single "How did you hear about us?" question with 6-10 options maximizes completion rate.</li>
+          <li><strong>Randomize option order</strong> -- prevent primacy bias from inflating the first listed channel.</li>
+          <li><strong>Include "Other" with write-in</strong> -- capture channels you haven't anticipated. Review write-ins monthly.</li>
+          <li><strong>Allow multi-select</strong> -- customers often recall multiple touchpoints. Single-select forces artificial precision.</li>
+          <li><strong>Place at checkout</strong> -- post-purchase placement captures attribution at peak purchase intent, not days later via email.</li>
+        </ol>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Technical Setup</strong></h2>
+        <p class="prose">
+          A minimal implementation using a post-purchase webhook to capture and store survey responses.
+        </p>
+        <div class="code-block">// Post-purchase survey handler
+function handleSurveyResponse(order, response) {
+  var record = {
+    order_id: order.id,
+    order_value: order.total,
+    channels_selected: response.channels,
+    response_time_ms: response.duration,
+    timestamp: new Date().toISOString(),
+    customer_segment: order.customer.segment
+  };
+
+  // Store for attribution analysis
+  surveyStore.append(record);
+
+  // Flag quality issues
+  if (response.duration < 1000) {
+    record.quality_flag = "speed_suspect";
+  }
+  if (response.channels.length > 4) {
+    record.quality_flag = "acquiescence_suspect";
+  }
+}</div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Data Collection Best Practices</strong></h2>
+        <ol class="step-list">
+          <li><strong>Target 30%+ response rate</strong> -- below 20%, non-response bias becomes severe. Incentivize with discount codes if needed.</li>
+          <li><strong>Collect for 4+ weeks minimum</strong> -- shorter windows miss weekly seasonality and produce unstable estimates.</li>
+          <li><strong>Store raw responses</strong> -- keep individual-level data for re-analysis. Pre-aggregated data cannot be re-weighted.</li>
+          <li><strong>Track response metadata</strong> -- capture time-to-answer, device type, and order value for quality filtering.</li>
+        </ol>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Analysis Workflow</strong></h2>
+        <ol class="step-list">
+          <li><strong>Quality filter</strong> -- remove responses under 1 second, duplicate orders, and test transactions.</li>
+          <li><strong>Calculate raw attribution</strong> -- compute each channel's share of survey-reported revenue.</li>
+          <li><strong>Apply non-response weights</strong> -- re-weight to match full population on order value, device, and segment.</li>
+          <li><strong>Calibrate against platforms</strong> -- compute normalization multipliers and flag divergences above 30%.</li>
+          <li><strong>Generate actionable insights</strong> -- translate calibrated ROAS into specific budget reallocation recommendations.</li>
+        </ol>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Actionable Insights</strong></h2>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="insights-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Survey ROAS</th>
+                <th>Platform ROAS</th>
+                <th>Signal</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <h2 class="prose" style="margin-top: 28px;"><strong>Recommended Tools</strong></h2>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <h4>Fairing (Enquire)</h4>
+            <p>Purpose-built post-purchase survey platform with Shopify integration.</p>
+          </div>
+          <div class="tool-card">
+            <h4>KnoCommerce</h4>
+            <p>Attribution surveys with benchmarking data across thousands of DTC brands.</p>
+          </div>
+          <div class="tool-card">
+            <h4>Google Forms</h4>
+            <p>Free option for early-stage brands. Requires manual integration and analysis.</p>
+          </div>
+          <div class="tool-card">
+            <h4>Typeform</h4>
+            <p>Beautiful survey UX with webhook support. Good for brands prioritizing completion rate.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+  'use strict';
+
+  /* --- State --- */
+  var channels = [
+    { name: 'Facebook', spend: 185000, surveyRevenue: 42300 },
+    { name: 'Instagram', spend: 0, surveyRevenue: 40000 },
+    { name: 'TikTok', spend: 45000, surveyRevenue: 19800 }
+  ];
+  var platformRevenues = {};
+
+  /* --- Tab Switching --- */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  function activateTab(tabId) {
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+    }
+    for (var j = 0; j < tabPanels.length; j++) {
+      tabPanels[j].classList[tabPanels[j].id === 'sv-panel-' + tabId ? 'add' : 'remove']('active');
+    }
+    recalculate();
+  }
+
+  for (var ti = 0; ti < tabBtns.length; ti++) {
+    tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+  }
+
+  /* --- Helpers --- */
+  function money(n) {
+    if (n === undefined || isNaN(n)) return '--';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function pct(n) {
+    if (n === undefined || isNaN(n)) return '--';
+    return (n * 100).toFixed(1) + '%';
+  }
+
+  function roas(n) {
+    if (n === undefined || isNaN(n) || !isFinite(n)) return '--';
+    return n.toFixed(2) + 'x';
+  }
+
+  function getResponseRate() {
+    var el = document.getElementById('response-rate');
+    var val = parseFloat(el ? el.value : 38);
+    if (isNaN(val) || val <= 0) val = 38;
+    if (val > 100) val = 100;
+    return val / 100;
+  }
+
+  /* --- Channel Rendering --- */
+  function renderChannels() {
+    var container = document.getElementById('channels-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (var i = 0; i < channels.length; i++) {
+      var ch = channels[i];
+      var card = document.createElement('div');
+      card.className = 'channel-card';
+      card.setAttribute('data-index', i);
+
+      var header = document.createElement('div');
+      header.className = 'channel-header';
+
+      var title = document.createElement('h4');
+      title.textContent = ch.name;
+      header.appendChild(title);
+
+      if (channels.length > 1) {
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.textContent = 'Remove';
+        removeBtn.setAttribute('data-index', i);
+        removeBtn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-index'), 10);
+          removeChannel(idx);
+        });
+        header.appendChild(removeBtn);
+      }
+
+      card.appendChild(header);
+
+      var inputs = document.createElement('div');
+      inputs.className = 'channel-inputs';
+
+      inputs.innerHTML =
+        '<div>' +
+          '<label>Channel Name</label>' +
+          '<input type="text" data-field="name" data-index="' + i + '" value="' + escapeHtml(ch.name) + '">' +
+        '</div>' +
+        '<div>' +
+          '<label>Ad Spend ($)</label>' +
+          '<input type="number" data-field="spend" data-index="' + i + '" value="' + ch.spend + '" min="0" step="1000">' +
+        '</div>' +
+        '<div>' +
+          '<label>Survey Revenue ($)</label>' +
+          '<input type="number" data-field="surveyRevenue" data-index="' + i + '" value="' + ch.surveyRevenue + '" min="0" step="100">' +
+        '</div>';
+
+      card.appendChild(inputs);
+      container.appendChild(card);
+    }
+
+    /* Attach input listeners */
+    var allInputs = container.querySelectorAll('input');
+    for (var k = 0; k < allInputs.length; k++) {
+      allInputs[k].addEventListener('input', function() {
+        var idx = parseInt(this.getAttribute('data-index'), 10);
+        var field = this.getAttribute('data-field');
+        if (field === 'name') {
+          channels[idx].name = this.value;
+        } else {
+          channels[idx][field] = parseFloat(this.value) || 0;
+        }
+        recalculate();
+      });
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  function addChannel() {
+    channels.push({ name: 'Channel ' + (channels.length + 1), spend: 0, surveyRevenue: 0 });
+    renderChannels();
+    recalculate();
+  }
+
+  function removeChannel(idx) {
+    var removed = channels.splice(idx, 1)[0];
+    if (removed && platformRevenues[removed.name]) {
+      delete platformRevenues[removed.name];
+    }
+    renderChannels();
+    recalculate();
+  }
+
+  /* --- Multiplier Inputs (Calibration Tab) --- */
+  function renderMultiplierInputs() {
+    var container = document.getElementById('multiplier-inputs');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (var i = 0; i < channels.length; i++) {
+      var ch = channels[i];
+      if (ch.spend <= 0) continue;
+
+      if (platformRevenues[ch.name] === undefined) {
+        platformRevenues[ch.name] = Math.round(ch.spend * 1.4);
+      }
+
+      var card = document.createElement('div');
+      card.className = 'multiplier-card';
+      card.innerHTML =
+        '<label>' + escapeHtml(ch.name) + ' Platform Revenue ($)</label>' +
+        '<input type="number" data-channel="' + escapeHtml(ch.name) + '" value="' + platformRevenues[ch.name] + '" min="0" step="1000">';
+      container.appendChild(card);
+    }
+
+    var platInputs = container.querySelectorAll('input');
+    for (var k = 0; k < platInputs.length; k++) {
+      platInputs[k].addEventListener('input', function() {
+        var chName = this.getAttribute('data-channel');
+        platformRevenues[chName] = parseFloat(this.value) || 0;
+        recalculate();
+      });
+    }
+  }
+
+  /* --- Recalculate --- */
+  function recalculate() {
+    var rate = getResponseRate();
+
+    /* Group Facebook + Instagram revenue */
+    var groupedChannels = [];
+    var fbIdx = -1;
+    for (var i = 0; i < channels.length; i++) {
+      var ch = channels[i];
+      var lowerName = ch.name.toLowerCase();
+      if (lowerName === 'facebook' || lowerName === 'instagram') {
+        if (fbIdx === -1) {
+          fbIdx = groupedChannels.length;
+          groupedChannels.push({
+            name: ch.name,
+            spend: ch.spend,
+            surveyRevenue: ch.surveyRevenue,
+            groupedRevenue: ch.surveyRevenue
+          });
+        } else {
+          groupedChannels[fbIdx].groupedRevenue += ch.surveyRevenue;
+          groupedChannels.push({
+            name: ch.name,
+            spend: ch.spend,
+            surveyRevenue: ch.surveyRevenue,
+            groupedRevenue: groupedChannels[fbIdx].groupedRevenue
+          });
+        }
+      } else {
+        groupedChannels.push({
+          name: ch.name,
+          spend: ch.spend,
+          surveyRevenue: ch.surveyRevenue,
+          groupedRevenue: ch.surveyRevenue
+        });
+      }
+    }
+
+    /* Methodology results table */
+    var methBody = document.querySelector('#methodology-results tbody');
+    if (methBody) {
+      methBody.innerHTML = '';
+      for (var m = 0; m < channels.length; m++) {
+        var c = channels[m];
+        var implied = rate > 0 ? c.surveyRevenue / rate : 0;
+        var iRoas = c.spend > 0 ? implied / c.spend : Infinity;
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + escapeHtml(c.name) + '</td>' +
+          '<td>' + money(c.spend) + '</td>' +
+          '<td>' + money(c.surveyRevenue) + '</td>' +
+          '<td>' + money(implied) + '</td>' +
+          '<td>' + (c.spend > 0 ? roas(iRoas) : 'N/A (no spend)') + '</td>';
+        methBody.appendChild(tr);
+      }
+    }
+
+    /* Calibration: render multiplier inputs and results */
+    renderMultiplierInputs();
+
+    var calBody = document.querySelector('#calibration-results tbody');
+    var insightsBody = document.getElementById('calibration-insights-body');
+    if (calBody) {
+      calBody.innerHTML = '';
+      var insightLines = [];
+
+      for (var ci = 0; ci < channels.length; ci++) {
+        var cc = channels[ci];
+        if (cc.spend <= 0) continue;
+
+        var surveyImplied = rate > 0 ? cc.surveyRevenue / rate : 0;
+        var surveyRoas = cc.spend > 0 ? surveyImplied / cc.spend : 0;
+        var platRev = platformRevenues[cc.name] || 0;
+        var platRoas = cc.spend > 0 ? platRev / cc.spend : 0;
+        var multiplier = platRoas > 0 ? surveyRoas / platRoas : 0;
+        var calibrated = platRoas * multiplier;
+
+        var tr2 = document.createElement('tr');
+        tr2.innerHTML =
+          '<td>' + escapeHtml(cc.name) + '</td>' +
+          '<td>' + roas(surveyRoas) + '</td>' +
+          '<td>' + roas(platRoas) + '</td>' +
+          '<td>' + pct(multiplier) + '</td>' +
+          '<td>' + roas(calibrated) + '</td>';
+        calBody.appendChild(tr2);
+
+        if (surveyRoas > platRoas * 1.1) {
+          insightLines.push('<p><strong>' + escapeHtml(cc.name) + ':</strong> Survey ROAS exceeds platform ROAS -- the platform may be under-reporting this channel\'s true influence.</p>');
+        } else if (surveyRoas < platRoas * 0.9) {
+          insightLines.push('<p><strong>' + escapeHtml(cc.name) + ':</strong> Platform ROAS exceeds survey ROAS -- the platform may be over-claiming credit for organic conversions.</p>');
+        } else {
+          insightLines.push('<p><strong>' + escapeHtml(cc.name) + ':</strong> Survey and platform ROAS are closely aligned -- high confidence in reported performance.</p>');
+        }
+      }
+
+      if (insightsBody) {
+        insightsBody.innerHTML = insightLines.length > 0 ? insightLines.join('') : '<p>Add channels with spend to see calibration insights.</p>';
+      }
+    }
+
+    /* Implementation insights table */
+    var insTable = document.querySelector('#insights-table tbody');
+    if (insTable) {
+      insTable.innerHTML = '';
+
+      for (var ii = 0; ii < channels.length; ii++) {
+        var ic = channels[ii];
+        if (ic.spend <= 0) continue;
+
+        var sImplied = rate > 0 ? ic.surveyRevenue / rate : 0;
+        var sRoas = ic.spend > 0 ? sImplied / ic.spend : 0;
+        var pRev = platformRevenues[ic.name] || Math.round(ic.spend * 1.4);
+        var pRoas = ic.spend > 0 ? pRev / ic.spend : 0;
+
+        var signal, badge, rec;
+        if (sRoas > pRoas * 1.2) {
+          signal = 'Under-tracked';
+          badge = 'badge--success';
+          rec = 'Consider increasing budget -- true influence is likely higher than platform reports.';
+        } else if (sRoas < pRoas * 0.8) {
+          signal = 'Over-tracked';
+          badge = 'badge--danger';
+          rec = 'Audit platform attribution settings. Platform may be claiming organic conversions.';
+        } else {
+          signal = 'Aligned';
+          badge = 'badge--warning';
+          rec = 'Performance is well-calibrated. Maintain current investment level.';
+        }
+
+        var tr3 = document.createElement('tr');
+        tr3.innerHTML =
+          '<td>' + escapeHtml(ic.name) + '</td>' +
+          '<td>' + roas(sRoas) + '</td>' +
+          '<td>' + roas(pRoas) + '</td>' +
+          '<td><span class="badge ' + badge + '">' + signal + '</span></td>' +
+          '<td style="text-align:left; font-size:12px;">' + rec + '</td>';
+        insTable.appendChild(tr3);
+      }
+    }
+  }
+
+  /* --- Event Listeners --- */
+  var addBtn = document.getElementById('add-channel-btn');
+  if (addBtn) addBtn.addEventListener('click', addChannel);
+
+  var rateInput = document.getElementById('response-rate');
+  if (rateInput) rateInput.addEventListener('input', function() { recalculate(); });
+
+  /* --- Init --- */
+  renderChannels();
+  recalculate();
+
+  })();
+  </script>
+</body>
+</html>

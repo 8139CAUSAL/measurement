@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saturation &amp; Decay — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Saturation Page Styles === */
+    .page { text-align: center; }
+    .app-content { min-height: 500px; overflow: hidden; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .view-button { padding: .6rem 1.2rem; border: 1px solid var(--brand-border); border-radius: 9999px; background: transparent; color: var(--brand-text-muted); font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s; font-family: inherit; }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+    .visualization-wrapper { position: relative; width: 100%; max-width: 800px; height: 280px; margin: 0 auto; }
+    .chart-svg { width: 100%; height: 100%; }
+    .chart-grid-line { stroke: rgba(255,255,255,0.1); stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-axis-label { fill: var(--brand-text-muted); font-size: 14px; text-anchor: middle; }
+    .chart-curve { stroke: var(--brand-accent); stroke-width: 3; fill: none; }
+    .chart-marker-line { stroke: var(--brand-text-muted); stroke-width: 1; stroke-dasharray: 4 4; }
+    .chart-marker-point { fill: var(--brand-accent); }
+    .chart-bar { fill: var(--brand-accent); }
+    .sat-controls { margin: 10px auto 0; max-width: 520px; display: grid; gap: 10px; }
+    .control-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .control-row label { width: 160px; text-align: right; font-size: 14px; font-weight: 600; }
+    .control-row input[type=range] { flex: 1; max-width: 320px; cursor: pointer; }
+    .value-display { width: 110px; text-align: left; font-size: 16px; font-weight: 700; font-family: "SF Mono", Monaco, "Cascadia Code", monospace; }
+    .results-section { margin-top: 10px; }
+    .results-section .results-header { border-top: 1px solid var(--brand-border); padding-top: 8px; }
+    .results-section h2 { font-size: 16px; margin: 0 0 4px 0; }
+    .results-section .explainer { font-size: 14px; color: var(--brand-text-muted); max-width: 720px; margin: 0 auto; line-height: 1.5; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 10px; }
+    .results-grid .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
+    .results-grid .label { font-size: 14px; color: var(--brand-text-muted); margin-top: .25rem; }
+    .is-hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../calibrate/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Saturation &amp; Decay</h1>
+      <a href="../incrementality/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">Find where more spend stops working and how long your marketing efforts last.</p>
+
+    <div class="app-content">
+      <div class="view-selector" id="sat-view-selector"></div>
+      <div class="visualization-wrapper">
+        <svg class="chart-svg" id="sat-chart-svg"></svg>
+      </div>
+      <div class="sat-controls">
+        <div id="row-spend" class="control-row">
+          <label for="spend-slider">Channel Spend:</label>
+          <input id="spend-slider" type="range" min="0" max="2000000" step="10000" value="500000">
+          <span id="spend-value" class="value-display">$500K</span>
+        </div>
+        <div id="row-decay" class="control-row is-hidden">
+          <label for="decay-slider">Decay Rate:</label>
+          <input id="decay-slider" type="range" min="0.1" max="0.9" step="0.05" value="0.5">
+          <span id="decay-value" class="value-display">0.50</span>
+        </div>
+      </div>
+      <section class="results-section" id="sat-results">
+        <div class="results-header">
+          <h2>Diminishing Returns</h2>
+          <p class="explainer">As spend increases, each additional dollar brings back less revenue. The aim is to stop before your Marginal ROAS falls too low.</p>
+        </div>
+        <div class="results-grid">
+          <div><div class="value" id="m1v">$693K</div><div class="label">Total Attributed Revenue</div></div>
+          <div><div class="value" id="m2v">1.39x</div><div class="label">Overall ROAS</div></div>
+          <div><div class="value" id="m3v">1.12x</div><div class="label">Marginal ROAS</div></div>
+        </div>
+      </section>
+      <section class="results-section is-hidden" id="decay-results">
+        <div class="results-header">
+          <h2>Carryover Effect</h2>
+          <p class="explainer">A single pulse of spend decays over time. The "Half-Life" tells you how many weeks it takes for impact to fall by 50%.</p>
+        </div>
+        <div class="results-grid">
+          <div><div class="value" id="d1v">0.50</div><div class="label">Decay Rate</div></div>
+          <div><div class="value" id="d2v">1.0 weeks</div><div class="label">Marketing Half-Life</div></div>
+          <div><div class="value" id="d3v">35%</div><div class="label">Impact after 4 Weeks</div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+  'use strict';
+  var svg = document.getElementById('sat-chart-svg');
+  var viewSelector = document.getElementById('sat-view-selector');
+  var spendSlider = document.getElementById('spend-slider');
+  var spendValue = document.getElementById('spend-value');
+  var decaySlider = document.getElementById('decay-slider');
+  var decayValue = document.getElementById('decay-value');
+  var satResults = document.getElementById('sat-results');
+  var decayResults = document.getElementById('decay-results');
+  var rowSpend = document.getElementById('row-spend');
+  var rowDecay = document.getElementById('row-decay');
+  var P = { alpha: 800000, theta: 400000, k: 1.8 };
+  var state = { view: 'saturation', spend: +spendSlider.value, decay: +decaySlider.value };
+  var VIEWS = { saturation: 'Saturation Curve', decay: 'Adstock & Decay' };
+
+  function hill(x) { return (P.alpha * Math.pow(x, P.k)) / (Math.pow(P.theta, P.k) + Math.pow(x, P.k)); }
+  function dhill(x) {
+    var t = Math.max(x, 1e-6), thk = Math.pow(P.theta, P.k), sk1 = Math.pow(t, P.k - 1), sk = t * sk1;
+    return (P.alpha * P.k * thk * sk1) / Math.pow(thk + sk, 2);
+  }
+  function halfLife(r) { return (r <= 0 || r >= 1) ? 999 : Math.log(0.5) / Math.log(r); }
+  function money(n) { if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M'; if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'K'; return '$' + Math.round(n); }
+
+  function buildTabs() {
+    viewSelector.innerHTML = '';
+    var ids = Object.keys(VIEWS);
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      var b = document.createElement('button');
+      b.className = 'view-button' + (state.view === id ? ' active' : '');
+      b.textContent = VIEWS[id];
+      b.setAttribute('data-view', id);
+      b.addEventListener('click', function() {
+        state.view = this.getAttribute('data-view');
+        togglePanels(); renderChart(); renderMetrics(); buildTabs();
+      });
+      viewSelector.appendChild(b);
+    }
+  }
+
+  function togglePanels() {
+    rowSpend.classList.toggle('is-hidden', state.view !== 'saturation');
+    rowDecay.classList.toggle('is-hidden', state.view !== 'decay');
+    satResults.classList.toggle('is-hidden', state.view !== 'saturation');
+    decayResults.classList.toggle('is-hidden', state.view !== 'decay');
+  }
+
+  function renderMetrics() {
+    if (state.view === 'saturation') {
+      var rev = hill(state.spend);
+      document.getElementById('m1v').textContent = money(rev);
+      document.getElementById('m2v').textContent = (rev / (state.spend || 1)).toFixed(2) + 'x';
+      document.getElementById('m3v').textContent = dhill(state.spend).toFixed(2) + 'x';
+    } else {
+      document.getElementById('d1v').textContent = state.decay.toFixed(2);
+      document.getElementById('d2v').textContent = halfLife(state.decay).toFixed(1) + ' weeks';
+      document.getElementById('d3v').textContent = Math.round(Math.pow(state.decay, 4) * 100) + '%';
+    }
+  }
+
+  function renderChart() {
+    svg.innerHTML = '';
+    var svgW = svg.clientWidth || 800;
+    var svgH = svg.clientHeight || 280;
+    var m = { top: 20, right: 30, bottom: 40, left: 70 };
+    var W = svgW - m.left - m.right;
+    var H = svgH - m.top - m.bottom;
+    var NS = 'http://www.w3.org/2000/svg';
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', 'translate(' + m.left + ',' + m.top + ')');
+    svg.appendChild(g);
+    for (var i = 0; i <= 4; i++) {
+      var y = H * (i / 4);
+      var ln = document.createElementNS(NS, 'line');
+      ln.setAttribute('x1', 0); ln.setAttribute('y1', y);
+      ln.setAttribute('x2', W); ln.setAttribute('y2', y);
+      ln.setAttribute('class', 'chart-grid-line');
+      g.appendChild(ln);
+    }
+    if (state.view === 'saturation') {
+      var pts = [];
+      for (var j = 0; j <= 100; j++) {
+        var s = (j / 100) * 2000000;
+        var r = hill(s);
+        var x = (s / 2000000) * W;
+        var cy = H - (r / P.alpha) * H;
+        pts.push(x + ',' + cy);
+      }
+      var pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('points', pts.join(' '));
+      pl.setAttribute('class', 'chart-curve');
+      g.appendChild(pl);
+      var mx = (state.spend / 2000000) * W;
+      var my = H - (hill(state.spend) / P.alpha) * H;
+      var v = document.createElementNS(NS, 'line');
+      v.setAttribute('x1', mx); v.setAttribute('y1', my); v.setAttribute('x2', mx); v.setAttribute('y2', H);
+      v.setAttribute('class', 'chart-marker-line'); g.appendChild(v);
+      var h = document.createElementNS(NS, 'line');
+      h.setAttribute('x1', 0); h.setAttribute('y1', my); h.setAttribute('x2', mx); h.setAttribute('y2', my);
+      h.setAttribute('class', 'chart-marker-line'); g.appendChild(h);
+      var dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', mx); dot.setAttribute('cy', my); dot.setAttribute('r', 6);
+      dot.setAttribute('class', 'chart-marker-point'); g.appendChild(dot);
+      var lx = document.createElementNS(NS, 'text');
+      lx.setAttribute('x', W / 2); lx.setAttribute('y', H + 28);
+      lx.setAttribute('class', 'chart-axis-label'); lx.textContent = 'Spend'; g.appendChild(lx);
+      var ly = document.createElementNS(NS, 'text');
+      ly.setAttribute('transform', 'rotate(-90)'); ly.setAttribute('x', -H / 2); ly.setAttribute('y', -50);
+      ly.setAttribute('class', 'chart-axis-label'); ly.textContent = 'Revenue'; g.appendChild(ly);
+    } else {
+      var weeks = 12, band = W / weeks, bw = band * 0.7, gap = band * 0.3;
+      for (var k = 0; k < weeks; k++) {
+        var impact = 100 * Math.pow(state.decay, k);
+        var bh = (impact / 100) * H;
+        var bx = k * (bw + gap) + gap / 2, by = H - bh;
+        var rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', bx); rect.setAttribute('y', by);
+        rect.setAttribute('width', bw); rect.setAttribute('height', bh);
+        rect.setAttribute('class', 'chart-bar');
+        g.appendChild(rect);
+      }
+      var lx2 = document.createElementNS(NS, 'text');
+      lx2.setAttribute('x', W / 2); lx2.setAttribute('y', H + 28);
+      lx2.setAttribute('class', 'chart-axis-label'); lx2.textContent = 'Weeks Since Ad Exposure'; g.appendChild(lx2);
+      var ly2 = document.createElementNS(NS, 'text');
+      ly2.setAttribute('transform', 'rotate(-90)'); ly2.setAttribute('x', -H / 2); ly2.setAttribute('y', -50);
+      ly2.setAttribute('class', 'chart-axis-label'); ly2.textContent = 'Effective Impact (%)'; g.appendChild(ly2);
+    }
+  }
+
+  spendSlider.addEventListener('input', function() { state.spend = +spendSlider.value; spendValue.textContent = money(state.spend); renderChart(); renderMetrics(); });
+  decaySlider.addEventListener('input', function() { state.decay = +decaySlider.value; decayValue.textContent = state.decay.toFixed(2); renderChart(); renderMetrics(); });
+  window.addEventListener('resize', function() { renderChart(); });
+
+  buildTabs();
+  togglePanels();
+  spendValue.textContent = money(state.spend);
+  decayValue.textContent = state.decay.toFixed(2);
+  renderChart();
+  renderMetrics();
+  })();
+  </script>
+</body>
+</html>

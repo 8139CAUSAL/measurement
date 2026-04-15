@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propensity Scores — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Propensity Page Styles === */
+
+    /* --- Chart Wrapper --- */
+    .chart-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 12px;
+    }
+    .chart-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .chart-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--brand-border);
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--brand-text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .chart-btn:hover {
+      border-color: var(--brand-text);
+      color: var(--brand-text);
+    }
+    .chart-btn.active {
+      background: var(--brand-accent);
+      color: var(--brand-background);
+      border-color: var(--brand-accent);
+    }
+
+    /* --- SVG Styles --- */
+    .axis-line {
+      stroke: rgba(255, 255, 255, 0.3);
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+    .zero-line {
+      stroke: rgba(255, 255, 255, 0.5);
+      stroke-width: 1;
+      stroke-dasharray: 4 4;
+      shape-rendering: crispEdges;
+    }
+    .guide-line {
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+    .whisker {
+      stroke-width: 2;
+      transition: all 0.6s ease;
+    }
+    .box-rect {
+      stroke-width: 1.5;
+      transition: all 0.6s ease;
+    }
+    .dot {
+      transition: cx 0.6s ease, cy 0.6s ease;
+    }
+    .connector {
+      stroke-width: 1.5;
+      transition: x1 0.6s ease, x2 0.6s ease;
+    }
+
+    /* --- Legend --- */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--brand-text-muted);
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* --- Explainer Callout --- */
+    .explainer {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--brand-text-muted);
+    }
+    .explainer strong {
+      color: var(--brand-text);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 600px) {
+      .chart-wrapper { padding: 16px; }
+      .chart-controls { gap: 6px; }
+      .chart-btn { font-size: 11px; padding: 5px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../response-modeling/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&#8592; BACK</a>
+      <h1 class="sec-nav__header">Propensity Scores</h1>
+      <a href="../uplift/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &#8594;</a>
+    </nav>
+
+    <p class="problem-statement">Evaluating Causal Inference models. How to check for common support and covariate balance using Box Plots and Love Plots.</p>
+
+    <!-- Tab Selector -->
+    <div class="tab-selector">
+      <button class="tab-btn active" data-tab="concept">Concept</button>
+      <button class="tab-btn" data-tab="overlap">Overlap (Box Plot)</button>
+      <button class="tab-btn" data-tab="balance">Balance (Love Plot)</button>
+    </div>
+
+    <!-- ============ Tab 1: Concept ============ -->
+    <div class="tab-panel active" id="tab-concept">
+      <div class="content-card">
+        <p class="prose">
+          A <strong>propensity score</strong> is the estimated probability that a unit receives the treatment,
+          given its observed covariates. In observational studies where randomization is not possible,
+          propensity scores let us approximate a randomized experiment by balancing the distribution of
+          confounders between the treated and control groups.
+        </p>
+        <p class="prose">
+          Once scores are estimated (usually via logistic regression or gradient-boosted trees),
+          they enable several adjustment strategies: <em>matching</em> pairs similar treated and control
+          units, <em>stratification</em> bins units into score quintiles, <em>weighting</em> uses inverse
+          probability weights, and <em>regression adjustment</em> includes the score as a covariate.
+        </p>
+
+        <div class="formula-box" style="text-align:center; margin: 20px 0;">
+          <div style="font-size: 12px; color: var(--brand-text-muted); margin-bottom: 8px; font-family: inherit; text-transform: uppercase; letter-spacing: 0.5px;">Propensity Score</div>
+          <div style="font-size: 18px;">e(X) = P(T = 1 | X)</div>
+        </div>
+
+        <div class="key-definition">
+          <strong>Interpretation:</strong> A propensity score of 0.7 means the model estimates a 70% chance
+          that this unit would receive treatment, based on its covariates. Two units with similar scores
+          are considered comparable regardless of their actual treatment assignment &mdash; which is the
+          foundation for valid causal comparisons.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Tab 2: Overlap (Box Plot) ============ -->
+    <div class="tab-panel" id="tab-overlap">
+      <div class="content-card">
+        <p class="prose">
+          <strong>Common support</strong> (overlap) means every unit has a non-trivial chance of appearing
+          in either the treated or control group. When the propensity-score distributions barely overlap,
+          matching is unreliable because many treated units have no comparable controls.
+        </p>
+        <div class="chart-wrapper">
+          <div class="chart-controls">
+            <button class="chart-btn active" data-scenario="bad" id="btn-bad">Selection Bias (Bad)</button>
+            <button class="chart-btn" data-scenario="good" id="btn-good">Balanced (Good)</button>
+          </div>
+          <svg id="boxSvg" viewBox="0 0 600 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Box plot comparing treated and control propensity score distributions">
+            <!-- Y-axis labels -->
+            <text x="55" y="105" fill="rgba(255,255,255,0.7)" font-size="13" text-anchor="end" dominant-baseline="middle">Treated</text>
+            <text x="55" y="210" fill="rgba(255,255,255,0.7)" font-size="13" text-anchor="end" dominant-baseline="middle">Control</text>
+            <!-- X-axis -->
+            <line x1="70" y1="265" x2="580" y2="265" class="axis-line"/>
+            <text x="70"  y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">0.0</text>
+            <text x="172" y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">0.2</text>
+            <text x="274" y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">0.4</text>
+            <text x="376" y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">0.6</text>
+            <text x="478" y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">0.8</text>
+            <text x="580" y="282" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">1.0</text>
+            <!-- Axis title -->
+            <text x="325" y="298" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">Propensity Score</text>
+            <!-- Grid lines -->
+            <line x1="172" y1="60" x2="172" y2="265" class="guide-line"/>
+            <line x1="274" y1="60" x2="274" y2="265" class="guide-line"/>
+            <line x1="376" y1="60" x2="376" y2="265" class="guide-line"/>
+            <line x1="478" y1="60" x2="478" y2="265" class="guide-line"/>
+            <!-- Dynamic groups -->
+            <g id="treatedGroup"></g>
+            <g id="controlGroup"></g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Tab 3: Balance (Love Plot) ============ -->
+    <div class="tab-panel" id="tab-balance">
+      <div class="content-card">
+        <p class="prose">
+          A <strong>Love Plot</strong> shows the standardized mean difference (SMD) for each covariate
+          before and after matching. The goal is to shrink every dot inside the &plusmn;0.1 threshold,
+          indicating adequate balance.
+        </p>
+        <div class="chart-wrapper">
+          <div class="chart-controls">
+            <button class="chart-btn active" data-love="unadjusted" id="btn-unadj">Unadjusted Data</button>
+            <button class="chart-btn" data-love="adjusted" id="btn-adj">After Matching</button>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-color" style="background:#f87171;"></span> Unadjusted</span>
+            <span class="legend-item"><span class="legend-color" style="background:#2dd4bf;"></span> Adjusted</span>
+          </div>
+          <svg id="loveSvg" viewBox="0 0 600 450" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Love plot showing covariate balance before and after matching">
+          </svg>
+          <div class="explainer">
+            <strong>Goal:</strong> After matching, every covariate's SMD should fall within the &plusmn;0.1 threshold
+            (the dashed vertical lines). Covariates outside that band suggest residual imbalance that could
+            bias causal estimates. The teal dots should cluster tightly around zero.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.page -->
+
+  <script>
+  (function() {
+    "use strict";
+
+    /* ========== Tab Switching ========== */
+    var tabBtns = document.querySelectorAll(".tab-btn");
+    var tabPanels = document.querySelectorAll(".tab-panel");
+    var boxInitialized = false;
+    var loveInitialized = false;
+
+    function switchTab(id) {
+      for (var i = 0; i < tabBtns.length; i++) {
+        tabBtns[i].classList.toggle("active", tabBtns[i].getAttribute("data-tab") === id);
+      }
+      for (var j = 0; j < tabPanels.length; j++) {
+        tabPanels[j].classList.toggle("active", tabPanels[j].id === "tab-" + id);
+      }
+      if (id === "overlap" && !boxInitialized) {
+        boxInitialized = true;
+        drawBoxPlot("bad");
+      }
+      if (id === "balance" && !loveInitialized) {
+        loveInitialized = true;
+        initLove();
+      }
+    }
+
+    for (var t = 0; t < tabBtns.length; t++) {
+      tabBtns[t].addEventListener("click", function() {
+        switchTab(this.getAttribute("data-tab"));
+      });
+    }
+
+    /* ========== Box-Muller Normal Random ========== */
+    function randn() {
+      var u1 = Math.random();
+      var u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    /* ========== Box Plot ========== */
+    var xMin = 70;
+    var xMax = 580;
+    var xRange = xMax - xMin;
+
+    function valToX(v) {
+      return xMin + Math.max(0, Math.min(1, v)) * xRange;
+    }
+
+    function getBoxData(mean, spread, yCenter) {
+      var pts = [];
+      for (var i = 0; i < 60; i++) {
+        var v = mean + randn() * spread;
+        v = Math.max(0.01, Math.min(0.99, v));
+        pts.push(v);
+      }
+      pts.sort(function(a, b) { return a - b; });
+      var n = pts.length;
+      var q1 = pts[Math.floor(n * 0.25)];
+      var med = (pts[Math.floor(n * 0.5)] + pts[Math.ceil(n * 0.5)]) / 2;
+      var q3 = pts[Math.floor(n * 0.75)];
+      var iqr = q3 - q1;
+      var wLo = Math.max(pts[0], q1 - 1.5 * iqr);
+      var wHi = Math.min(pts[n - 1], q3 + 1.5 * iqr);
+      return { pts: pts, q1: q1, med: med, q3: q3, wLo: wLo, wHi: wHi, yCenter: yCenter };
+    }
+
+    function svgEl(tag, attrs) {
+      var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (var k in attrs) {
+        if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+      }
+      return el;
+    }
+
+    function drawBox(group, data, color) {
+      while (group.firstChild) group.removeChild(group.firstChild);
+      var y = data.yCenter;
+      var boxH = 40;
+      var yTop = y - boxH / 2;
+
+      // Whisker line
+      group.appendChild(svgEl("line", {
+        x1: valToX(data.wLo), y1: y, x2: valToX(data.wHi), y2: y,
+        stroke: color, class: "whisker"
+      }));
+      // Whisker caps
+      group.appendChild(svgEl("line", {
+        x1: valToX(data.wLo), y1: y - 10, x2: valToX(data.wLo), y2: y + 10,
+        stroke: color, "stroke-width": 2
+      }));
+      group.appendChild(svgEl("line", {
+        x1: valToX(data.wHi), y1: y - 10, x2: valToX(data.wHi), y2: y + 10,
+        stroke: color, "stroke-width": 2
+      }));
+      // Box rect
+      group.appendChild(svgEl("rect", {
+        x: valToX(data.q1), y: yTop, width: valToX(data.q3) - valToX(data.q1), height: boxH,
+        fill: color, "fill-opacity": 0.15, stroke: color, class: "box-rect", rx: 3
+      }));
+      // Median line
+      group.appendChild(svgEl("line", {
+        x1: valToX(data.med), y1: yTop, x2: valToX(data.med), y2: yTop + boxH,
+        stroke: color, "stroke-width": 2.5
+      }));
+      // Scatter dots
+      for (var i = 0; i < data.pts.length; i++) {
+        var jitter = (Math.random() - 0.5) * 28;
+        group.appendChild(svgEl("circle", {
+          cx: valToX(data.pts[i]), cy: y + jitter, r: 2.5,
+          fill: color, "fill-opacity": 0.45, class: "dot"
+        }));
+      }
+    }
+
+    var scenarios = {
+      bad:  { treated: { mean: 0.8,  spread: 0.10 }, control: { mean: 0.2,  spread: 0.15 } },
+      good: { treated: { mean: 0.55, spread: 0.15 }, control: { mean: 0.45, spread: 0.15 } }
+    };
+
+    function drawBoxPlot(type) {
+      var s = scenarios[type];
+      var treatedData = getBoxData(s.treated.mean, s.treated.spread, 105);
+      var controlData = getBoxData(s.control.mean, s.control.spread, 210);
+      drawBox(document.getElementById("treatedGroup"), treatedData, "#f87171");
+      drawBox(document.getElementById("controlGroup"), controlData, "#60a5fa");
+    }
+
+    // Box plot controls
+    document.getElementById("btn-bad").addEventListener("click", function() {
+      document.getElementById("btn-bad").classList.add("active");
+      document.getElementById("btn-good").classList.remove("active");
+      drawBoxPlot("bad");
+    });
+    document.getElementById("btn-good").addEventListener("click", function() {
+      document.getElementById("btn-good").classList.add("active");
+      document.getElementById("btn-bad").classList.remove("active");
+      drawBoxPlot("good");
+    });
+
+    /* ========== Love Plot ========== */
+    var covariates = [
+      "Propensity Score",
+      "Prior_Spend",
+      "Age",
+      "Education_Years",
+      "Married",
+      "No_Degree",
+      "Minority",
+      "Earnings_1974"
+    ];
+
+    var unadjustedSMD = [0.72, 0.55, -0.31, 0.42, -0.24, -0.58, 0.15, 0.38];
+    var adjustedSMD   = [0.03, -0.02, 0.04, -0.01, 0.02, -0.03, 0.01, -0.02];
+
+    var loveCenterX = 370;
+    var lovePxPerUnit = 420;
+    var loveTopY = 50;
+    var loveRowH = 45;
+    var loveSvg = document.getElementById("loveSvg");
+
+    var unadjDots = [];
+    var adjDots = [];
+    var connectors = [];
+
+    function smdToX(smd) {
+      return loveCenterX + smd * lovePxPerUnit;
+    }
+
+    function initLove() {
+      // Clear SVG
+      while (loveSvg.firstChild) loveSvg.removeChild(loveSvg.firstChild);
+
+      // Zero line
+      loveSvg.appendChild(svgEl("line", {
+        x1: loveCenterX, y1: 20, x2: loveCenterX, y2: loveTopY + covariates.length * loveRowH + 10,
+        class: "zero-line"
+      }));
+
+      // Threshold lines at +/-0.1
+      var threshPos = smdToX(0.1);
+      var threshNeg = smdToX(-0.1);
+      loveSvg.appendChild(svgEl("line", {
+        x1: threshPos, y1: 20, x2: threshPos, y2: loveTopY + covariates.length * loveRowH + 10,
+        stroke: "rgba(255,255,255,0.25)", "stroke-width": 1, "stroke-dasharray": "4 4"
+      }));
+      loveSvg.appendChild(svgEl("line", {
+        x1: threshNeg, y1: 20, x2: threshNeg, y2: loveTopY + covariates.length * loveRowH + 10,
+        stroke: "rgba(255,255,255,0.25)", "stroke-width": 1, "stroke-dasharray": "4 4"
+      }));
+
+      // Threshold labels
+      loveSvg.appendChild(svgEl("text", {
+        x: threshPos, y: 15, fill: "rgba(255,255,255,0.4)", "font-size": 10, "text-anchor": "middle"
+      })).textContent = "+0.1";
+      loveSvg.appendChild(svgEl("text", {
+        x: threshNeg, y: 15, fill: "rgba(255,255,255,0.4)", "font-size": 10, "text-anchor": "middle"
+      })).textContent = "-0.1";
+      loveSvg.appendChild(svgEl("text", {
+        x: loveCenterX, y: 15, fill: "rgba(255,255,255,0.4)", "font-size": 10, "text-anchor": "middle"
+      })).textContent = "0";
+
+      // Axis label
+      loveSvg.appendChild(svgEl("text", {
+        x: loveCenterX, y: loveTopY + covariates.length * loveRowH + 35,
+        fill: "rgba(255,255,255,0.5)", "font-size": 11, "text-anchor": "middle"
+      })).textContent = "Standardized Mean Difference (SMD)";
+
+      // Rows
+      for (var i = 0; i < covariates.length; i++) {
+        var rowY = loveTopY + i * loveRowH + loveRowH / 2;
+
+        // Guide line
+        loveSvg.appendChild(svgEl("line", {
+          x1: 150, y1: rowY, x2: 590, y2: rowY,
+          class: "guide-line"
+        }));
+
+        // Label
+        loveSvg.appendChild(svgEl("text", {
+          x: 145, y: rowY + 4, fill: "rgba(255,255,255,0.7)", "font-size": 12, "text-anchor": "end"
+        })).textContent = covariates[i];
+
+        // Connector line
+        var conn = svgEl("line", {
+          x1: smdToX(unadjustedSMD[i]), y1: rowY,
+          x2: smdToX(adjustedSMD[i]), y2: rowY,
+          stroke: "rgba(255,255,255,0.2)", class: "connector"
+        });
+        loveSvg.appendChild(conn);
+        connectors.push(conn);
+
+        // Unadjusted dot (red)
+        var uDot = svgEl("circle", {
+          cx: smdToX(unadjustedSMD[i]), cy: rowY, r: 5,
+          fill: "#f87171", class: "dot"
+        });
+        loveSvg.appendChild(uDot);
+        unadjDots.push(uDot);
+
+        // Adjusted dot (teal)
+        var aDot = svgEl("circle", {
+          cx: smdToX(adjustedSMD[i]), cy: rowY, r: 5,
+          fill: "#2dd4bf", class: "dot"
+        });
+        loveSvg.appendChild(aDot);
+        adjDots.push(aDot);
+      }
+    }
+
+    function updateLovePlot(type) {
+      for (var i = 0; i < covariates.length; i++) {
+        var uX, aX;
+        if (type === "unadjusted") {
+          uX = smdToX(unadjustedSMD[i]);
+          aX = smdToX(adjustedSMD[i]);
+        } else {
+          uX = smdToX(adjustedSMD[i]);
+          aX = smdToX(adjustedSMD[i]);
+        }
+        unadjDots[i].setAttribute("cx", uX);
+        adjDots[i].setAttribute("cx", aX);
+        connectors[i].setAttribute("x1", uX);
+        connectors[i].setAttribute("x2", aX);
+      }
+    }
+
+    // Love plot controls
+    document.getElementById("btn-unadj").addEventListener("click", function() {
+      document.getElementById("btn-unadj").classList.add("active");
+      document.getElementById("btn-adj").classList.remove("active");
+      updateLovePlot("unadjusted");
+    });
+    document.getElementById("btn-adj").addEventListener("click", function() {
+      document.getElementById("btn-adj").classList.add("active");
+      document.getElementById("btn-unadj").classList.remove("active");
+      updateLovePlot("adjusted");
+    });
+
+  })();
+  </script>
+</body>
+</html>

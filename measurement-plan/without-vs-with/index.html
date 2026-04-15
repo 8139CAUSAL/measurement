@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Without vs With a Plan — Causal Science</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .page { text-align: center; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 24px; }
+    .view-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: transparent; border: 1px solid var(--brand-border); color: var(--brand-text-muted); }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); border-color: var(--brand-accent); color: var(--brand-background); }
+    .view-button .dot { width: 6px; height: 6px; border-radius: 50%; background: #00D4FF; }
+    .view-button.active .dot { background: var(--brand-background); }
+
+    .comparison-container { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); min-height: 520px; text-align: left; }
+    .tab-bar { display: inline-flex; border-radius: 9999px; padding: 4px; background: var(--brand-background); border: 1px solid rgba(255,255,255,0.12); margin-bottom: 24px; }
+    .tab-button { border: none; padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 9999px; cursor: pointer; background: transparent; color: var(--brand-text-muted); font-family: inherit; transition: all 0.2s; }
+    .tab-button:hover { color: var(--brand-text); }
+    .tab-button.active { background: var(--brand-accent); color: var(--brand-background); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: mp2FadeIn 0.2s ease; }
+    @keyframes mp2FadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .panel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .pill-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; background: var(--brand-background); border: 1px solid rgba(255,255,255,0.12); font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+    .pill-status .dot { width: 6px; height: 6px; border-radius: 50%; background: #f97316; }
+    .pill-status.good .dot { background: var(--brand-accent); }
+    .panel-title { font-weight: 600; font-size: 16px; }
+
+    .panel-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; margin-bottom: 20px; }
+    .column { background: var(--brand-background); border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); padding: 16px; }
+    .column-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+
+    .event-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; }
+    .event-item { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; font-size: 14px; font-family: "SF Mono", Monaco, "Cascadia Code", Consolas, monospace; background: rgba(255,255,255,0.08); border: 1px dashed var(--brand-border); white-space: nowrap; }
+    .event-item.bad { border-style: solid; border-color: #f97316; background: rgba(249,115,22,0.12); }
+    .event-item.good { border-style: solid; border-color: var(--brand-accent); background: rgba(45,212,191,0.15); }
+    .event-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .event-dot.bad { background: #f97316; }
+    .event-dot.good { background: var(--brand-accent); }
+
+    .flow-area { font-family: "SF Mono", Monaco, "Cascadia Code", Consolas, monospace; font-size: 14px; line-height: 1.35; background: rgba(255,255,255,0.08); border: 1px dashed var(--brand-border); border-radius: 12px; padding: 14px; overflow-x: auto; }
+    .flow-row { margin-bottom: 6px; white-space: nowrap; font-size: 14px; }
+    .flow-row:last-child { margin-bottom: 0; }
+    .flow-messy { color: #f97316; }
+    .flow-clean { color: var(--brand-accent); }
+
+    .outcome-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; }
+    .outcome-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid var(--brand-border); font-size: 14px; white-space: nowrap; }
+    .outcome-dot { width: 6px; height: 6px; border-radius: 50%; background: #00D4FF; }
+
+    .measurement-objective { margin-top: 16px; padding: 12px; border-radius: 8px; background: rgba(45,212,191,0.15); border: 1px solid var(--brand-border); font-size: 14px; line-height: 1.45; color: var(--brand-text-muted); }
+    .measurement-objective strong { display: block; margin-bottom: 4px; color: var(--brand-accent); }
+
+    .caption { font-size: 14px; line-height: 1.55; color: var(--brand-text-muted); border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; }
+    .caption strong { color: var(--brand-text); }
+
+    @media (max-width: 768px) {
+      .panel-grid { grid-template-columns: 1fr; }
+      .flow-row { white-space: normal; word-wrap: break-word; font-size: 0.85rem; text-align: center; }
+      .flow-arrow-row { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Without vs With a Plan</h1>
+      <a href="../plan-builder/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">See the difference between scattered tracking and intentional measurement. One creates confusion, the other creates clarity.</p>
+
+    <div class="view-selector">
+      <a href="../" class="view-button"><span class="dot"></span> Measurement plan</a>
+      <a href="./" class="view-button active"><span class="dot"></span> Without vs with a plan</a>
+      <a href="../plan-builder/" class="view-button"><span class="dot"></span> Plan builder</a>
+    </div>
+
+    <div class="comparison-container">
+      <div class="tab-bar">
+        <button class="tab-button active" data-target="no-plan">Without a plan</button>
+        <button class="tab-button" data-target="with-plan">With a plan</button>
+      </div>
+
+      <div id="no-plan" class="tab-panel active">
+        <div class="panel-header">
+          <div class="pill-status"><span class="dot"></span> Measure everything</div>
+          <div class="panel-title">Events everywhere, no clear objective</div>
+        </div>
+        <div class="panel-grid">
+          <div class="column">
+            <div class="column-title">Tracked events</div>
+            <ul class="event-list">
+              <li class="event-item bad"><span class="event-dot bad"></span>page_view</li>
+              <li class="event-item bad"><span class="event-dot bad"></span>scroll_depth</li>
+              <li class="event-item bad"><span class="event-dot bad"></span>cta_click_test</li>
+              <li class="event-item bad"><span class="event-dot bad"></span>signup_old</li>
+              <li class="event-item bad"><span class="event-dot bad"></span>misc_event_01</li>
+            </ul>
+          </div>
+          <div class="column">
+            <div class="column-title">How the data behaves</div>
+            <div class="flow-area">
+              <div class="flow-row flow-messy">page_view &#8644; scroll_depth &#8644; cta_click_test &#8644; signup_old</div>
+              <div class="flow-row flow-messy flow-arrow-row">&#8693; &nbsp;&nbsp;&nbsp; &#8693; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#8693; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#8693;</div>
+              <div class="flow-row flow-messy">Leads &#10235; all events (different definitions)</div>
+              <div class="flow-row flow-messy">Bookings &#10235; all events</div>
+              <div class="flow-row flow-messy">Revenue &#10235; all events</div>
+              <div class="flow-row" style="color: rgba(255,255,255,0.5); margin-top: 8px;">Everything connects to everything. No one agrees.</div>
+            </div>
+            <ul class="outcome-list">
+              <li><span class="outcome-badge"><span class="outcome-dot"></span>Leads</span></li>
+              <li><span class="outcome-badge"><span class="outcome-dot"></span>Bookings</span></li>
+              <li><span class="outcome-badge"><span class="outcome-dot"></span>Revenue</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="caption">
+          <strong>Without a plan, "measure everything" becomes a tangle.</strong>
+          Different events are added "just in case," they all appear to relate to every outcome, and it's hard to agree on what success actually looks like.
+        </div>
+      </div>
+
+      <div id="with-plan" class="tab-panel">
+        <div class="panel-header">
+          <div class="pill-status good"><span class="dot"></span> Simple measurement plan</div>
+          <div class="panel-title">Fewer events, a clear path to one outcome</div>
+        </div>
+        <div class="panel-grid">
+          <div class="column">
+            <div class="column-title">Planned events</div>
+            <ul class="event-list">
+              <li class="event-item good"><span class="event-dot good"></span>view_pricing</li>
+              <li class="event-item good"><span class="event-dot good"></span>generate_lead</li>
+              <li class="event-item good"><span class="event-dot good"></span>booking_confirmed</li>
+            </ul>
+            <div class="measurement-objective">
+              <strong>Measurement objective:</strong>
+              See how many visitors reach pricing, become qualified leads, and complete a booking.
+            </div>
+          </div>
+          <div class="column">
+            <div class="column-title">Clear event &rarr; outcome path</div>
+            <div class="flow-area">
+              <div class="flow-row flow-clean">view_pricing &rarr; generate_lead &rarr; booking_confirmed &rarr; Booked customer</div>
+              <div class="flow-row flow-clean" style="margin-top: 8px;">GA4 event &rarr; GA4 event &rarr; GA4 event &rarr; Business outcome</div>
+              <div class="flow-row" style="color: rgba(255,255,255,0.5); margin-top: 8px;">One path. One owner. One definition of success.</div>
+            </div>
+            <ul class="outcome-list">
+              <li><span class="outcome-badge"><span class="outcome-dot"></span>Booked customer (primary outcome)</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="caption">
+          <strong>With a plan, events form a small, intentional graph that answers a specific question.</strong>
+          The team agrees on the outcome, each key event has a clear name and purpose, and it's easier to see how changes affect the result.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+  'use strict';
+  var tabButtons = document.querySelectorAll('.tab-button');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  function setActiveTab(targetId) {
+    for (var i = 0; i < tabButtons.length; i++) {
+      if (tabButtons[i].getAttribute('data-target') === targetId) { tabButtons[i].classList.add('active'); } else { tabButtons[i].classList.remove('active'); }
+    }
+    for (var j = 0; j < tabPanels.length; j++) {
+      if (tabPanels[j].id === targetId) { tabPanels[j].classList.add('active'); } else { tabPanels[j].classList.remove('active'); }
+    }
+  }
+
+  for (var k = 0; k < tabButtons.length; k++) {
+    tabButtons[k].addEventListener('click', function() {
+      var target = this.getAttribute('data-target');
+      if (target) setActiveTab(target);
+    });
+  }
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Is MMM Right For You? — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .page { text-align: center; }
+    .hero-section { margin-top: 20px; margin-bottom: 20px; padding: 0 20px; }
+    .hero-tagline { color: rgba(255, 255, 255, 0.85); font-size: 16px; font-weight: 400; letter-spacing: 0.5px; line-height: 1.4; margin-bottom: 8px; }
+    .hero-explainer { color: var(--brand-text-muted); font-size: 14px; line-height: 1.5; max-width: 880px; margin: 0 auto; }
+    .readiness-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; padding: 10px 0 20px; text-align: center; }
+    .readiness-card { padding: 25px 20px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; min-height: 180px; }
+    .readiness-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.12); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.2); }
+    .readiness-card .card-label { color: #00D4FF; font-size: 13px; font-weight: 500; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .readiness-card h3 { color: #fff; font-size: 18px; font-weight: 600; margin: 0 0 10px; line-height: 1.2; }
+    .readiness-card p.card-desc { color: rgba(255, 255, 255, 0.75); font-size: 14px; line-height: 1.4; margin: 0; }
+    @media (max-width: 900px) { .readiness-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .readiness-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../mmm/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Is MMM Right For You?</h1>
+      <a href="../measurement-plan/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <div class="hero-section">
+      <p class="hero-tagline">The more you want to learn, the more data you need.</p>
+      <p class="hero-explainer">
+        MMM works best when you have time on your side, movement in budgets, and a focused set of questions.
+        The tiles below outline the key signals that indicate readiness for a successful MMM project.
+      </p>
+    </div>
+
+    <div class="readiness-grid">
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Historical Data</h3>
+        <p class="card-desc">2+ years of weekly data (or 4-5 years monthly) allows the model to see seasonality and trends.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Budget Movement</h3>
+        <p class="card-desc">Flat budgets hide impact. Sensible increases and decreases are required for the model to learn.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Focused Questions</h3>
+        <p class="card-desc">Every channel, control, and seasonal factor costs data. Start with a focused scope.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Stable KPI</h3>
+        <p class="card-desc">Use a consistent metric like revenue or conversions. Noisy or sparse data may need aggregation.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Ad Budget</h3>
+        <p class="card-desc">While there's no magic number, MMM becomes more cost-effective as media spend grows ($1M+/yr).</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3>Model Maintenance</h3>
+        <p class="card-desc">Markets change. Plan to retrain your model on a cadence that matches your planning cycles.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

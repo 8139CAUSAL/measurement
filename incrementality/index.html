@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incrementality — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Incrementality Page Styles === */
+    .page { text-align: center; }
+    .app-content { min-height: 450px; overflow: hidden; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .view-button { padding: .6rem 1.2rem; border: 1px solid var(--brand-border); border-radius: 9999px; background: transparent; color: var(--brand-text-muted); font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s; font-family: inherit; }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+    .visualization-wrapper { position: relative; width: 100%; max-width: 520px; height: 280px; margin: 0 auto; }
+    .chart-svg { width: 100%; height: 100%; }
+    .chart-axis-line, .chart-grid-line { stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-axis-line { stroke: rgba(255,255,255,0.4); }
+    .chart-grid-line { stroke: rgba(255,255,255,0.1); }
+    .chart-bar-control, .chart-bar-test-base, .chart-bar-test-lift, .chart-bar-naive { transition: all .5s; }
+    .chart-bar-control, .chart-bar-test-base { fill: rgba(255,255,255,0.3); }
+    .chart-bar-test-lift, .chart-bar-naive { fill: var(--brand-accent); }
+    .chart-label, .chart-value-label { font-size: 14px; fill: var(--brand-text); text-anchor: middle; }
+    .chart-label { fill: var(--brand-text-muted); }
+    .results-section { margin-top: 10px; }
+    .results-section .results-header { border-top: 1px solid var(--brand-border); padding-top: 8px; }
+    .results-section h2 { font-size: 16px; margin: 0 0 4px 0; }
+    .results-section .explainer { font-size: 14px; color: var(--brand-text-muted); max-width: 720px; margin: 0 auto; line-height: 1.5; }
+    .results-section .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 10px; }
+    .results-section .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
+    .results-section .label { font-size: 14px; color: var(--brand-text-muted); margin-top: .25rem; }
+    .is-hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../saturation/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Incrementality</h1>
+      <a href="../reporting/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      When sales and ad spend both rise, it's easy to assume causation. But is the growth real, or just correlation?
+      This simulation reveals the expensive truth of confusing the two.
+    </p>
+
+    <div class="app-content">
+      <div class="view-selector" id="view-selector"></div>
+      <div class="visualization-wrapper">
+        <svg class="chart-svg" id="chart-svg"></svg>
+      </div>
+      <section class="results-section" id="results-naive">
+        <div class="results-header">
+          <h2>Apparent Return on Ad Spend</h2>
+          <p class="explainer">This view suggests a 17x return, justifying aggressive spending. However, it fails to account for customers who would have converted anyway.</p>
+        </div>
+        <div class="results-grid">
+          <div class="result-item"><div class="value">$1,700,000</div><div class="label">Observed Revenue</div></div>
+          <div class="result-item"><div class="value">$100,000</div><div class="label">Ad Spend</div></div>
+          <div class="result-item"><div class="value">17x</div><div class="label">Apparent ROAS</div></div>
+        </div>
+      </section>
+      <section class="results-section is-hidden" id="results-ab">
+        <div class="results-header">
+          <h2>True Return on Ad Spend</h2>
+          <p class="explainer">By isolating a control group, the A/B test reveals the true return is 2x. This is a profitable, but vastly different, business case that prevents millions in misallocated budget.</p>
+        </div>
+        <div class="results-grid">
+          <div class="result-item"><div class="value">$200,000</div><div class="label">Incremental Revenue</div></div>
+          <div class="result-item"><div class="value">$100,000</div><div class="label">Ad Spend</div></div>
+          <div class="result-item"><div class="value">2x</div><div class="label">True ROAS</div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+  var appState = {
+    adSpend: 100000,
+    baselineRevenue: 1500000,
+    incrementalRevenue: 200000,
+    currentViewId: 'naive'
+  };
+  var VIEWS = {
+    'naive': { name: 'Naive Analysis (Correlation)' },
+    'ab-test': { name: 'A/B Test Analysis (Causation)' }
+  };
+
+  function selectView(id) { appState.currentViewId = id; render(); }
+  function formatCurrency(v) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v); }
+
+  function render() {
+    var viewSelectorEl = document.getElementById('view-selector');
+    var svg = document.getElementById('chart-svg');
+    var naiveBlock = document.getElementById('results-naive');
+    var abBlock = document.getElementById('results-ab');
+    viewSelectorEl.innerHTML = '';
+    for (var id in VIEWS) {
+      var btn = document.createElement('button');
+      btn.className = 'view-button';
+      btn.textContent = VIEWS[id].name;
+      if (id === appState.currentViewId) btn.classList.add('active');
+      btn.setAttribute('data-view', id);
+      btn.addEventListener('click', function() { selectView(this.getAttribute('data-view')); });
+      viewSelectorEl.appendChild(btn);
+    }
+    naiveBlock.classList.toggle('is-hidden', appState.currentViewId !== 'naive');
+    abBlock.classList.toggle('is-hidden', appState.currentViewId !== 'ab-test');
+    renderChart(svg);
+  }
+
+  function renderChart(svg) {
+    svg.innerHTML = '';
+    var baselineRevenue = appState.baselineRevenue;
+    var incrementalRevenue = appState.incrementalRevenue;
+    var observedRevenue = baselineRevenue + incrementalRevenue;
+    var svgWidth = svg.clientWidth || 520, svgHeight = svg.clientHeight || 280;
+    var margin = { top: 32, right: 40, bottom: 40, left: 40 };
+    var width = svgWidth - margin.left - margin.right;
+    var height = svgHeight - margin.top - margin.bottom;
+    var NS = 'http://www.w3.org/2000/svg';
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    svg.appendChild(g);
+    var yMax = observedRevenue * 1.1;
+    function yScale(v) { return height - (v / yMax) * height; }
+    for (var i = 0; i <= 5; i++) {
+      var y = height * (i / 5);
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', 0); line.setAttribute('y1', y);
+      line.setAttribute('x2', width); line.setAttribute('y2', y);
+      line.setAttribute('class', 'chart-grid-line');
+      g.appendChild(line);
+    }
+    var barWidth = 110, barGap = 80;
+    if (appState.currentViewId === 'naive') {
+      var xPos = (width / 2) - (barWidth / 2);
+      var bar = document.createElementNS(NS, 'rect');
+      bar.setAttribute('class', 'chart-bar-naive');
+      bar.setAttribute('x', xPos); bar.setAttribute('y', yScale(observedRevenue));
+      bar.setAttribute('width', barWidth); bar.setAttribute('height', height - yScale(observedRevenue));
+      g.appendChild(bar);
+      var label = document.createElementNS(NS, 'text');
+      label.setAttribute('class', 'chart-label');
+      label.setAttribute('x', xPos + barWidth / 2); label.setAttribute('y', height + 20);
+      label.textContent = 'Observed Revenue'; g.appendChild(label);
+      var valueLabel = document.createElementNS(NS, 'text');
+      valueLabel.setAttribute('class', 'chart-value-label');
+      valueLabel.setAttribute('x', xPos + barWidth / 2); valueLabel.setAttribute('y', yScale(observedRevenue) - 8);
+      valueLabel.textContent = formatCurrency(observedRevenue); g.appendChild(valueLabel);
+    } else {
+      var xControl = (width / 2) - (barWidth + barGap / 2);
+      var xTest = (width / 2) + (barGap / 2);
+      var controlBar = document.createElementNS(NS, 'rect');
+      controlBar.setAttribute('class', 'chart-bar-control');
+      controlBar.setAttribute('x', xControl); controlBar.setAttribute('y', yScale(baselineRevenue));
+      controlBar.setAttribute('width', barWidth); controlBar.setAttribute('height', height - yScale(baselineRevenue));
+      g.appendChild(controlBar);
+      var testBarBase = document.createElementNS(NS, 'rect');
+      testBarBase.setAttribute('class', 'chart-bar-test-base');
+      testBarBase.setAttribute('x', xTest); testBarBase.setAttribute('y', yScale(baselineRevenue));
+      testBarBase.setAttribute('width', barWidth); testBarBase.setAttribute('height', height - yScale(baselineRevenue));
+      g.appendChild(testBarBase);
+      var testBarLift = document.createElementNS(NS, 'rect');
+      testBarLift.setAttribute('class', 'chart-bar-test-lift');
+      testBarLift.setAttribute('x', xTest); testBarLift.setAttribute('y', yScale(observedRevenue));
+      testBarLift.setAttribute('width', barWidth); testBarLift.setAttribute('height', height - yScale(incrementalRevenue));
+      g.appendChild(testBarLift);
+      var controlLabel = document.createElementNS(NS, 'text');
+      controlLabel.setAttribute('class', 'chart-label');
+      controlLabel.setAttribute('x', xControl + barWidth / 2); controlLabel.setAttribute('y', height + 20);
+      controlLabel.textContent = 'Control Group'; g.appendChild(controlLabel);
+      var testLabel = document.createElementNS(NS, 'text');
+      testLabel.setAttribute('class', 'chart-label');
+      testLabel.setAttribute('x', xTest + barWidth / 2); testLabel.setAttribute('y', height + 20);
+      testLabel.textContent = 'Test Group'; g.appendChild(testLabel);
+      var controlValue = document.createElementNS(NS, 'text');
+      controlValue.setAttribute('class', 'chart-value-label');
+      controlValue.setAttribute('x', xControl + barWidth / 2); controlValue.setAttribute('y', yScale(baselineRevenue) - 8);
+      controlValue.textContent = formatCurrency(baselineRevenue); g.appendChild(controlValue);
+      var testValue = document.createElementNS(NS, 'text');
+      testValue.setAttribute('class', 'chart-value-label');
+      testValue.setAttribute('x', xTest + barWidth / 2); testValue.setAttribute('y', yScale(observedRevenue) - 8);
+      testValue.textContent = formatCurrency(observedRevenue); g.appendChild(testValue);
+      var yTopLift = yScale(observedRevenue), yBotLift = yScale(baselineRevenue);
+      var yMidLift = (yTopLift + yBotLift) / 2;
+      var inc = document.createElementNS(NS, 'text');
+      inc.setAttribute('class', 'chart-value-label');
+      inc.setAttribute('fill', 'var(--brand-accent)');
+      inc.setAttribute('text-anchor', 'start');
+      var idealX = xTest + barWidth + 12, clampedX = Math.min(idealX, width - 10);
+      inc.setAttribute('x', clampedX); inc.setAttribute('y', yMidLift + 5);
+      inc.textContent = '+' + formatCurrency(incrementalRevenue) + ' (Incremental)';
+      g.appendChild(inc);
+    }
+  }
+
+  render();
+  window.addEventListener('resize', function() { var svg = document.getElementById('chart-svg'); if (svg) renderChart(svg); });
+  })();
+  </script>
+</body>
+</html>

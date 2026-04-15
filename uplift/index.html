@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uplift Modeling — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Uplift Modeling Page Styles === */
+
+    /* Segment Grid */
+    .seg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .seg-box {
+      background: var(--bg-card);
+      border: 2px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .seg-box:hover { transform: translateY(-2px); }
+    .seg-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .seg-action {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .seg-desc {
+      font-size: 14px;
+      color: var(--brand-text-muted);
+      margin: 6px 0 0;
+      line-height: 1.5;
+    }
+
+    /* Chart Wrapper */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .chart-wrapper svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .chart-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .chart-btn {
+      padding: 6px 16px;
+      border: 1px solid var(--brand-border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--brand-text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .chart-btn:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .chart-btn.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+
+    /* SVG Styles */
+    .axis-line { stroke: rgba(255,255,255,0.4); stroke-width: 1; shape-rendering: crispEdges; }
+    .grid-line { stroke: rgba(255,255,255,0.08); stroke-width: 1; shape-rendering: crispEdges; }
+    .axis-label { fill: var(--brand-text-muted); font-size: 12px; }
+    .axis-title { fill: var(--brand-text-muted); font-size: 13px; font-weight: 600; }
+    .guide-line { stroke: rgba(255,255,255,0.25); stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .dot {
+      opacity: 0;
+      transition: opacity 0.4s ease, r 0.2s ease;
+    }
+    .dot.visible { opacity: 0.85; }
+    .dot.dimmed { opacity: 0.08; }
+    .qini-path {
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .qini-fill { opacity: 0.15; }
+    .random-line {
+      stroke: rgba(255,255,255,0.3);
+      stroke-width: 1.5;
+      stroke-dasharray: 6 4;
+      fill: none;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--brand-text-muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Explainer */
+    .explainer {
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--brand-text-muted);
+      line-height: 1.6;
+    }
+    .explainer strong { color: var(--brand-text); }
+    .explainer-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+    }
+    .explainer-list li {
+      padding: 4px 0;
+      padding-left: 18px;
+      position: relative;
+    }
+    .explainer-list li::before {
+      content: "\2022";
+      position: absolute;
+      left: 4px;
+      color: var(--brand-accent);
+      font-weight: 700;
+    }
+
+    /* Steps */
+    .method-step {
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .method-step h3 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+
+    @media (max-width: 600px) {
+      .seg-grid { grid-template-columns: 1fr; }
+      .legend { gap: 12px; font-size: 12px; }
+      .chart-controls { gap: 6px; }
+      .chart-btn { font-size: 12px; padding: 5px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../propensity/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Uplift Modeling</h1>
+      <a href="../mmm/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      A technical dive into calculating incremental impact, defining customer segments, and visualizing model performance with Propensity and Qini charts.
+    </p>
+
+    <!-- Tabs -->
+    <div class="tab-selector" id="tab-selector">
+      <button class="tab-btn active" data-tab="method">Method</button>
+      <button class="tab-btn" data-tab="segments">Segments</button>
+      <button class="tab-btn" data-tab="propensity">Propensity Plot</button>
+      <button class="tab-btn" data-tab="qini">Qini &amp; AUC</button>
+    </div>
+
+    <!-- Tab 1: Method -->
+    <div class="tab-panel active" id="panel-method">
+      <div class="method-step">
+        <h3><span class="step-number">1</span> Randomized Experiment</h3>
+        <p class="prose">
+          Split customers randomly into a <em>treatment</em> group (receives the campaign) and a <em>control</em> group (receives nothing). This isolation is what lets us measure <strong>true causal impact</strong> rather than correlation.
+        </p>
+        <div class="key-definition">
+          <div class="callout-title">Key Definition</div>
+          <p style="margin:0;"><strong>Uplift</strong> is the difference in behavior caused by the treatment. It answers: "Would this customer have converted <em>anyway</em>, or did the campaign actually move them?"</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <h3><span class="step-number">2</span> Target Transformation</h3>
+        <p class="prose">
+          Standard ML predicts outcomes; uplift modeling predicts the <em>change</em> in outcomes. Two common approaches:
+        </p>
+        <p class="prose">
+          <strong>T-Learner:</strong> Train separate models for treatment and control, then subtract predictions.
+        </p>
+        <p class="prose">
+          <strong>Class Transformation:</strong> Create a single transformed target variable that directly encodes uplift, enabling any classifier to learn incremental effects.
+        </p>
+      </div>
+
+      <div class="method-step">
+        <h3><span class="step-number">3</span> Scoring</h3>
+        <p class="prose">
+          For each customer, compute an uplift score that quantifies how much the treatment shifts their probability of converting:
+        </p>
+        <div class="formula-box" style="text-align:center; font-size:16px; margin-top:12px;">
+          Uplift = P(Buy | Treatment) - P(Buy | Control)
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Segments -->
+    <div class="tab-panel" id="panel-segments">
+      <div class="content-card">
+        <p class="prose" style="text-align:center; margin-bottom:20px;">
+          Uplift scores naturally divide customers into <strong>four actionable segments</strong>. The goal is to find and target the <em>Persuadables</em> while avoiding the <em>Sleeping Dogs</em>.
+        </p>
+        <div class="seg-grid">
+          <div class="seg-box" style="border-color: #fbbf24;">
+            <div class="seg-title" style="color: #fbbf24;">Sleeping Dogs</div>
+            <div class="seg-desc">Negative uplift &mdash; the campaign actually <strong>hurts</strong> conversion. These customers are less likely to buy if contacted.</div>
+            <div class="seg-action" style="background: rgba(251,191,36,0.15); color: #fbbf24;">Do Not Disturb</div>
+          </div>
+          <div class="seg-box" style="border-color: #a78bfa;">
+            <div class="seg-title" style="color: #a78bfa;">Sure Things</div>
+            <div class="seg-desc">Zero uplift &mdash; they will convert <strong>regardless</strong> of whether they see the campaign. Spending here is waste.</div>
+            <div class="seg-action" style="background: rgba(167,139,250,0.15); color: #a78bfa;">Ignore</div>
+          </div>
+          <div class="seg-box" style="border-color: #a3724e;">
+            <div class="seg-title" style="color: #a3724e;">Lost Causes</div>
+            <div class="seg-desc">Zero uplift &mdash; they will <strong>not</strong> convert regardless. No amount of marketing will move them.</div>
+            <div class="seg-action" style="background: rgba(163,114,78,0.15); color: #a3724e;">Ignore</div>
+          </div>
+          <div class="seg-box" style="border-color: #2dd4bf;">
+            <div class="seg-title" style="color: #2dd4bf;">Persuadables</div>
+            <div class="seg-desc">Positive uplift &mdash; the campaign <strong>causes</strong> conversion. These are the customers where marketing dollars create real value.</div>
+            <div class="seg-action" style="background: rgba(45,212,191,0.15); color: #2dd4bf;">Target Aggressively</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Propensity Plot -->
+    <div class="tab-panel" id="panel-propensity">
+      <div class="content-card">
+        <div class="chart-controls" id="scatter-controls">
+          <button class="chart-btn active" data-filter="all">Show All</button>
+          <button class="chart-btn" data-filter="persuadable">Persuadables</button>
+          <button class="chart-btn" data-filter="sleeping">Sleeping Dogs</button>
+        </div>
+        <div class="chart-wrapper" style="max-width:520px;">
+          <svg id="scatter-svg" viewBox="0 0 500 500"></svg>
+        </div>
+        <div class="legend" id="scatter-legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:#2dd4bf;"></span> Persuadable</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#fbbf24;"></span> Sleeping Dog</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#a78bfa;"></span> Sure Thing</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#a3724e;"></span> Lost Cause</div>
+        </div>
+        <div class="explainer">
+          <strong>How to read this chart:</strong> Each dot is a customer plotted by their treatment propensity (x-axis) vs. control propensity (y-axis).
+          <ul class="explainer-list">
+            <li>The <strong>diagonal line</strong> represents zero uplift (treatment = control).</li>
+            <li>Points <strong>below the diagonal</strong> are persuadables &mdash; higher probability of converting with treatment.</li>
+            <li>Points <strong>above the diagonal</strong> are sleeping dogs &mdash; treatment actually reduces their conversion probability.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Qini & AUC -->
+    <div class="tab-panel" id="panel-qini">
+      <div class="content-card">
+        <div class="chart-controls" id="qini-controls">
+          <button class="chart-btn active" data-curve="good">Good Model</button>
+          <button class="chart-btn" data-curve="bad">Bad Model</button>
+          <button class="chart-btn" data-curve="random">Random</button>
+        </div>
+        <div class="chart-wrapper" style="max-width:620px;">
+          <svg id="qini-svg" viewBox="0 0 600 350"></svg>
+        </div>
+        <div class="explainer">
+          <strong>Understanding the Qini Curve:</strong> It measures how well your model identifies persuadables when you target customers in order of predicted uplift.
+          <ul class="explainer-list">
+            <li>The <strong>diagonal</strong> is random targeting &mdash; no model, just chance.</li>
+            <li>A <strong>good model</strong> shoots up early, capturing most incremental conversions in the first deciles.</li>
+            <li>A <strong>bad model</strong> dips below the diagonal, meaning it targets sleeping dogs first.</li>
+            <li>The <strong>shaded area</strong> (AUC) between the curve and the diagonal quantifies model quality.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+    /* ========== Tab Switching ========== */
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    var panels = document.querySelectorAll('.tab-panel');
+    var scatterInitialized = false;
+    var qiniInitialized = false;
+
+    function activateTab(tabId) {
+      var i;
+      for (i = 0; i < tabBtns.length; i++) {
+        tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+      }
+      for (i = 0; i < panels.length; i++) {
+        panels[i].classList.toggle('active', panels[i].id === 'panel-' + tabId);
+      }
+      if (tabId === 'propensity' && !scatterInitialized) {
+        scatterInitialized = true;
+        buildScatter();
+      }
+      if (tabId === 'qini' && !qiniInitialized) {
+        qiniInitialized = true;
+        buildQini();
+        drawQiniCurve('good');
+      }
+    }
+
+    for (var t = 0; t < tabBtns.length; t++) {
+      tabBtns[t].addEventListener('click', function() {
+        activateTab(this.getAttribute('data-tab'));
+      });
+    }
+
+    /* ========== Helpers ========== */
+    function svgEl(tag, attrs) {
+      var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      if (attrs) {
+        for (var k in attrs) {
+          if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+        }
+      }
+      return el;
+    }
+
+    function seededRandom(seed) {
+      return function() {
+        seed = (seed * 16807 + 0) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+    }
+
+    /* ========== Scatter Plot ========== */
+    var scatterPoints = [];
+    var COLORS = { persuadable: '#2dd4bf', sleeping: '#fbbf24', sure: '#a78bfa', lost: '#a3724e' };
+    var PAD = { top: 40, right: 30, bottom: 50, left: 55 };
+    var SW = 500, SH = 500;
+    var plotW = SW - PAD.left - PAD.right;
+    var plotH = SH - PAD.top - PAD.bottom;
+
+    function generatePoints() {
+      var rng = seededRandom(42);
+      var pts = [];
+      var i, pt, pType;
+
+      for (i = 0; i < 100; i++) {
+        if (i < 30) {
+          pType = 'persuadable';
+          pt = { x: 0.5 + rng() * 0.45, y: 0.05 + rng() * 0.4 };
+        } else if (i < 50) {
+          pType = 'sleeping';
+          pt = { x: 0.05 + rng() * 0.4, y: 0.5 + rng() * 0.45 };
+        } else if (i < 75) {
+          pType = 'sure';
+          pt = { x: 0.5 + rng() * 0.45, y: 0.5 + rng() * 0.45 };
+        } else {
+          pType = 'lost';
+          pt = { x: 0.05 + rng() * 0.4, y: 0.05 + rng() * 0.4 };
+        }
+        pts.push({ px: pt.x, py: pt.y, type: pType });
+      }
+      return pts;
+    }
+
+    function buildScatter() {
+      var svg = document.getElementById('scatter-svg');
+      svg.innerHTML = '';
+      scatterPoints = generatePoints();
+
+      var g = svgEl('g', { transform: 'translate(' + PAD.left + ',' + PAD.top + ')' });
+      svg.appendChild(g);
+
+      /* Grid lines */
+      var i, tick;
+      for (i = 0; i <= 5; i++) {
+        tick = i / 5;
+        var gx = tick * plotW;
+        var gy = (1 - tick) * plotH;
+        g.appendChild(svgEl('line', { x1: gx, y1: 0, x2: gx, y2: plotH, class: 'grid-line' }));
+        g.appendChild(svgEl('line', { x1: 0, y1: gy, x2: plotW, y2: gy, class: 'grid-line' }));
+
+        var xLabel = svgEl('text', { x: gx, y: plotH + 18, class: 'axis-label', 'text-anchor': 'middle' });
+        xLabel.textContent = tick.toFixed(1);
+        g.appendChild(xLabel);
+
+        var yLabel = svgEl('text', { x: -10, y: gy + 4, class: 'axis-label', 'text-anchor': 'end' });
+        yLabel.textContent = tick.toFixed(1);
+        g.appendChild(yLabel);
+      }
+
+      /* Axes */
+      g.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: plotH, class: 'axis-line' }));
+      g.appendChild(svgEl('line', { x1: 0, y1: plotH, x2: plotW, y2: plotH, class: 'axis-line' }));
+
+      /* Axis titles */
+      var xTitle = svgEl('text', { x: plotW / 2, y: plotH + 42, class: 'axis-title', 'text-anchor': 'middle' });
+      xTitle.textContent = 'P(Buy | Treatment)';
+      g.appendChild(xTitle);
+
+      var yTitle = svgEl('text', { x: -40, y: plotH / 2, class: 'axis-title', 'text-anchor': 'middle', transform: 'rotate(-90,' + (-40) + ',' + (plotH / 2) + ')' });
+      yTitle.textContent = 'P(Buy | Control)';
+      g.appendChild(yTitle);
+
+      /* Diagonal guide (zero uplift) */
+      g.appendChild(svgEl('line', { x1: 0, y1: plotH, x2: plotW, y2: 0, class: 'guide-line' }));
+
+      /* Points with staggered fade-in */
+      for (i = 0; i < scatterPoints.length; i++) {
+        var p = scatterPoints[i];
+        var cx = p.px * plotW;
+        var cy = (1 - p.py) * plotH;
+        var dot = svgEl('circle', {
+          cx: cx,
+          cy: cy,
+          r: 5,
+          fill: COLORS[p.type],
+          class: 'dot',
+          'data-type': p.type
+        });
+        g.appendChild(dot);
+        (function(el, delay) {
+          setTimeout(function() { el.classList.add('visible'); }, delay);
+        })(dot, 30 + i * 15);
+      }
+    }
+
+    /* Filter controls */
+    var scatterControls = document.getElementById('scatter-controls');
+    scatterControls.addEventListener('click', function(e) {
+      var btn = e.target.closest('.chart-btn');
+      if (!btn) return;
+      var filter = btn.getAttribute('data-filter');
+
+      var btns = scatterControls.querySelectorAll('.chart-btn');
+      for (var b = 0; b < btns.length; b++) {
+        btns[b].classList.toggle('active', btns[b] === btn);
+      }
+
+      var dots = document.querySelectorAll('#scatter-svg .dot');
+      for (var d = 0; d < dots.length; d++) {
+        var dtype = dots[d].getAttribute('data-type');
+        if (filter === 'all') {
+          dots[d].classList.remove('dimmed');
+          dots[d].classList.add('visible');
+        } else if (filter === dtype) {
+          dots[d].classList.remove('dimmed');
+          dots[d].classList.add('visible');
+        } else {
+          dots[d].classList.add('dimmed');
+        }
+      }
+    });
+
+    /* ========== Qini Curve ========== */
+    var QW = 600, QH = 350;
+    var QP = { top: 30, right: 30, bottom: 50, left: 55 };
+    var qPlotW = QW - QP.left - QP.right;
+    var qPlotH = QH - QP.top - QP.bottom;
+    var qiniGroup;
+    var curvePath;
+    var fillPath;
+    var currentCurve = '';
+
+    function buildQini() {
+      var svg = document.getElementById('qini-svg');
+      svg.innerHTML = '';
+
+      qiniGroup = svgEl('g', { transform: 'translate(' + QP.left + ',' + QP.top + ')' });
+      svg.appendChild(qiniGroup);
+
+      /* Grid */
+      var i;
+      for (i = 0; i <= 5; i++) {
+        var gx = (i / 5) * qPlotW;
+        var gy = (i / 5) * qPlotH;
+        qiniGroup.appendChild(svgEl('line', { x1: gx, y1: 0, x2: gx, y2: qPlotH, class: 'grid-line' }));
+        qiniGroup.appendChild(svgEl('line', { x1: 0, y1: gy, x2: qPlotW, y2: gy, class: 'grid-line' }));
+      }
+
+      /* Axes */
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: qPlotH, class: 'axis-line' }));
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: qPlotH, x2: qPlotW, y2: qPlotH, class: 'axis-line' }));
+
+      /* Axis labels */
+      for (i = 0; i <= 5; i++) {
+        var frac = i / 5;
+        var xL = svgEl('text', { x: frac * qPlotW, y: qPlotH + 18, class: 'axis-label', 'text-anchor': 'middle' });
+        xL.textContent = (frac * 100).toFixed(0) + '%';
+        qiniGroup.appendChild(xL);
+      }
+      for (i = 0; i <= 4; i++) {
+        var fracY = i / 4;
+        var yL = svgEl('text', { x: -10, y: qPlotH - fracY * qPlotH + 4, class: 'axis-label', 'text-anchor': 'end' });
+        yL.textContent = (fracY * 100).toFixed(0);
+        qiniGroup.appendChild(yL);
+      }
+
+      var xTitle = svgEl('text', { x: qPlotW / 2, y: qPlotH + 42, class: 'axis-title', 'text-anchor': 'middle' });
+      xTitle.textContent = '% of Population Targeted';
+      qiniGroup.appendChild(xTitle);
+
+      var yTitle = svgEl('text', { x: -42, y: qPlotH / 2, class: 'axis-title', 'text-anchor': 'middle', transform: 'rotate(-90,' + (-42) + ',' + (qPlotH / 2) + ')' });
+      yTitle.textContent = 'Incremental Conversions';
+      qiniGroup.appendChild(yTitle);
+
+      /* Random diagonal */
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: qPlotH, x2: qPlotW, y2: 0, class: 'random-line' }));
+
+      var randLabel = svgEl('text', { x: qPlotW - 5, y: 14, class: 'axis-label', 'text-anchor': 'end', fill: 'rgba(255,255,255,0.4)' });
+      randLabel.textContent = 'Random';
+      qiniGroup.appendChild(randLabel);
+
+      /* Fill (under curve, above diagonal) */
+      fillPath = svgEl('path', { class: 'qini-fill', fill: 'var(--brand-accent)', d: '' });
+      qiniGroup.appendChild(fillPath);
+
+      /* Curve path */
+      curvePath = svgEl('path', { class: 'qini-path', stroke: 'var(--brand-accent)', d: '' });
+      qiniGroup.appendChild(curvePath);
+    }
+
+    function getCurvePoints(type) {
+      var pts = [];
+      var steps = 50;
+      var i, x, y;
+      for (i = 0; i <= steps; i++) {
+        x = i / steps;
+        if (type === 'good') {
+          y = 1 - Math.pow(1 - x, 2.5);
+        } else if (type === 'bad') {
+          y = Math.pow(x, 2.5);
+        } else {
+          y = x;
+        }
+        pts.push({ x: x, y: y });
+      }
+      return pts;
+    }
+
+    function pointsToPathD(pts) {
+      var d = 'M';
+      for (var i = 0; i < pts.length; i++) {
+        var sx = pts[i].x * qPlotW;
+        var sy = qPlotH - pts[i].y * qPlotH;
+        d += (i === 0 ? '' : ' L') + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      return d;
+    }
+
+    function pointsToFillD(pts) {
+      /* Area between curve and diagonal */
+      var d = 'M0 ' + qPlotH;
+      var i, sx, sy;
+      for (i = 0; i < pts.length; i++) {
+        sx = pts[i].x * qPlotW;
+        sy = qPlotH - pts[i].y * qPlotH;
+        d += ' L' + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      /* Close back along diagonal */
+      for (i = pts.length - 1; i >= 0; i--) {
+        sx = pts[i].x * qPlotW;
+        sy = qPlotH - pts[i].x * qPlotH;
+        d += ' L' + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      d += ' Z';
+      return d;
+    }
+
+    function drawQiniCurve(type) {
+      if (type === currentCurve) return;
+      currentCurve = type;
+
+      var pts = getCurvePoints(type);
+      var pathD = pointsToPathD(pts);
+      var fD = pointsToFillD(pts);
+
+      /* Set color */
+      var color = type === 'good' ? 'var(--brand-accent)' : type === 'bad' ? 'var(--brand-danger)' : 'rgba(255,255,255,0.5)';
+      curvePath.setAttribute('stroke', color);
+      fillPath.setAttribute('fill', color);
+      fillPath.setAttribute('d', fD);
+
+      /* Animate stroke */
+      curvePath.setAttribute('d', pathD);
+      var len = curvePath.getTotalLength();
+      curvePath.style.transition = 'none';
+      curvePath.style.strokeDasharray = len;
+      curvePath.style.strokeDashoffset = len;
+
+      /* Force reflow then animate */
+      curvePath.getBoundingClientRect();
+      curvePath.style.transition = 'stroke-dashoffset 1s ease-out';
+      curvePath.style.strokeDashoffset = '0';
+    }
+
+    /* Qini controls */
+    var qiniControls = document.getElementById('qini-controls');
+    qiniControls.addEventListener('click', function(e) {
+      var btn = e.target.closest('.chart-btn');
+      if (!btn) return;
+      var curve = btn.getAttribute('data-curve');
+
+      var btns = qiniControls.querySelectorAll('.chart-btn');
+      for (var b = 0; b < btns.length; b++) {
+        btns[b].classList.toggle('active', btns[b] === btn);
+      }
+
+      if (qiniInitialized) {
+        currentCurve = '';
+        drawQiniCurve(curve);
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>

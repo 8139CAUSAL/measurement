@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Calibration Exercise — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Calibration Exercise Styles === */
+    :root {
+      --input-bg: rgba(0, 0, 0, 0.2);
+      --success-bg: rgba(45, 212, 191, 0.1);
+      --success-border: #2dd4bf;
+      --error-bg: rgba(239, 68, 68, 0.1);
+      --error-border: #ef4444;
+      --error-text: #fca5a5;
+    }
+    .spreadsheet-container {
+      margin-top: 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid var(--brand-border);
+      border-radius: 12px; padding: 1.25rem; text-align: left; min-height: 450px; overflow: hidden;
+    }
+    .spreadsheet-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 1.5rem; }
+    .group-header th {
+      font-size: 16px; font-weight: 600; padding-top: 1rem; padding-bottom: 0.4rem;
+      text-align: left; border-bottom: 1px solid var(--brand-border); color: var(--brand-text);
+    }
+    .group-header:first-child th { padding-top: 0; }
+    .spreadsheet-table td { padding: 0.5rem; font-size: 14px; vertical-align: middle; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .spreadsheet-table td.label { font-weight: 600; color: var(--brand-text); }
+    .spreadsheet-table td.readonly {
+      color: var(--brand-text-muted); font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 16px; text-align: right; font-weight: 500;
+    }
+    .spreadsheet-table input {
+      width: 100%; max-width: 150px; float: right; background: var(--input-bg);
+      border: 1px solid var(--brand-border); border-radius: 6px; padding: 0.5rem 0.75rem;
+      color: var(--brand-text); font-size: 16px; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s; text-align: right;
+    }
+    .spreadsheet-table input:focus { border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(45,212,191,0.3); }
+    .spreadsheet-table input.error { border-color: var(--error-border) !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.2) !important; }
+    .spreadsheet-footer { display: flex; justify-content: flex-end; align-items: center; }
+    .submit-button {
+      padding: 0.75rem 1.5rem; border: none; border-radius: 8px; background: var(--brand-accent);
+      color: var(--brand-background); font-weight: 700; font-size: 14px; cursor: pointer; transition: background-color 0.2s;
+    }
+    .submit-button:hover { background: #1f9d8c; }
+    .results-panel {
+      margin-top: 2rem; padding: 1.5rem; border-radius: 12px; min-height: 100px;
+      text-align: center; line-height: 1.7; transition: all 0.3s ease;
+    }
+    .results-panel.is-hidden { display: none !important; }
+    .results-panel.success { background: var(--success-bg); border: 1px solid var(--success-border); }
+    .results-panel.error { background: var(--error-bg); border: 1px solid var(--error-border); }
+    .results-panel h3 { margin-bottom: 0.5rem; color: var(--brand-accent); font-size: 16px; font-weight: 600; }
+    .results-panel.error h3 { color: var(--error-border); }
+    .results-panel p { color: var(--brand-text); font-size: 14px; margin-bottom: 0.5rem; }
+    .results-panel p.insight { color: var(--brand-text-muted); font-style: italic; margin-top: 1rem; font-size: 14px; }
+    @media (max-width: 600px) {
+      .spreadsheet-container { padding: 1rem; }
+      .spreadsheet-table input { max-width: 120px; padding: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../calibrate/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">A Calibration Exercise</h1>
+      <a href="../saturation/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      Use past holdout data to calibrate MTA and reveal true campaign impact.
+    </p>
+
+    <div class="spreadsheet-container">
+      <table class="spreadsheet-table">
+        <thead>
+          <tr class="group-header"><th colspan="2">Last Quarter's Holdout Test (Ground Truth)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label">Actual Conversions (from Test)</td><td class="readonly">600</td></tr>
+          <tr><td class="label">MTA-Attributed Conversions (during Test)</td><td class="readonly">800</td></tr>
+        </tbody>
+        <thead>
+          <tr class="group-header"><th colspan="2">This Quarter's Attribution (MTA)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label">Campaign A</td><td class="readonly">1,800</td></tr>
+          <tr><td class="label">Campaign B</td><td class="readonly">1,200</td></tr>
+        </tbody>
+        <thead>
+          <tr class="group-header"><th colspan="2">Your Calibration Task</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label">Calibrated Campaign A</td><td><input type="text" id="input-a" placeholder="Calculate..."></td></tr>
+          <tr><td class="label">Calibrated Campaign B</td><td><input type="text" id="input-b" placeholder="Calculate..."></td></tr>
+          <tr><td class="label">Calibrated Total</td><td><input type="text" id="input-total" placeholder="Calculate..."></td></tr>
+        </tbody>
+      </table>
+      <div class="spreadsheet-footer">
+        <button id="submit-btn" class="submit-button">Submit Calibration</button>
+      </div>
+    </div>
+
+    <div id="results-panel" class="results-panel is-hidden"></div>
+  </div>
+
+  <script>
+  (function() {
+  'use strict';
+  var appState = {
+    pastTestResult: 600,
+    pastMtaResult: 800,
+    currentMtaA: 1800,
+    currentMtaB: 1200
+  };
+  var calibrationFactor = appState.pastTestResult / appState.pastMtaResult; // 0.75
+  var expectedA = appState.currentMtaA * calibrationFactor; // 1350
+  var expectedB = appState.currentMtaB * calibrationFactor; // 900
+  var expectedTotal = expectedA + expectedB; // 2250
+
+  var inputA = document.getElementById('input-a');
+  var inputB = document.getElementById('input-b');
+  var inputTotal = document.getElementById('input-total');
+  var submitBtn = document.getElementById('submit-btn');
+  var resultsPanel = document.getElementById('results-panel');
+
+  function validateInputs() {
+    var userA = Math.round(parseFloat(inputA.value) || 0);
+    var userB = Math.round(parseFloat(inputB.value) || 0);
+    var userTotal = Math.round(parseFloat(inputTotal.value) || 0);
+    var hasErrors = false;
+    if (Math.abs(userA - expectedA) > 2) { inputA.classList.add('error'); hasErrors = true; } else { inputA.classList.remove('error'); }
+    if (Math.abs(userB - expectedB) > 2) { inputB.classList.add('error'); hasErrors = true; } else { inputB.classList.remove('error'); }
+    if (Math.abs(userTotal - expectedTotal) > 2) { inputTotal.classList.add('error'); hasErrors = true; } else { inputTotal.classList.remove('error'); }
+    return !hasErrors;
+  }
+
+  function handleSubmit() {
+    var isValid = validateInputs();
+    resultsPanel.classList.remove('is-hidden');
+    if (isValid) {
+      resultsPanel.className = 'results-panel success';
+      resultsPanel.innerHTML =
+        '<h3>Calibration Correct!</h3>' +
+        '<p>Perfect. By applying the calibration factor (0.75), you\'ve revealed the more realistic impact of each campaign. ' +
+        'Your findings prevent over-investment based on inflated attribution numbers.</p>' +
+        '<p class="insight"><strong>Insight:</strong> Notice MTA suggested Campaign A was <strong>50%</strong> better than B (1800 vs 1200). ' +
+        'After calibration, it\'s still better by the same relative margin (1350 vs 900). ' +
+        'Applying a uniform calibration factor provides a more realistic budget justification without altering the core strategic insight.</p>';
+    } else {
+      resultsPanel.className = 'results-panel error';
+      resultsPanel.innerHTML =
+        '<h3>Calculation Error</h3>' +
+        '<p>One or more of your calibrated values is incorrect. Please check your calculations.</p>' +
+        '<p class="insight"><strong>Hint:</strong> First, find the factor from the past test (Actual / MTA). ' +
+        'Then, apply that single factor to <em>both</em> of this quarter\'s campaign numbers.</p>';
+    }
+  }
+
+  submitBtn.addEventListener('click', handleSubmit);
+  [inputA, inputB, inputTotal].forEach(function(input) {
+    input.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSubmit(); });
+  });
+  })();
+  </script>
+</body>
+</html>

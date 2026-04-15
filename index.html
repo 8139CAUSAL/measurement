@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Measurement — Causal Science</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* === Home Hub Styles === */
+    .hero-section {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding: 0 20px;
+    }
+    .hero-brand {
+      color: #fff;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .hero-tagline {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .hero-explainer {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    /* === Measurement Grid === */
+    .measurement-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      padding: 10px 0 20px;
+    }
+    .measurement-card {
+      display: block;
+      text-decoration: none;
+      padding: 25px 20px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      transition: all 0.3s ease;
+      min-height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+    .measurement-card:hover {
+      transform: translateY(-5px);
+      background: var(--bg-card-raised);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .measurement-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #00D4FF, #0099CC);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    .measurement-card:hover::before { transform: scaleX(1); }
+
+    .card-icon { font-size: 32px; margin-bottom: 12px; display: block; text-align: center; }
+    .card-title { color: #fff; font-size: 18px; font-weight: 600; margin: 0 0 10px; text-align: center; line-height: 1.2; }
+    .card-problem { color: #00D4FF; font-size: 13px; font-weight: 500; margin: 0 0 8px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-description { color: rgba(255, 255, 255, 0.75); font-size: 14px; line-height: 1.4; margin: 0; text-align: center; }
+
+    @media (max-width: 900px) {
+      .measurement-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-brand { font-size: 28px; }
+    }
+    @media (max-width: 600px) {
+      .measurement-grid { grid-template-columns: 1fr; padding: 10px 0 15px; }
+      .measurement-card { min-height: 150px; }
+      .hero-brand { font-size: 24px; }
+      .hero-tagline { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero-section">
+      <h1 class="hero-brand">Marketing Measurement</h1>
+      <p class="hero-tagline">From measurement plan to causal proof</p>
+      <p class="hero-explainer">
+        Align on what to measure, diagnose where credit and causality break down, then optimize spend.
+      </p>
+    </div>
+
+    <div class="measurement-grid">
+      <!-- Row 1 -->
+      <a href="measurement-plan/" class="measurement-card">
+        <span class="card-icon">&#x1F4CB;</span>
+        <p class="card-problem">START HERE</p>
+        <h3 class="card-title">Measurement Plan</h3>
+        <p class="card-description">You have tracking but no shared plan. Map business outcomes to GA4 events and align your team on what to measure.</p>
+      </a>
+
+      <a href="attribution/" class="measurement-card">
+        <span class="card-icon">&#x1F4CA;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Attribution Trap</h3>
+        <p class="card-description">Your marketing team is fighting over credit. See how last-touch vs multi-touch changes everything.</p>
+      </a>
+
+      <a href="markov/" class="measurement-card">
+        <span class="card-icon">&#x1F517;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Advanced Attribution</h3>
+        <p class="card-description">See how first-order Markov with removal calculates true credit by simulating what happens when you remove each channel.</p>
+      </a>
+
+      <!-- Row 2 -->
+      <a href="calibrate/" class="measurement-card">
+        <span class="card-icon">&#x1F3AF;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">MTA Calibration</h3>
+        <p class="card-description">MTA shows 1,600 conversions. Past tests suggest 50% incrementality. Calculate true impact.</p>
+      </a>
+
+      <a href="saturation/" class="measurement-card">
+        <span class="card-icon">&#x1F4C9;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Saturation &amp; Decay</h3>
+        <p class="card-description">When does more spend stop working? How long do effects last? Explore diminishing returns.</p>
+      </a>
+
+      <a href="incrementality/" class="measurement-card">
+        <span class="card-icon">&#x1F4C8;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Incrementality</h3>
+        <p class="card-description">Is your growth real or just correlation? Interactive demonstration of confounded vs randomized data.</p>
+      </a>
+
+      <!-- Row 3 -->
+      <a href="surveys/" class="measurement-card">
+        <span class="card-icon">&#x1F4DD;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Surveys</h3>
+        <p class="card-description">Post-purchase surveys cut through walled garden opacity and memory gap.</p>
+      </a>
+
+      <a href="response-modeling/" class="measurement-card">
+        <span class="card-icon">&#x1F4D0;</span>
+        <p class="card-problem">PROBLEM</p>
+        <h3 class="card-title">Response Models</h3>
+        <p class="card-description">Backwards and forwards views of incremental lift.</p>
+      </a>
+
+      <a href="budget-engine/" class="measurement-card">
+        <span class="card-icon">&#x1F4B0;</span>
+        <p class="card-problem">OPTIMIZE</p>
+        <h3 class="card-title">Budget Decision</h3>
+        <p class="card-description">Set your efficiency goal, add your channels, and instantly see which to scale, hold, reduce, or cut.</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
