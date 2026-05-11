@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style.css">
   <style>
     /* === MMM Page Styles === */
-    .visualization-wrapper { position: relative; width: 100%; height: 450px; margin: 0 auto; }
+    .visualization-wrapper { position: relative; width: 100%; height: 440px; margin: 0 auto; }
     .chart-svg { width: 100%; height: 100%; }
     .chart-tooltip {
       position: absolute; pointer-events: none; background: rgba(0,0,0,0.88);
@@ -15,10 +15,84 @@
       font-size: 13px; color: #fff; white-space: nowrap; z-index: 10;
       display: none; line-height: 1.5;
     }
-    .chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 16px; }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--brand-text-muted); }
-    .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
-    .legend-detail { font-family: var(--font-mono); font-size: 12px; color: var(--brand-text); font-weight: 600; }
+    
+    /* Improved Legend Styles - Better Spacing */
+    .chart-legend { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 16px; 
+      margin-top: 20px;
+      padding: 16px 0;
+    }
+    
+    /* Channel Legend Row - Horizontal wrap with proper gaps */
+    .legend-channels {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px 32px; /* row-gap: 20px, column-gap: 32px */
+      width: 100%;
+      max-width: 800px;
+    }
+    .legend-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-size: 14px; 
+      color: var(--brand-text); 
+      font-weight: 600;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .legend-swatch { 
+      width: 14px; 
+      height: 14px; 
+      border-radius: 50%; 
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.3);
+    }
+    
+    /* Line Type Key - Separate from channel legend */
+    .legend-key {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .legend-key-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      font-size: 12px; 
+      color: var(--brand-text-muted);
+    }
+    .key-line-solid { 
+      width: 28px; 
+      height: 3px; 
+      background: var(--brand-text-muted); 
+      border-radius: 2px;
+    }
+    .key-line-dashed { 
+      width: 28px; 
+      height: 3px; 
+      background: transparent; 
+      border-top: 3px dashed var(--brand-text-muted);
+      border-radius: 0;
+    }
+    .key-dot { 
+      width: 12px; 
+      height: 12px; 
+      background: var(--brand-text-muted); 
+      border-radius: 50%;
+    }
+
     .warning-callout {
       background: var(--warning-tint); border-left: 3px solid var(--brand-warning);
       padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
@@ -40,10 +114,12 @@
     }
     .result-item .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
     .result-item .label { font-size: 13px; color: var(--brand-text-muted); margin-top: 4px; }
+    
     @media (max-width: 600px) {
-      .visualization-wrapper { height: 800px; }
+      .visualization-wrapper { height: 320px; }
       .results-grid { grid-template-columns: 1fr 1fr; }
-      .chart-legend { gap: 10px; }
+      .legend-channels { gap: 12px 16px; }
+      .legend-key { gap: 16px; }
     }
   </style>
 </head>
@@ -87,13 +163,6 @@
           brand equity, organic traffic, seasonal patterns, and pricing effects. <strong>Media terms</strong>
           capture the incremental contribution of each channel (TV, social, search, email, etc.),
           typically transformed through saturation curves to model diminishing returns.
-          <strong>External factors</strong> include weather, competitor activity, macroeconomic trends,
-          and any other variable that influences sales but is not under your control.
-        </p>
-        <p class="prose">
-          The model decomposes <em>observed sales</em> into these components. By doing so, it answers
-          the question every marketer asks: <strong>&ldquo;How much of our revenue did each channel
-          actually drive?&rdquo;</strong>
         </p>
         <div class="callout warning">
           <div class="callout-title">Key Assumption</div>
@@ -101,12 +170,6 @@
           or competitive landscape changes dramatically, historical coefficients may not hold.
           Always <strong>calibrate</strong> MMM outputs with incrementality experiments.
         </div>
-        <p class="prose">
-          Unlike attribution models that track individual user journeys, MMM works with
-          <em>aggregate data</em> and does not require cookies or user-level tracking. This makes it
-          <strong>privacy-safe</strong> and well-suited to channels like TV, radio, and out-of-home
-          where individual-level tracking is impossible.
-        </p>
       </div>
     </div>
 
@@ -121,27 +184,14 @@
           <div class="chart-tooltip" id="wf-tooltip"></div>
         </div>
         <div class="results-grid" id="wf-metrics"></div>
-        <div class="callout" style="margin-top:20px;">
-          <div class="callout-title">How to Read a Waterfall Chart</div>
-          Each colored bar represents the <strong>incremental revenue</strong> attributable to that channel.
-          The bars stack from left to right: baseline demand starts the cascade, and each media channel
-          adds its contribution until you reach total observed sales. Connector lines link the end of
-          one bar to the start of the next, showing the running total.
-        </div>
-        <div class="warning-callout">
-          <div class="callout-title">Model Limitations</div>
-          Waterfall decompositions are <strong>point estimates</strong> from a regression model. They do not
-          show uncertainty or confidence intervals. Small channels with limited spend variation may have
-          unreliable coefficients. Always pair MMM results with <strong>incrementality tests</strong> to validate.
-        </div>
       </div>
     </div>
 
-    <!-- TAB 3: RESPONSE CURVES (SMALL MULTIPLES) -->
+    <!-- TAB 3: RESPONSE CURVES -->
     <div class="tab-panel" id="mmm-panel-response">
       <div class="stage">
         <p class="prose" style="text-align:center;">
-          Response curves for each channel. No overlapping. Each channel is scaled to its own efficiency.
+          Incremental revenue generated by channel spend. Curves are extrapolated past current spend limits.
         </p>
         <div class="visualization-wrapper" id="rc-wrapper">
           <svg class="chart-svg" id="rc-svg"></svg>
@@ -150,11 +200,7 @@
         <div class="chart-legend" id="rc-legend"></div>
         <div class="danger-callout" style="margin-top:20px;">
           <div class="callout-title">Average vs Marginal ROI</div>
-          <strong>Average ROI</strong> divides total revenue by total spend &mdash; it tells you the overall
-          return across all dollars invested. <strong>Marginal ROI (mROI)</strong> measures the return on
-          the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if
-          it is already saturated. Budget optimization should be driven by <strong>marginal ROI</strong>,
-          not average ROI &mdash; the goal is to equalize mROI across channels.
+          <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated (the dashed area).
         </div>
       </div>
     </div>
@@ -164,12 +210,10 @@
   (function(){
   'use strict';
 
-  /* --- SVG helpers --- */
   var NS = 'http://www.w3.org/2000/svg';
   function cEl(tag) { return document.createElementNS(NS, tag); }
   function sA(el, attrs) { for (var k in attrs) { if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]); } return el; }
 
-  /* --- Format helper --- */
   function fmt(v) {
     if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
     if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
@@ -185,7 +229,7 @@
     return (p.alpha * p.k * thk * sk1) / Math.pow(thk + sk, 2);
   }
 
-  /* --- Waterfall data --- */
+  /* --- Data Setup --- */
   var wfData =[
     { name: 'Baseline', value: 1200000, color: '#94a3b8' },
     { name: 'TV',       value: 450000,  color: '#60a5fa' },
@@ -196,7 +240,6 @@
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* --- Response curve channels --- */
   var rcChannels =[
     { name: 'TV',     spend: 500000, color: '#60a5fa', alpha: 800000, theta: 400000, k: 1.8 },
     { name: 'Social', spend: 300000, color: '#a78bfa', alpha: 600000, theta: 250000, k: 1.6 },
@@ -204,7 +247,7 @@
     { name: 'Email',  spend: 50000,  color: '#fbbf24', alpha: 150000, theta: 40000,  k: 1.2 }
   ];
 
-  /* --- Tab switching via event delegation --- */
+  /* --- Tabs --- */
   var tabSelector = document.getElementById('mmm-tabs');
   var activeTab = 'overview';
 
@@ -225,7 +268,6 @@
     if (tabId === 'response') { renderRC(); buildLegend(); }
   });
 
-  /* --- Tooltip helpers --- */
   function showTip(tip, x, y, html) {
     tip.innerHTML = html;
     tip.style.display = 'block';
@@ -285,8 +327,7 @@
       g.appendChild(rl);
 
       var vl = cEl('text');
-      var vlx = bx + bw + 6;
-      sA(vl, { x: vlx, y: by + barH / 2 + 4, fill: 'rgba(255,255,255,0.7)', 'font-size': '12px', 'font-weight': '600' });
+      sA(vl, { x: bx + bw + 6, y: by + barH / 2 + 4, fill: 'rgba(255,255,255,0.7)', 'font-size': '12px', 'font-weight': '600' });
       vl.textContent = fmt(d.value);
       g.appendChild(vl);
 
@@ -301,12 +342,6 @@
       (function(d, bx, bw, by, cumVal) {
         var overlay = cEl('rect');
         sA(overlay, { x: bx, y: by, width: Math.max(bw, 1), height: barH, fill: 'transparent', cursor: 'pointer' });
-        overlay.addEventListener('mouseenter', function(e) {
-          var pct = ((d.value / wfTotal) * 100).toFixed(1);
-          var r = wrapper.getBoundingClientRect();
-          showTip(tip, e.clientX - r.left + 12, e.clientY - r.top - 10,
-            '<strong>' + d.name + '</strong><br>' + fmt(d.value) + ' (' + pct + '% of total)');
-        });
         overlay.addEventListener('mousemove', function(e) {
           var pct = ((d.value / wfTotal) * 100).toFixed(1);
           var r = wrapper.getBoundingClientRect();
@@ -340,20 +375,15 @@
     g.appendChild(connT);
 
     var mediaTotal = wfTotal - wfData[0].value;
-    var baselinePct = ((wfData[0].value / wfTotal) * 100).toFixed(1);
-    var mediaPct = ((mediaTotal / wfTotal) * 100).toFixed(1);
-    var topCh = wfData[1];
-    for (var ti = 2; ti < wfData.length; ti++) { if (wfData[ti].value > topCh.value) topCh = wfData[ti]; }
     var metricsEl = document.getElementById('wf-metrics');
     metricsEl.innerHTML =
       '<div class="result-item"><div class="value">' + fmt(wfTotal) + '</div><div class="label">Total Sales</div></div>' +
-      '<div class="result-item"><div class="value">' + baselinePct + '%</div><div class="label">Baseline Share</div></div>' +
-      '<div class="result-item"><div class="value">' + mediaPct + '%</div><div class="label">Media-Driven Share</div></div>' +
-      '<div class="result-item"><div class="value">' + topCh.name + '</div><div class="label">Top Contributing Channel</div></div>';
+      '<div class="result-item"><div class="value">' + ((wfData[0].value / wfTotal) * 100).toFixed(1) + '%</div><div class="label">Baseline Share</div></div>' +
+      '<div class="result-item"><div class="value">' + ((mediaTotal / wfTotal) * 100).toFixed(1) + '%</div><div class="label">Media-Driven Share</div></div>';
   }
 
   /* ============================================================
-     RESPONSE CURVES (SMALL MULTIPLES)
+     RESPONSE CURVES (REFERENCE STYLE)
      ============================================================ */
   function renderRC() {
     var svg = document.getElementById('rc-svg');
@@ -362,122 +392,170 @@
     svg.innerHTML = '';
     
     var svgW = svg.clientWidth || 800;
-    var svgH = svg.clientHeight || 450;
-    
-    // Responsive Grid Layout: 1 col on mobile, 2 cols on desktop
-    var cols = svgW < 500 ? 1 : 2;
-    var rows = Math.ceil(rcChannels.length / cols);
-    var cardW = svgW / cols;
-    var cardH = svgH / rows;
-    
-    var m = { top: 20, right: 20, bottom: 40, left: 50 };
+    var svgH = svg.clientHeight || 440;
+    var m = { top: 24, right: 40, bottom: 52, left: 72 };
+    var W = svgW - m.left - m.right;
+    var H = svgH - m.top - m.bottom;
 
-    for (var idx = 0; idx < rcChannels.length; idx++) {
-      var ch = rcChannels[idx];
-      
-      var col = idx % cols;
-      var row = Math.floor(idx / cols);
-      
-      var xOff = col * cardW;
-      var yOff = row * cardH;
-      var W = cardW - m.left - m.right;
-      var H = cardH - m.top - m.bottom;
+    var g = cEl('g');
+    sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
+    svg.appendChild(g);
 
-      var g = cEl('g');
-      sA(g, { transform: 'translate(' + xOff + ',' + yOff + ')' });
-      svg.appendChild(g);
-
-      var maxSpend = ch.spend * 2.5;
-      var maxRev = hill(maxSpend, ch) * 1.1;
-
-      var zones = [
-        { color: 'rgba(34,197,94,0.05)', label: 'High' },
-        { color: 'rgba(251,191,36,0.05)', label: 'Dim' },
-        { color: 'rgba(248,113,113,0.05)', label: 'Sat' }
-      ];
-      for (var zi = 0; zi < zones.length; zi++) {
-        var zr = cEl('rect');
-        sA(zr, { x: (zi / 3) * W, y: 0, width: W / 3, height: H, fill: zones[zi].color });
-        g.appendChild(zr);
-      }
-
-      for (var gy = 0; gy <= 3; gy++) {
-        var yy = (gy / 3) * H;
-        var gyl = cEl('line');
-        sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
-        g.appendChild(gyl);
-      }
-
-      var pts = [];
-      var steps = 40;
-      for (var si = 0; si <= steps; si++) {
-        var s = (si / steps) * maxSpend;
-        var r = hill(s, ch);
-        var px = (s / maxSpend) * W;
-        var py = H - (r / maxRev) * H;
-        pts.push(px.toFixed(1) + ',' + py.toFixed(1));
-      }
-      var pl = cEl('polyline');
-      sA(pl, { points: pts.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
-      g.appendChild(pl);
-
-      var dotR = hill(ch.spend, ch);
-      var dotX = (ch.spend / maxSpend) * W;
-      var dotY = H - (dotR / maxRev) * H;
-      var dot = cEl('circle');
-      sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#fff', 'stroke-width': 2 });
-      g.appendChild(dot);
-
-      var title = cEl('text');
-      sA(title, { x: 0, y: -8, fill: '#fff', 'font-size': '13px', 'font-weight': '700' });
-      title.textContent = ch.name;
-      g.appendChild(title);
-
-      var xlabel = cEl('text');
-      sA(xlabel, { x: W/2, y: H + 30, fill: 'rgba(255,255,255,0.5)', 'font-size': '11px', 'text-anchor': 'middle' });
-      xlabel.textContent = 'Spend';
-      g.appendChild(xlabel);
-      
-      var ylabel = cEl('text');
-      sA(ylabel, { x: -(H / 2), y: -35, fill: 'rgba(255,255,255,0.5)', 'font-size': '11px', 'text-anchor': 'middle', 'transform': 'rotate(-90)' });
-      ylabel.textContent = 'Revenue';
-      g.appendChild(ylabel);
-
-      (function(channel, chartW, chartH, chartMaxSpend, chartMaxRev, chartG, chartXOff, chartM) {
-        var hoverRect = cEl('rect');
-        sA(hoverRect, { x: 0, y: 0, width: chartW, height: chartH, fill: 'transparent', cursor: 'crosshair' });
-        hoverRect.addEventListener('mousemove', function(e) {
-          var rect = wrapper.getBoundingClientRect();
-          var mx = e.clientX - rect.left - chartXOff - chartM.left;
-          if (mx < 0 || mx > chartW) return;
-          var spendVal = (mx / chartW) * chartMaxSpend;
-          var rev = hill(spendVal, channel);
-          var mroi = dhill(spendVal, channel);
-          var html = '<strong>' + channel.name + '</strong><br>Spend: ' + fmt(spendVal) + '<br>Rev: ' + fmt(rev) + '<br>mROI: ' + mroi.toFixed(2) + 'x';
-          showTip(tip, e.clientX - rect.left + 10, e.clientY - rect.top - 10, html);
-        });
-        hoverRect.addEventListener('mouseleave', function() { hideTip(tip); });
-        chartG.appendChild(hoverRect);
-      })(ch, W, H, maxSpend, maxRev, g, xOff, m);
+    // Calculate Global Plot Bounds
+    // Extrapolate each curve out to 2.5x its current spend
+    var maxPlotX = 0;
+    var maxPlotY = 0;
+    for (var i = 0; i < rcChannels.length; i++) {
+      var endSpend = rcChannels[i].spend * 2.5; 
+      var endRev = hill(endSpend, rcChannels[i]);
+      if (endSpend > maxPlotX) maxPlotX = endSpend;
+      if (endRev > maxPlotY) maxPlotY = endRev;
     }
+    
+    // Add 5% headroom to axes
+    maxPlotX *= 1.05;
+    maxPlotY *= 1.05;
+
+    // Grid lines & Labels
+    for (var gi = 0; gi <= 5; gi++) {
+      // Y-axis grid
+      var yy = (gi / 5) * H;
+      var gyl = cEl('line');
+      sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
+      g.appendChild(gyl);
+      
+      var tyv = ((5 - gi) / 5) * maxPlotY;
+      var tyl = cEl('text');
+      sA(tyl, { x: -10, y: yy + 4, fill: 'rgba(255,255,255,0.4)', 'font-size': '11px', 'text-anchor': 'end' });
+      tyl.textContent = fmt(tyv);
+      g.appendChild(tyl);
+
+      // X-axis grid
+      var xx = (gi / 5) * W;
+      var gxl = cEl('line');
+      sA(gxl, { x1: xx, y1: 0, x2: xx, y2: H, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
+      g.appendChild(gxl);
+
+      var txv = (gi / 5) * maxPlotX;
+      var txl = cEl('text');
+      sA(txl, { x: xx, y: H + 18, fill: 'rgba(255,255,255,0.4)', 'font-size': '11px', 'text-anchor': 'middle' });
+      txl.textContent = fmt(txv);
+      g.appendChild(txl);
+    }
+
+    // Axis Titles
+    var axX = cEl('text');
+    sA(axX, { x: W / 2, y: H + 40, fill: 'rgba(255,255,255,0.5)', 'font-size': '12px', 'text-anchor': 'middle' });
+    axX.textContent = 'Spend';
+    g.appendChild(axX);
+
+    var axY = cEl('text');
+    sA(axY, { transform: 'rotate(-90)', x: -(H / 2), y: -52, fill: 'rgba(255,255,255,0.5)', 'font-size': '12px', 'text-anchor': 'middle' });
+    axY.textContent = 'Incremental Revenue';
+    g.appendChild(axY);
+
+    // Draw lines per channel
+    for (var ci = 0; ci < rcChannels.length; ci++) {
+      var ch = rcChannels[ci];
+      var endSpend = ch.spend * 2.5;
+
+      // 1. Solid line (0 to current spend)
+      var ptsSolid =[];
+      var stepsSolid = 40;
+      for (var si = 0; si <= stepsSolid; si++) {
+        var s = (si / stepsSolid) * ch.spend;
+        var r = hill(s, ch);
+        var px = (s / maxPlotX) * W;
+        var py = H - (r / maxPlotY) * H;
+        ptsSolid.push(px.toFixed(1) + ',' + py.toFixed(1));
+      }
+      var plSolid = cEl('polyline');
+      sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+      g.appendChild(plSolid);
+
+      // 2. Dashed line (current spend to 2.5x current spend)
+      var ptsDashed =[];
+      var stepsDashed = 40;
+      for (var di = 0; di <= stepsDashed; di++) {
+        var sd = ch.spend + (di / stepsDashed) * (endSpend - ch.spend);
+        var rd = hill(sd, ch);
+        var pxd = (sd / maxPlotX) * W;
+        var pyd = H - (rd / maxPlotY) * H;
+        ptsDashed.push(pxd.toFixed(1) + ',' + pyd.toFixed(1));
+      }
+      var plDashed = cEl('polyline');
+      sA(plDashed, { points: ptsDashed.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-dasharray': '5 5' });
+      g.appendChild(plDashed);
+
+      // 3. Dot at current spend
+      var dotX = (ch.spend / maxPlotX) * W;
+      var dotY = H - (hill(ch.spend, ch) / maxPlotY) * H;
+      var dot = cEl('circle');
+      // Dark background for dot stroke allows it to "pop" off the line
+      sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#1e293b', 'stroke-width': 2 });
+      g.appendChild(dot);
+    }
+
+    // Dynamic Tooltip Intercept
+    var overlay = cEl('rect');
+    sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
+    overlay.addEventListener('mousemove', function(e) {
+      var rect = wrapper.getBoundingClientRect();
+      var svgRect = svg.getBoundingClientRect();
+      var mx = e.clientX - svgRect.left - m.left;
+      if (mx < 0 || mx > W) { hideTip(tip); return; }
+      
+      var spendVal = (mx / W) * maxPlotX;
+      var hasData = false;
+      var html = '<strong>Spend: ' + fmt(spendVal) + '</strong><div style="margin-top:6px;"></div>';
+      
+      // Only show channels in the tooltip if the mouse X is within their drawn curve (<= 2.5x spend)
+      for (var i = 0; i < rcChannels.length; i++) {
+        var c = rcChannels[i];
+        if (spendVal <= c.spend * 2.5) {
+          hasData = true;
+          var rev = hill(spendVal, c);
+          var mroi = dhill(spendVal, c);
+          html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
+                  '<span style="color:' + c.color + '; font-weight:600;">' + c.name + '</span>' +
+                  '<span>' + fmt(rev) + ' <span style="color:var(--brand-text-muted); font-size:11px;">(' + mroi.toFixed(2) + 'x mROI)</span></span></div>';
+        }
+      }
+      if (hasData) {
+        showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
+      } else {
+        hideTip(tip);
+      }
+    });
+    overlay.addEventListener('mouseleave', function() { hideTip(tip); });
+    g.appendChild(overlay);
   }
 
   /* --- Legend --- */
   function buildLegend() {
     var legendEl = document.getElementById('rc-legend');
     legendEl.innerHTML = '';
+    
+    // 1. Channel Swatches - Wrapped horizontal layout with better spacing
+    var chRow = document.createElement('div');
+    chRow.className = 'legend-channels';
     for (var i = 0; i < rcChannels.length; i++) {
       var ch = rcChannels[i];
-      var rev = hill(ch.spend, ch);
-      var mroi = dhill(ch.spend, ch);
       var item = document.createElement('div');
       item.className = 'legend-item';
-      item.innerHTML =
-        '<span class="legend-swatch" style="background:' + ch.color + ';"></span>' +
-        '<span>' + ch.name + '</span>' +
-        '<span class="legend-detail">' + fmt(ch.spend) + ' &rarr; ' + fmt(rev) + ' (mROI ' + mroi.toFixed(2) + 'x)</span>';
-      legendEl.appendChild(item);
+      item.innerHTML = '<span class="legend-swatch" style="background:' + ch.color + ';"></span><span>' + ch.name + '</span>';
+      chRow.appendChild(item);
     }
+    legendEl.appendChild(chRow);
+
+    // 2. Line Type Key (Solid / Dashed / Dot) - Separate section with visual indicators
+    var keyRow = document.createElement('div');
+    keyRow.className = 'legend-key';
+    keyRow.innerHTML = 
+      '<div class="legend-key-item"><div class="key-line-solid"></div><span>Below current spend</span></div>' +
+      '<div class="legend-key-item"><div class="key-line-dashed"></div><span>Above current spend</span></div>' +
+      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>';
+    legendEl.appendChild(keyRow);
   }
 
   /* --- Resize handler --- */
