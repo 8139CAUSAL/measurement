@@ -177,15 +177,16 @@
   }
 
   /* --- Hill functions --- */
-  var P = { alpha: 800000, theta: 400000, k: 1.8 };
-  function hill(x) { return (P.alpha * Math.pow(x, P.k)) / (Math.pow(P.theta, P.k) + Math.pow(x, P.k)); }
-  function dhill(x) {
-    var t = Math.max(x, 1e-6), thk = Math.pow(P.theta, P.k), sk1 = Math.pow(t, P.k - 1), sk = t * sk1;
-    return (P.alpha * P.k * thk * sk1) / Math.pow(thk + sk, 2);
+  function hill(x, p) { 
+    return (p.alpha * Math.pow(x, p.k)) / (Math.pow(p.theta, p.k) + Math.pow(x, p.k)); 
+  }
+  function dhill(x, p) {
+    var t = Math.max(x, 1e-6), thk = Math.pow(p.theta, p.k), sk1 = Math.pow(t, p.k - 1), sk = t * sk1;
+    return (p.alpha * p.k * thk * sk1) / Math.pow(thk + sk, 2);
   }
 
   /* --- Waterfall data --- */
-  var wfData = [
+  var wfData =[
     { name: 'Baseline', value: 1200000, color: '#94a3b8' },
     { name: 'TV',       value: 450000,  color: '#60a5fa' },
     { name: 'Social',   value: 320000,  color: '#a78bfa' },
@@ -196,11 +197,11 @@
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
   /* --- Response curve channels --- */
-  var rcChannels = [
-    { name: 'TV',     spend: 500000, color: '#60a5fa' },
-    { name: 'Social', spend: 300000, color: '#a78bfa' },
-    { name: 'Search', spend: 200000, color: '#2dd4bf' },
-    { name: 'Email',  spend: 50000,  color: '#fbbf24' }
+  var rcChannels =[
+    { name: 'TV',     spend: 500000, color: '#60a5fa', alpha: 800000, theta: 400000, k: 1.8 },
+    { name: 'Social', spend: 300000, color: '#a78bfa', alpha: 600000, theta: 250000, k: 1.6 },
+    { name: 'Search', spend: 200000, color: '#2dd4bf', alpha: 400000, theta: 150000, k: 1.4 },
+    { name: 'Email',  spend: 50000,  color: '#fbbf24', alpha: 150000, theta: 40000,  k: 1.2 }
   ];
 
   /* --- Tab switching via event delegation --- */
@@ -378,10 +379,17 @@
     svg.appendChild(g);
 
     var maxSpend = 1200000;
-    var maxRev = hill(maxSpend) * 1.1;
+    
+    // Find the maximum revenue achievable among all curves at maxSpend for scaling
+    var maxRev = 0;
+    for (var i = 0; i < rcChannels.length; i++) {
+      var r = hill(maxSpend, rcChannels[i]);
+      if (r > maxRev) maxRev = r;
+    }
+    maxRev *= 1.1; // Add 10% headroom
 
     /* background zones: green, yellow, red each 1/3 */
-    var zones = [
+    var zones =[
       { color: 'rgba(34,197,94,0.08)', label: 'High ROI' },
       { color: 'rgba(251,191,36,0.08)', label: 'Diminishing' },
       { color: 'rgba(248,113,113,0.08)', label: 'Saturated' }
@@ -440,10 +448,10 @@
     var steps = 80;
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
-      var pts = [];
+      var pts =[];
       for (var si = 0; si <= steps; si++) {
         var s = (si / steps) * maxSpend;
-        var r = hill(s);
+        var r = hill(s, ch);
         var px = (s / maxSpend) * W;
         var py = H - (r / maxRev) * H;
         pts.push(px.toFixed(1) + ',' + py.toFixed(1));
@@ -453,7 +461,7 @@
       g.appendChild(pl);
 
       /* dot at current spend */
-      var dotR = hill(ch.spend);
+      var dotR = hill(ch.spend, ch);
       var dotX = (ch.spend / maxSpend) * W;
       var dotY = H - (dotR / maxRev) * H;
       var dot = cEl('circle');
@@ -476,9 +484,15 @@
       var mx = e.clientX - svgRect.left - m.left;
       if (mx < 0 || mx > W) { hideTip(tip); return; }
       var spendVal = (mx / W) * maxSpend;
-      var rev = hill(spendVal);
-      var mroi = dhill(spendVal);
-      var html = '<strong>Spend:</strong> ' + fmt(spendVal) + '<br><strong>Revenue:</strong> ' + fmt(rev) + '<br><strong>mROI:</strong> ' + mroi.toFixed(2) + 'x';
+      
+      var html = '<strong>Spend:</strong> ' + fmt(spendVal);
+      for (var i = 0; i < rcChannels.length; i++) {
+        var c = rcChannels[i];
+        var rev = hill(spendVal, c);
+        var mroi = dhill(spendVal, c);
+        html += '<br><span style="color:' + c.color + '">' + c.name + ':</span> ' + fmt(rev) + ' (mROI ' + mroi.toFixed(2) + 'x)';
+      }
+      
       showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
     });
     overlay.addEventListener('mouseleave', function() { hideTip(tip); });
@@ -491,8 +505,8 @@
     legendEl.innerHTML = '';
     for (var i = 0; i < rcChannels.length; i++) {
       var ch = rcChannels[i];
-      var rev = hill(ch.spend);
-      var mroi = dhill(ch.spend);
+      var rev = hill(ch.spend, ch);
+      var mroi = dhill(ch.spend, ch);
       var item = document.createElement('div');
       item.className = 'legend-item';
       item.innerHTML =
