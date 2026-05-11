@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style.css">
   <style>
     /* === MMM Page Styles === */
-    .visualization-wrapper { position: relative; width: 100%; height: 320px; margin: 0 auto; }
+    .visualization-wrapper { position: relative; width: 100%; height: 450px; margin: 0 auto; }
     .chart-svg { width: 100%; height: 100%; }
     .chart-tooltip {
       position: absolute; pointer-events: none; background: rgba(0,0,0,0.88);
@@ -41,7 +41,7 @@
     .result-item .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
     .result-item .label { font-size: 13px; color: var(--brand-text-muted); margin-top: 4px; }
     @media (max-width: 600px) {
-      .visualization-wrapper { height: 260px; }
+      .visualization-wrapper { height: 800px; }
       .results-grid { grid-template-columns: 1fr 1fr; }
       .chart-legend { gap: 10px; }
     }
@@ -137,11 +137,11 @@
       </div>
     </div>
 
-    <!-- TAB 3: RESPONSE CURVES -->
+    <!-- TAB 3: RESPONSE CURVES (SMALL MULTIPLES) -->
     <div class="tab-panel" id="mmm-panel-response">
       <div class="stage">
         <p class="prose" style="text-align:center;">
-          Each curve shows how revenue responds to spend for a given channel. Dots mark current spend levels.
+          Response curves for each channel. No overlapping. Each channel is scaled to its own efficiency.
         </p>
         <div class="visualization-wrapper" id="rc-wrapper">
           <svg class="chart-svg" id="rc-svg"></svg>
@@ -251,13 +251,12 @@
     sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
     svg.appendChild(g);
 
-    var rows = wfData.length + 1; // +1 for total
+    var rows = wfData.length + 1;
     var barH = Math.min(32, (H - (rows - 1) * 6) / rows);
     var gap = 6;
     var totalH = rows * barH + (rows - 1) * gap;
     var yOff = (H - totalH) / 2;
 
-    /* grid lines */
     for (var gi = 0; gi <= 5; gi++) {
       var gx = (gi / 5) * W;
       var gl = cEl('line');
@@ -276,25 +275,21 @@
       var bw = (d.value / wfTotal) * W;
       var by = yOff + bi * (barH + gap);
 
-      /* bar */
       var rect = cEl('rect');
       sA(rect, { x: bx, y: by, width: Math.max(bw, 1), height: barH, fill: d.color, rx: 3, ry: 3 });
       g.appendChild(rect);
 
-      /* row label */
       var rl = cEl('text');
       sA(rl, { x: -10, y: by + barH / 2 + 4, fill: '#fff', 'font-size': '13px', 'font-weight': '600', 'text-anchor': 'end' });
       rl.textContent = d.name;
       g.appendChild(rl);
 
-      /* value label */
       var vl = cEl('text');
       var vlx = bx + bw + 6;
       sA(vl, { x: vlx, y: by + barH / 2 + 4, fill: 'rgba(255,255,255,0.7)', 'font-size': '12px', 'font-weight': '600' });
       vl.textContent = fmt(d.value);
       g.appendChild(vl);
 
-      /* connector line to next bar */
       if (bi < wfData.length - 1) {
         var cx = bx + bw;
         var ny = yOff + (bi + 1) * (barH + gap);
@@ -303,7 +298,6 @@
         g.appendChild(cl);
       }
 
-      /* hover overlay */
       (function(d, bx, bw, by, cumVal) {
         var overlay = cEl('rect');
         sA(overlay, { x: bx, y: by, width: Math.max(bw, 1), height: barH, fill: 'transparent', cursor: 'pointer' });
@@ -326,7 +320,6 @@
       cumulative += d.value;
     }
 
-    /* total bar (outlined) */
     var ty = yOff + wfData.length * (barH + gap);
     var tr = cEl('rect');
     sA(tr, { x: 0, y: ty, width: W, height: barH, fill: 'none', stroke: '#fff', 'stroke-width': 2, rx: 3, ry: 3, 'stroke-dasharray': '6 3' });
@@ -340,14 +333,12 @@
     tvl.textContent = fmt(wfTotal);
     g.appendChild(tvl);
 
-    /* connector from last bar to total */
     var lastEnd = W;
     var lastBy = yOff + (wfData.length - 1) * (barH + gap);
     var connT = cEl('line');
     sA(connT, { x1: lastEnd, y1: lastBy + barH, x2: lastEnd, y2: ty, stroke: 'rgba(255,255,255,0.25)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
     g.appendChild(connT);
 
-    /* metrics */
     var mediaTotal = wfTotal - wfData[0].value;
     var baselinePct = ((wfData[0].value / wfTotal) * 100).toFixed(1);
     var mediaPct = ((mediaTotal / wfTotal) * 100).toFixed(1);
@@ -362,93 +353,63 @@
   }
 
   /* ============================================================
-     RESPONSE CURVES
+     RESPONSE CURVES (SMALL MULTIPLES)
      ============================================================ */
   function renderRC() {
     var svg = document.getElementById('rc-svg');
     var wrapper = document.getElementById('rc-wrapper');
     var tip = document.getElementById('rc-tooltip');
     svg.innerHTML = '';
-    var svgW = svg.clientWidth || 800;
-    var svgH = svg.clientHeight || 320;
-    var m = { top: 20, right: 30, bottom: 44, left: 70 };
-    var W = svgW - m.left - m.right;
-    var H = svgH - m.top - m.bottom;
-    var g = cEl('g');
-    sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
-    svg.appendChild(g);
-
-    var maxSpend = 1200000;
     
-    // Find the maximum revenue achievable among all curves at maxSpend for scaling
-    var maxRev = 0;
-    for (var i = 0; i < rcChannels.length; i++) {
-      var r = hill(maxSpend, rcChannels[i]);
-      if (r > maxRev) maxRev = r;
-    }
-    maxRev *= 1.1; // Add 10% headroom
+    var svgW = svg.clientWidth || 800;
+    var svgH = svg.clientHeight || 450;
+    
+    // Responsive Grid Layout: 1 col on mobile, 2 cols on desktop
+    var cols = svgW < 500 ? 1 : 2;
+    var rows = Math.ceil(rcChannels.length / cols);
+    var cardW = svgW / cols;
+    var cardH = svgH / rows;
+    
+    var m = { top: 20, right: 20, bottom: 40, left: 50 };
 
-    /* background zones: green, yellow, red each 1/3 */
-    var zones =[
-      { color: 'rgba(34,197,94,0.08)', label: 'High ROI' },
-      { color: 'rgba(251,191,36,0.08)', label: 'Diminishing' },
-      { color: 'rgba(248,113,113,0.08)', label: 'Saturated' }
-    ];
-    for (var zi = 0; zi < zones.length; zi++) {
-      var zr = cEl('rect');
-      sA(zr, { x: (zi / 3) * W, y: 0, width: W / 3, height: H, fill: zones[zi].color });
-      g.appendChild(zr);
-      var zt = cEl('text');
-      sA(zt, { x: (zi / 3) * W + W / 6, y: 14, fill: 'rgba(255,255,255,0.3)', 'font-size': '11px', 'text-anchor': 'middle' });
-      zt.textContent = zones[zi].label;
-      g.appendChild(zt);
-    }
+    for (var idx = 0; idx < rcChannels.length; idx++) {
+      var ch = rcChannels[idx];
+      
+      var col = idx % cols;
+      var row = Math.floor(idx / cols);
+      
+      var xOff = col * cardW;
+      var yOff = row * cardH;
+      var W = cardW - m.left - m.right;
+      var H = cardH - m.top - m.bottom;
 
-    /* grid lines */
-    for (var gy = 0; gy <= 4; gy++) {
-      var yy = (gy / 4) * H;
-      var gyl = cEl('line');
-      sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.1)', 'stroke-width': 1, 'shape-rendering': 'crispEdges' });
-      g.appendChild(gyl);
-    }
-    for (var gx = 0; gx <= 4; gx++) {
-      var xx = (gx / 4) * W;
-      var gxl = cEl('line');
-      sA(gxl, { x1: xx, y1: 0, x2: xx, y2: H, stroke: 'rgba(255,255,255,0.06)', 'stroke-width': 1, 'shape-rendering': 'crispEdges' });
-      g.appendChild(gxl);
-    }
+      var g = cEl('g');
+      sA(g, { transform: 'translate(' + xOff + ',' + yOff + ')' });
+      svg.appendChild(g);
 
-    /* axis labels */
-    var axX = cEl('text');
-    sA(axX, { x: W / 2, y: H + 34, fill: 'rgba(255,255,255,0.5)', 'font-size': '13px', 'text-anchor': 'middle' });
-    axX.textContent = 'Channel Spend';
-    g.appendChild(axX);
-    var axY = cEl('text');
-    sA(axY, { transform: 'rotate(-90)', x: -H / 2, y: -50, fill: 'rgba(255,255,255,0.5)', 'font-size': '13px', 'text-anchor': 'middle' });
-    axY.textContent = 'Revenue';
-    g.appendChild(axY);
+      var maxSpend = ch.spend * 2.5;
+      var maxRev = hill(maxSpend, ch) * 1.1;
 
-    /* scale tick labels */
-    for (var tx = 0; tx <= 4; tx++) {
-      var txv = (tx / 4) * maxSpend;
-      var txl = cEl('text');
-      sA(txl, { x: (tx / 4) * W, y: H + 16, fill: 'rgba(255,255,255,0.4)', 'font-size': '10px', 'text-anchor': 'middle' });
-      txl.textContent = fmt(txv);
-      g.appendChild(txl);
-    }
-    for (var ty = 0; ty <= 4; ty++) {
-      var tyv = ((4 - ty) / 4) * maxRev;
-      var tyl = cEl('text');
-      sA(tyl, { x: -8, y: (ty / 4) * H + 4, fill: 'rgba(255,255,255,0.4)', 'font-size': '10px', 'text-anchor': 'end' });
-      tyl.textContent = fmt(tyv);
-      g.appendChild(tyl);
-    }
+      var zones = [
+        { color: 'rgba(34,197,94,0.05)', label: 'High' },
+        { color: 'rgba(251,191,36,0.05)', label: 'Dim' },
+        { color: 'rgba(248,113,113,0.05)', label: 'Sat' }
+      ];
+      for (var zi = 0; zi < zones.length; zi++) {
+        var zr = cEl('rect');
+        sA(zr, { x: (zi / 3) * W, y: 0, width: W / 3, height: H, fill: zones[zi].color });
+        g.appendChild(zr);
+      }
 
-    /* polyline curves and dots per channel */
-    var steps = 80;
-    for (var ci = 0; ci < rcChannels.length; ci++) {
-      var ch = rcChannels[ci];
-      var pts =[];
+      for (var gy = 0; gy <= 3; gy++) {
+        var yy = (gy / 3) * H;
+        var gyl = cEl('line');
+        sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
+        g.appendChild(gyl);
+      }
+
+      var pts = [];
+      var steps = 40;
       for (var si = 0; si <= steps; si++) {
         var s = (si / steps) * maxSpend;
         var r = hill(s, ch);
@@ -460,43 +421,45 @@
       sA(pl, { points: pts.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
       g.appendChild(pl);
 
-      /* dot at current spend */
       var dotR = hill(ch.spend, ch);
       var dotX = (ch.spend / maxSpend) * W;
       var dotY = H - (dotR / maxRev) * H;
       var dot = cEl('circle');
-      sA(dot, { cx: dotX, cy: dotY, r: 6, fill: ch.color, stroke: '#fff', 'stroke-width': 2 });
+      sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#fff', 'stroke-width': 2 });
       g.appendChild(dot);
 
-      /* small label near dot */
-      var dl = cEl('text');
-      sA(dl, { x: dotX + 10, y: dotY - 8, fill: ch.color, 'font-size': '11px', 'font-weight': '600' });
-      dl.textContent = ch.name;
-      g.appendChild(dl);
-    }
+      var title = cEl('text');
+      sA(title, { x: 0, y: -8, fill: '#fff', 'font-size': '13px', 'font-weight': '700' });
+      title.textContent = ch.name;
+      g.appendChild(title);
 
-    /* mousemove tooltip overlay */
-    var overlay = cEl('rect');
-    sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
-    overlay.addEventListener('mousemove', function(e) {
-      var rect = wrapper.getBoundingClientRect();
-      var svgRect = svg.getBoundingClientRect();
-      var mx = e.clientX - svgRect.left - m.left;
-      if (mx < 0 || mx > W) { hideTip(tip); return; }
-      var spendVal = (mx / W) * maxSpend;
+      var xlabel = cEl('text');
+      sA(xlabel, { x: W/2, y: H + 30, fill: 'rgba(255,255,255,0.5)', 'font-size': '11px', 'text-anchor': 'middle' });
+      xlabel.textContent = 'Spend';
+      g.appendChild(xlabel);
       
-      var html = '<strong>Spend:</strong> ' + fmt(spendVal);
-      for (var i = 0; i < rcChannels.length; i++) {
-        var c = rcChannels[i];
-        var rev = hill(spendVal, c);
-        var mroi = dhill(spendVal, c);
-        html += '<br><span style="color:' + c.color + '">' + c.name + ':</span> ' + fmt(rev) + ' (mROI ' + mroi.toFixed(2) + 'x)';
-      }
-      
-      showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
-    });
-    overlay.addEventListener('mouseleave', function() { hideTip(tip); });
-    g.appendChild(overlay);
+      var ylabel = cEl('text');
+      sA(ylabel, { x: -(H / 2), y: -35, fill: 'rgba(255,255,255,0.5)', 'font-size': '11px', 'text-anchor': 'middle', 'transform': 'rotate(-90)' });
+      ylabel.textContent = 'Revenue';
+      g.appendChild(ylabel);
+
+      (function(channel, chartW, chartH, chartMaxSpend, chartMaxRev, chartG, chartXOff, chartM) {
+        var hoverRect = cEl('rect');
+        sA(hoverRect, { x: 0, y: 0, width: chartW, height: chartH, fill: 'transparent', cursor: 'crosshair' });
+        hoverRect.addEventListener('mousemove', function(e) {
+          var rect = wrapper.getBoundingClientRect();
+          var mx = e.clientX - rect.left - chartXOff - chartM.left;
+          if (mx < 0 || mx > chartW) return;
+          var spendVal = (mx / chartW) * chartMaxSpend;
+          var rev = hill(spendVal, channel);
+          var mroi = dhill(spendVal, channel);
+          var html = '<strong>' + channel.name + '</strong><br>Spend: ' + fmt(spendVal) + '<br>Rev: ' + fmt(rev) + '<br>mROI: ' + mroi.toFixed(2) + 'x';
+          showTip(tip, e.clientX - rect.left + 10, e.clientY - rect.top - 10, html);
+        });
+        hoverRect.addEventListener('mouseleave', function() { hideTip(tip); });
+        chartG.appendChild(hoverRect);
+      })(ch, W, H, maxSpend, maxRev, g, xOff, m);
+    }
   }
 
   /* --- Legend --- */
