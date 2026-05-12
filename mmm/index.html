@@ -171,46 +171,35 @@
     return '$' + Math.round(v);
   }
 
-  // Set target mROI to 0.5 to better match the mathematical reality of these specific coefficients
   var config = {
     targetMROI: 0.5,        
     chartMaxSpend: 10000 
   };
 
   function powerLaw(spend, channel) {
+    // Keep this for waterfall calculations (matches regression)
     if (spend <= 0) return 0;
     return channel.coefficient * Math.pow(spend, channel.exponent);
   }
 
-  function marginalROIPowerLaw(spend, channel) {
-    // Clamp to 1 to avoid division by zero errors at x=0, without artificially flattening the curve
-    var s = Math.max(spend, 1); 
-    return channel.coefficient * channel.exponent * Math.pow(s, channel.exponent - 1);
+  function hillRevenue(spend, channel) {
+    if (spend <= 0) return 0;
+    var h = channel.hill;
+    return (h.alpha * Math.pow(spend, h.k)) / (Math.pow(h.theta, h.k) + Math.pow(spend, h.k));
   }
 
-  function findSaturationKnee(channel, maxSpend) {
-    var lo = 1;
-    var hi = maxSpend;
-    var targetMROI = config.targetMROI;
-    var maxIterations = 60;
-
-    for (var iter = 0; iter < maxIterations; iter++) {
-      var mid = (lo + hi) / 2;
-      var mroi = marginalROIPowerLaw(mid, channel);
-      if (Math.abs(mroi - targetMROI) < 0.0001) break;
-      if (mroi > targetMROI) lo = mid; else hi = mid;
-    }
-
-    var result = (lo + hi) / 2;
-    var finalMROI = marginalROIPowerLaw(result, channel);
-    if (finalMROI <= targetMROI && result >= 1) return result;
-    return maxSpend + 1; 
+  function marginalROIHill(spend, channel) {
+    // Derivative of the Hill Function for accurate mROI in the tooltip
+    if (spend <= 0) return 0;
+    var h = channel.hill;
+    var s = Math.max(spend, 1); // Avoid division by zero
+    var num = h.alpha * h.k * Math.pow(s, h.k - 1) * Math.pow(h.theta, h.k);
+    var den = Math.pow(Math.pow(h.theta, h.k) + Math.pow(s, h.k), 2);
+    return num / den;
   }
 
   /* 
      Waterfall Data synchronized to the regression intercept and typical weekly media incrementality.
-     Intercept: ~67,762
-     Media sums represent incremental returns at "typical" weekly spend levels.
   */
   var wfData =[
     { name: 'Baseline', value: 67762, color: '#94a3b8' },
@@ -224,13 +213,17 @@
 
   /* 
      RESPONSE CURVES
-     Using exactly the regression outputs provided: spend ^ beta * coef
+     Added Hill parameters for smooth asymptotic curve drawing
   */
   var rcChannels =[
-    { name: 'TV',     spend: 9000, color: '#60a5fa', coefficient: 4.459, exponent: 0.70 },
-    { name: 'Social', spend: 5500, color: '#a78bfa', coefficient: 8.196, exponent: 0.60 },
-    { name: 'Search', spend: 3500, color: '#2dd4bf', coefficient: 12.31, exponent: 0.50 },
-    { name: 'Email',  spend: 900,  color: '#fbbf24', coefficient: 8.776, exponent: 0.45 }
+    { name: 'TV',     spend: 9000, color: '#60a5fa', coefficient: 4.459, exponent: 0.70, 
+      hill: { alpha: 1800, k: 1.8, theta: 5500 } },
+    { name: 'Social', spend: 5500, color: '#a78bfa', coefficient: 8.196, exponent: 0.60,
+      hill: { alpha: 1500, k: 1.8, theta: 3500 } },
+    { name: 'Search', spend: 3500, color: '#2dd4bf', coefficient: 12.31, exponent: 0.50,
+      hill: { alpha: 1000, k: 1.8, theta: 2200 } },
+    { name: 'Email',  spend: 900,  color: '#fbbf24', coefficient: 8.776, exponent: 0.45,
+      hill: { alpha: 500, k: 1.8, theta: 600 } }
   ];
 
   var rcCleanup = null;
@@ -391,7 +384,7 @@
     var maxRev = 0;
 
     for (var i = 0; i < rcChannels.length; i++) {
-      var endRev = powerLaw(X_MAX, rcChannels[i]); 
+      var endRev = hillRevenue(X_MAX, rcChannels[i]); 
       if (endRev > maxRev) maxRev = endRev;
     }
 
@@ -435,11 +428,7 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    for (var ki = 0; ki < rcChannels.length; ki++) {
-      rcChannels[ki].saturationKnee = findSaturationKnee(rcChannels[ki], X_MAX);
-    }
-
-    // Draw curves
+    // Draw curves using Hill function
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
 
@@ -448,7 +437,7 @@
       var stepsSolid = 60;
       for (var si = 0; si <= stepsSolid; si++) {
         var s = (si / stepsSolid) * ch.spend;
-        var r = powerLaw(s, ch);
+        var r = hillRevenue(s, ch);
         var px = (s / X_MAX) * W;
         var py = H - (r / Y_MAX) * H;
         ptsSolid.push(px.toFixed(1) + ',' + py.toFixed(1));
@@ -462,7 +451,7 @@
       var stepsDashed = 80; 
       for (var di = 0; di <= stepsDashed; di++) {
         var sd = ch.spend + (di / stepsDashed) * (X_MAX - ch.spend);
-        var rd = powerLaw(sd, ch);
+        var rd = hillRevenue(sd, ch);
         var pxd = (sd / X_MAX) * W;
         var pyd = H - (rd / Y_MAX) * H;
         ptsDashed.push(pxd.toFixed(1) + ',' + pyd.toFixed(1));
@@ -473,39 +462,10 @@
 
       // Dot at current spend
       var dotX = (ch.spend / X_MAX) * W;
-      var dotY = H - (powerLaw(ch.spend, ch) / Y_MAX) * H;
+      var dotY = H - (hillRevenue(ch.spend, ch) / Y_MAX) * H;
       var dot = cEl('circle');
       sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#1e293b', 'stroke-width': 2 });
       g.appendChild(dot);
-    }
-
-    // Knee lines
-    for (var ki = 0; ki < rcChannels.length; ki++) {
-      var ch = rcChannels[ki];
-      var kneeX = (ch.saturationKnee / X_MAX) * W;
-
-      if (kneeX > 0 && kneeX < W) {
-        var kneeLine = cEl('line');
-        sA(kneeLine, {
-          x1: kneeX, y1: 0, x2: kneeX, y2: H,
-          stroke: ch.color,
-          'stroke-width': 1.5,
-          'stroke-dasharray': '4 4',
-          'opacity': 0.5
-        });
-        g.appendChild(kneeLine);
-
-        var kneeLabel = cEl('text');
-        sA(kneeLabel, {
-          x: kneeX, y: 14,
-          fill: ch.color,
-          'font-size': '10px',
-          'text-anchor': 'middle',
-          'opacity': 0.7
-        });
-        kneeLabel.textContent = fmt(ch.saturationKnee);
-        g.appendChild(kneeLabel);
-      }
     }
 
     // Right-side Labels
@@ -513,7 +473,7 @@
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
       var labelX = W;
-      var labelY = H - (powerLaw(X_MAX, ch) / Y_MAX) * H;
+      var labelY = H - (hillRevenue(X_MAX, ch) / Y_MAX) * H;
       labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
     }
 
@@ -570,8 +530,8 @@
         var c = rcChannels[i];
         if (spendVal <= X_MAX) {
           hasData = true;
-          var rev = powerLaw(spendVal, c);
-          var mroi = marginalROIPowerLaw(spendVal, c);
+          var rev = hillRevenue(spendVal, c);
+          var mroi = marginalROIHill(spendVal, c);
           var mroiColor = mroi >= config.targetMROI ? '#34d399' : '#f87171';
           var mroiLabel = mroi >= config.targetMROI ? 'efficient' : 'saturated';
           html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
@@ -607,8 +567,7 @@
     keyRow.innerHTML =
       '<div class="legend-key-item"><div class="key-line-solid"></div><span>Below current spend</span></div>' +
       '<div class="legend-key-item"><div class="key-line-dashed"></div><span>Above current spend</span></div>' +
-      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>' +
-      '<div class="legend-key-item"><div style="width:24px;height:2px;border-top:2px dashed #94a3b8;"></div><span>Saturation knee (mROI=' + config.targetMROI + ')</span></div>';
+      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>';
     legendEl.appendChild(keyRow);
   }
 
