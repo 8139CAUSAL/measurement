@@ -150,7 +150,7 @@
         <div class="danger-callout" style="margin-top:20px;">
           <div class="callout-title">Average vs Marginal ROI</div>
           <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated (the dashed area).<br><br>
-          <span style="color:#34d399;">&#9679;</span> mROI &ge; 1.0 (efficient) &nbsp;&nbsp; <span style="color:#f87171;">&#9679;</span> mROI &lt; 1.0 (saturated)
+          <span style="color:#34d399;">&#9679;</span> mROI &ge; 0.5 (efficient) &nbsp;&nbsp; <span style="color:#f87171;">&#9679;</span> mROI &lt; 0.5 (saturated)
         </div>
       </div>
     </div>
@@ -164,33 +164,32 @@
   function cEl(tag) { return document.createElementNS(NS, tag); }
   function sA(el, attrs) { for (var k in attrs) { if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]); } return el; }
 
+  // Formatter refined to show smaller values nicely (e.g. $2.8K instead of $3K)
   function fmt(v) {
     if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
-    if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
+    if (v >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
     return '$' + Math.round(v);
   }
 
+  // Set target mROI to 0.5 to better match the mathematical reality of these specific coefficients
   var config = {
-    targetMROI: 1.0,        
-    chartRange: 2.5,        
-    minSpendThreshold: 1000 
+    targetMROI: 0.5,        
+    chartMaxSpend: 10000 
   };
 
   function powerLaw(spend, channel) {
     if (spend <= 0) return 0;
-    var effectiveSpend = Math.max(spend, config.minSpendThreshold);
-    return channel.coefficient * Math.pow(effectiveSpend, channel.exponent);
+    return channel.coefficient * Math.pow(spend, channel.exponent);
   }
 
   function marginalROIPowerLaw(spend, channel) {
-    if (spend <= config.minSpendThreshold) {
-      return channel.coefficient * channel.exponent * Math.pow(config.minSpendThreshold, channel.exponent - 1);
-    }
-    return channel.coefficient * channel.exponent * Math.pow(spend, channel.exponent - 1);
+    // Clamp to 1 to avoid division by zero errors at x=0, without artificially flattening the curve
+    var s = Math.max(spend, 1); 
+    return channel.coefficient * channel.exponent * Math.pow(s, channel.exponent - 1);
   }
 
   function findSaturationKnee(channel, maxSpend) {
-    var lo = config.minSpendThreshold;
+    var lo = 1;
     var hi = maxSpend;
     var targetMROI = config.targetMROI;
     var maxIterations = 60;
@@ -204,31 +203,34 @@
 
     var result = (lo + hi) / 2;
     var finalMROI = marginalROIPowerLaw(result, channel);
-    if (finalMROI <= targetMROI && result >= config.minSpendThreshold) return result;
+    if (finalMROI <= targetMROI && result >= 1) return result;
     return maxSpend + 1; 
   }
 
+  /* 
+     Waterfall Data synchronized to the regression intercept and typical weekly media incrementality.
+     Intercept: ~67,762
+     Media sums represent incremental returns at "typical" weekly spend levels.
+  */
   var wfData =[
-    { name: 'Baseline', value: 1200000, color: '#94a3b8' },
-    { name: 'TV',       value: 450000,  color: '#60a5fa' },
-    { name: 'Social',   value: 320000,  color: '#a78bfa' },
-    { name: 'Search',   value: 180000,  color: '#2dd4bf' },
-    { name: 'Email',    value: 80000,   color: '#fbbf24' }
+    { name: 'Baseline', value: 67762, color: '#94a3b8' },
+    { name: 'TV',       value: 2613,  color: '#60a5fa' },
+    { name: 'Social',   value: 1438,  color: '#a78bfa' },
+    { name: 'Search',   value: 728,   color: '#2dd4bf' },
+    { name: 'Email',    value: 187,   color: '#fbbf24' }
   ];
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* REALISTIC ROAS COEFFICIENTS
-     - TV: 3.0x ROAS at $500k
-     - Social: 3.5x ROAS at $300k
-     - Search: 4.0x ROAS at $200k
-     - Email: 2.5x ROAS at $50k 
+  /* 
+     RESPONSE CURVES
+     Using exactly the regression outputs provided: spend ^ beta * coef
   */
   var rcChannels =[
-    { name: 'TV',     spend: 500000, color: '#60a5fa', coefficient: 21.48, exponent: 0.85 },
-    { name: 'Social', spend: 300000, color: '#a78bfa', coefficient: 153.89, exponent: 0.70 },
-    { name: 'Search', spend: 200000, color: '#2dd4bf', coefficient: 527.80, exponent: 0.60 },
-    { name: 'Email',  spend: 50000,  color: '#fbbf24', coefficient: 960.23, exponent: 0.45 }
+    { name: 'TV',     spend: 9000, color: '#60a5fa', coefficient: 4.459, exponent: 0.70 },
+    { name: 'Social', spend: 5500, color: '#a78bfa', coefficient: 8.196, exponent: 0.60 },
+    { name: 'Search', spend: 3500, color: '#2dd4bf', coefficient: 12.31, exponent: 0.50 },
+    { name: 'Email',  spend: 900,  color: '#fbbf24', coefficient: 8.776, exponent: 0.45 }
   ];
 
   var rcCleanup = null;
@@ -385,24 +387,17 @@
     sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
     svg.appendChild(g);
 
-    // 1. Find the highest global spend to establish a unified X-axis for all channels
-    var maxCurrentSpend = 0;
-    for (var i = 0; i < rcChannels.length; i++) {
-      if (rcChannels[i].spend > maxCurrentSpend) maxCurrentSpend = rcChannels[i].spend;
-    }
-    
-    // Scale X-axis out to 2.5x of the highest spend channel
-    var chartMaxSpend = maxCurrentSpend * config.chartRange; 
+    var X_MAX = config.chartMaxSpend; 
     var maxRev = 0;
 
-    // 2. Project ALL channels across this unified X-axis to find the true max Y
     for (var i = 0; i < rcChannels.length; i++) {
-      var endRev = powerLaw(chartMaxSpend, rcChannels[i]); 
+      var endRev = powerLaw(X_MAX, rcChannels[i]); 
       if (endRev > maxRev) maxRev = endRev;
     }
 
-    var X_MAX = chartMaxSpend * 1.05;
-    var Y_MAX = maxRev * 1.05;
+    // Dynamic clean Y scale (rounds up to give some breathing room)
+    var Y_MAX = Math.ceil(maxRev / 1000) * 1000;
+    if (Y_MAX < maxRev * 1.05) Y_MAX = maxRev * 1.1;
 
     // Grid lines & Labels
     for (var gi = 0; gi <= 5; gi++) {
@@ -464,9 +459,9 @@
 
       // Dashed line (extrapolating from current spend out to shared chart end)
       var ptsDashed =[];
-      var stepsDashed = 80; // slightly more steps for the long tail
+      var stepsDashed = 80; 
       for (var di = 0; di <= stepsDashed; di++) {
-        var sd = ch.spend + (di / stepsDashed) * (chartMaxSpend - ch.spend);
+        var sd = ch.spend + (di / stepsDashed) * (X_MAX - ch.spend);
         var rd = powerLaw(sd, ch);
         var pxd = (sd / X_MAX) * W;
         var pyd = H - (rd / Y_MAX) * H;
@@ -517,8 +512,8 @@
     var labelData =[];
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
-      var labelX = (chartMaxSpend / X_MAX) * W;
-      var labelY = H - (powerLaw(chartMaxSpend, ch) / Y_MAX) * H;
+      var labelX = W;
+      var labelY = H - (powerLaw(X_MAX, ch) / Y_MAX) * H;
       labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
     }
 
@@ -530,7 +525,7 @@
 
     for (var si = 0; si < labelData.length; si++) {
       var item = labelData[si];
-      item.labelY = item.y; // Y values are nicely distributed now, simple assignment
+      item.labelY = item.y; 
       item.labelY = Math.max(minLabelY, Math.min(maxLabelY, item.labelY));
       if (si > 0 && item.labelY < labelData[si - 1]._usedY + labelHeight + labelGap) {
         item.labelY = labelData[si - 1]._usedY + labelHeight + labelGap;
@@ -573,7 +568,7 @@
 
       for (var i = 0; i < rcChannels.length; i++) {
         var c = rcChannels[i];
-        if (spendVal <= chartMaxSpend) {
+        if (spendVal <= X_MAX) {
           hasData = true;
           var rev = powerLaw(spendVal, c);
           var mroi = marginalROIPowerLaw(spendVal, c);
