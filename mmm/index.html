@@ -164,70 +164,80 @@
   function cEl(tag) { return document.createElementNS(NS, tag); }
   function sA(el, attrs) { for (var k in attrs) { if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]); } return el; }
 
-  // Formatter refined to show smaller values nicely (e.g. $2.8K instead of $3K)
   function fmt(v) {
-    if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
-    if (v >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
     return '$' + Math.round(v);
   }
 
-  var config = {
-    targetMROI: 0.5,        
-    chartMaxSpend: 10000 
-  };
-
-  function powerLaw(spend, channel) {
-    // Keep this for waterfall calculations (matches regression)
-    if (spend <= 0) return 0;
-    return channel.coefficient * Math.pow(spend, channel.exponent);
-  }
-
-  function hillRevenue(spend, channel) {
-    if (spend <= 0) return 0;
-    var h = channel.hill;
-    return (h.alpha * Math.pow(spend, h.k)) / (Math.pow(h.theta, h.k) + Math.pow(spend, h.k));
-  }
-
-  function marginalROIHill(spend, channel) {
-    // Derivative of the Hill Function for accurate mROI in the tooltip
-    if (spend <= 0) return 0;
-    var h = channel.hill;
-    var s = Math.max(spend, 1); // Avoid division by zero
-    var num = h.alpha * h.k * Math.pow(s, h.k - 1) * Math.pow(h.theta, h.k);
-    var den = Math.pow(Math.pow(h.theta, h.k) + Math.pow(s, h.k), 2);
-    return num / den;
-  }
-
-  /* 
-     Waterfall Data synchronized to the regression intercept and typical weekly media incrementality.
-  */
+  /* --- WATERFALL DATA (Restored to high-level demo numbers) --- */
   var wfData =[
-    { name: 'Baseline', value: 67762, color: '#94a3b8' },
-    { name: 'TV',       value: 2613,  color: '#60a5fa' },
-    { name: 'Social',   value: 1438,  color: '#a78bfa' },
-    { name: 'Search',   value: 728,   color: '#2dd4bf' },
-    { name: 'Email',    value: 187,   color: '#fbbf24' }
+    { name: 'Baseline', value: 1200000, color: '#94a3b8' },
+    { name: 'TV',       value: 450000,  color: '#60a5fa' },
+    { name: 'Social',   value: 320000,  color: '#a78bfa' },
+    { name: 'Search',   value: 180000,  color: '#2dd4bf' },
+    { name: 'Email',    value: 80000,   color: '#fbbf24' }
   ];
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* 
-     RESPONSE CURVES
-     Added Hill parameters for smooth asymptotic curve drawing
-  */
-  var rcChannels =[
-    { name: 'TV',     spend: 9000, color: '#60a5fa', coefficient: 4.459, exponent: 0.70, 
-      hill: { alpha: 1800, k: 1.8, theta: 5500 } },
-    { name: 'Social', spend: 5500, color: '#a78bfa', coefficient: 8.196, exponent: 0.60,
-      hill: { alpha: 1500, k: 1.8, theta: 3500 } },
-    { name: 'Search', spend: 3500, color: '#2dd4bf', coefficient: 12.31, exponent: 0.50,
-      hill: { alpha: 1000, k: 1.8, theta: 2200 } },
-    { name: 'Email',  spend: 900,  color: '#fbbf24', coefficient: 8.776, exponent: 0.45,
-      hill: { alpha: 500, k: 1.8, theta: 600 } }
+  /* --- RESPONSE CURVE DATA (Hardcoded from your spreadsheet) --- */
+  /* Each channel is an array of [Spend, Revenue] pairs */
+  var rcChannels = [
+    { 
+      name: 'TV', 
+      color: '#60a5fa',
+      currentSpend: 10000,
+      data: [
+        [0, 0], [500, 345.57], [1000, 561.38], [1500, 745.63], [2000, 911.97], 
+        [2500, 1066.15], [3000, 1211.28], [3500, 1349.30], [4000, 1481.50], 
+        [4500, 1608.82], [5000, 1731.96], [5500, 1800], [6000, 1800], [6500, 1800],
+        [7000, 1800], [7500, 1800], [8000, 1800], [8500, 1800], [9000, 1800], 
+        [9500, 1800], [10000, 1800]
+      ]
+    },
+    { 
+      name: 'Social', 
+      color: '#a78bfa',
+      currentSpend: 10000,
+      data: [
+        [0, 0], [500, 341.17], [1000, 517.12], [1500, 659.55], [2000, 783.81], 
+        [2500, 896.10], [3000, 999.69], [3500, 1096.57], [4000, 1188.04], 
+        [4500, 1275.04], [5000, 1358.24], [5500, 1438.18], [6000, 1500], [6500, 1500],
+        [7000, 1500], [7500, 1500], [8000, 1500], [8500, 1500], [9000, 1500], 
+        [9500, 1500], [10000, 1500]
+      ]
+    },
+    { 
+      name: 'Search', 
+      color: '#2dd4bf',
+      currentSpend: 10000,
+      data: [
+        [0, 0], [500, 275.27], [1000, 389.29], [1500, 476.78], [2000, 550.53], 
+        [2500, 615.52], [3000, 674.26], [3500, 728.29], [4000, 778.57], 
+        [4500, 825.80], [5000, 870.47], [5500, 912.96], [6000, 953.55], [6500, 992.49],
+        [7000, 1000], [7500, 1000], [8000, 1000], [8500, 1000], [9000, 1000], 
+        [9500, 1000], [10000, 1000]
+      ]
+    },
+    { 
+      name: 'Email', 
+      color: '#fbbf24',
+      currentSpend: 10000,
+      data: [
+        [0, 0], [500, 143.83], [1000, 196.48], [1500, 235.80], [2000, 268.40], 
+        [2500, 296.75], [3000, 322.12], [3500, 345.26], [4000, 366.64], 
+        [4500, 386.60], [5000, 405.37], [5500, 423.13], [6000, 440.03], [6500, 456.17],
+        [7000, 471.63], [7500, 486.51], [8000, 500], [8500, 500], [9000, 500], 
+        [9500, 500], [10000, 500]
+      ]
+    }
   ];
 
   var rcCleanup = null;
+  var config = { chartMaxSpend: 10000 };
 
+  /* --- TABS --- */
   var tabSelector = document.getElementById('mmm-tabs');
   var activeTab = 'overview';
 
@@ -256,6 +266,7 @@
   }
   function hideTip(tip) { tip.style.display = 'none'; }
 
+  /* --- WATERFALL RENDERER --- */
   function renderWF() {
     var svg = document.getElementById('wf-svg');
     var wrapper = document.getElementById('wf-wrapper');
@@ -359,11 +370,9 @@
       '<div class="result-item"><div class="value">' + ((mediaTotal / wfTotal) * 100).toFixed(1) + '%</div><div class="label">Media-Driven Share</div></div>';
   }
 
+  /* --- RESPONSE CURVES RENDERER (Hardcoded Data) --- */
   function renderRC() {
-    if (rcCleanup) {
-      rcCleanup();
-      rcCleanup = null;
-    }
+    if (rcCleanup) { rcCleanup(); rcCleanup = null; }
 
     var svg = document.getElementById('rc-svg');
     var wrapper = document.getElementById('rc-wrapper');
@@ -380,19 +389,11 @@
     sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
     svg.appendChild(g);
 
-    var X_MAX = config.chartMaxSpend; 
-    var maxRev = 0;
+    // Find max values for scaling
+    var X_MAX = config.chartMaxSpend;
+    var Y_MAX = 2000; // Based on TV ceiling of 1800
 
-    for (var i = 0; i < rcChannels.length; i++) {
-      var endRev = hillRevenue(X_MAX, rcChannels[i]); 
-      if (endRev > maxRev) maxRev = endRev;
-    }
-
-    // Dynamic clean Y scale (rounds up to give some breathing room)
-    var Y_MAX = Math.ceil(maxRev / 1000) * 1000;
-    if (Y_MAX < maxRev * 1.05) Y_MAX = maxRev * 1.1;
-
-    // Grid lines & Labels
+    // Grid & Axis Labels
     for (var gi = 0; gi <= 5; gi++) {
       var yy = (gi / 5) * H;
       var gyl = cEl('line');
@@ -428,55 +429,77 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    // Draw curves using Hill function
+    // Draw Curves from Hardcoded Arrays
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
+      var ptsSolid = [];
+      var ptsDashed = [];
 
-      // Solid line (0 to current spend)
-      var ptsSolid =[];
-      var stepsSolid = 60;
-      for (var si = 0; si <= stepsSolid; si++) {
-        var s = (si / stepsSolid) * ch.spend;
-        var r = hillRevenue(s, ch);
-        var px = (s / X_MAX) * W;
-        var py = H - (r / Y_MAX) * H;
-        ptsSolid.push(px.toFixed(1) + ',' + py.toFixed(1));
+      // Find split point (last solid point before currentSpend, or just use logic)
+      // We will iterate the array. Points <= currentSpend are solid, > are dashed
+      for (var p = 0; p < ch.data.length; p++) {
+        var spend = ch.data[p][0];
+        var rev = ch.data[p][1];
+        var px = (spend / X_MAX) * W;
+        var py = H - (rev / Y_MAX) * H;
+        var pt = px.toFixed(1) + ',' + py.toFixed(1);
+
+        if (spend <= ch.currentSpend) {
+          ptsSolid.push(pt);
+        }
+        // Dashed starts from the first point that exceeds currentSpend
+        // But to make it connect, we add the currentSpend point to dashed too
+        if (spend >= ch.currentSpend) {
+            ptsDashed.push(pt);
+        }
       }
-      var plSolid = cEl('polyline');
-      sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
-      g.appendChild(plSolid);
 
-      // Dashed line (extrapolating from current spend out to shared chart end)
-      var ptsDashed =[];
-      var stepsDashed = 80; 
-      for (var di = 0; di <= stepsDashed; di++) {
-        var sd = ch.spend + (di / stepsDashed) * (X_MAX - ch.spend);
-        var rd = hillRevenue(sd, ch);
-        var pxd = (sd / X_MAX) * W;
-        var pyd = H - (rd / Y_MAX) * H;
-        ptsDashed.push(pxd.toFixed(1) + ',' + pyd.toFixed(1));
+      // Draw Solid
+      if (ptsSolid.length > 1) {
+        var plSolid = cEl('polyline');
+        sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5 });
+        g.appendChild(plSolid);
       }
-      var plDashed = cEl('polyline');
-      sA(plDashed, { points: ptsDashed.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-dasharray': '5 5' });
-      g.appendChild(plDashed);
 
-      // Dot at current spend
-      var dotX = (ch.spend / X_MAX) * W;
-      var dotY = H - (hillRevenue(ch.spend, ch) / Y_MAX) * H;
+      // Draw Dashed
+      if (ptsDashed.length > 1) {
+        var plDashed = cEl('polyline');
+        sA(plDashed, { points: ptsDashed.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-dasharray': '5 5' });
+        g.appendChild(plDashed);
+      }
+
+      // Draw Dot at currentSpend
+      var currentRev = 0;
+      for (var p = 0; p < ch.data.length; p++) {
+          if (ch.data[p][0] === ch.currentSpend) {
+              currentRev = ch.data[p][1];
+              break;
+          }
+          // Interpolate if exact match not found (simplified here: just find closest)
+          if (p > 0 && ch.data[p][0] > ch.currentSpend) {
+              currentRev = ch.data[p-1][1]; // fallback
+              break;
+          }
+      }
+      
+      var dotX = (ch.currentSpend / X_MAX) * W;
+      var dotY = H - (currentRev / Y_MAX) * H;
       var dot = cEl('circle');
       sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#1e293b', 'stroke-width': 2 });
       g.appendChild(dot);
     }
 
-    // Right-side Labels
+    // Labels on Right
     var labelData =[];
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
+      var lastPoint = ch.data[ch.data.length - 1]; // End of chart
       var labelX = W;
-      var labelY = H - (hillRevenue(X_MAX, ch) / Y_MAX) * H;
+      var labelY = H - (lastPoint[1] / Y_MAX) * H;
       labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
     }
 
+    // Simple collision avoidance
     labelData.sort(function(a, b) { return a.y - b.y; });
     var labelHeight = 20;
     var labelGap = 6;
@@ -485,15 +508,12 @@
 
     for (var si = 0; si < labelData.length; si++) {
       var item = labelData[si];
-      item.labelY = item.y; 
-      item.labelY = Math.max(minLabelY, Math.min(maxLabelY, item.labelY));
+      item.labelY = Math.max(minLabelY, Math.min(maxLabelY, item.y));
       if (si > 0 && item.labelY < labelData[si - 1]._usedY + labelHeight + labelGap) {
         item.labelY = labelData[si - 1]._usedY + labelHeight + labelGap;
       }
       item._usedY = item.labelY;
     }
-
-    labelData.sort(function(a, b) { return a.index - b.index; });
 
     for (var lp = 0; lp < labelData.length; lp++) {
       var item = labelData[lp];
@@ -512,7 +532,7 @@
       g.appendChild(txt);
     }
 
-    // Dynamic Tooltip
+    // Tooltip Logic (Finding data points closest to mouse X)
     var overlay = cEl('rect');
     sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
 
@@ -523,27 +543,24 @@
       if (mx < 0 || mx > W) { hideTip(tip); return; }
 
       var spendVal = (mx / W) * X_MAX;
-      var hasData = false;
       var html = '<strong>Spend: ' + fmt(spendVal) + '</strong><div style="margin-top:6px;"></div>';
 
       for (var i = 0; i < rcChannels.length; i++) {
         var c = rcChannels[i];
-        if (spendVal <= X_MAX) {
-          hasData = true;
-          var rev = hillRevenue(spendVal, c);
-          var mroi = marginalROIHill(spendVal, c);
-          var mroiColor = mroi >= config.targetMROI ? '#34d399' : '#f87171';
-          var mroiLabel = mroi >= config.targetMROI ? 'efficient' : 'saturated';
-          html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
+        // Find closest data point
+        var closestRev = 0;
+        for(var p=0; p<c.data.length; p++){
+            if(c.data[p][0] <= spendVal) closestRev = c.data[p][1];
+            else break; 
+        }
+        // Interpolate simply
+        if(closestRev > 0) {
+             html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
                   '<span style="color:' + c.color + '; font-weight:600;">' + c.name + '</span>' +
-                  '<span>' + fmt(rev) + ' <span style="color:' + mroiColor + '; font-size:11px;">(' + mroi.toFixed(2) + 'x ' + mroiLabel + ')</span></span></div>';
+                  '<span>' + fmt(closestRev) + '</span></div>';
         }
       }
-      if (hasData) {
-        showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
-      } else {
-        hideTip(tip);
-      }
+      showTip(tip, e.clientX - rect.left + 14, e.clientY - rect.top - 10, html);
     }
 
     function handleMouseLeave() { hideTip(tip); }
@@ -561,7 +578,6 @@
   function buildLegend() {
     var legendEl = document.getElementById('rc-legend');
     legendEl.innerHTML = '';
-
     var keyRow = document.createElement('div');
     keyRow.className = 'legend-key';
     keyRow.innerHTML =
