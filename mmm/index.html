@@ -15,12 +15,12 @@
       font-size: 13px; color: #fff; white-space: nowrap; z-index: 10;
       display: none; line-height: 1.5;
     }
-    
+
     /* Simple Line Type Legend */
-    .chart-legend { 
-      display: flex; 
+    .chart-legend {
+      display: flex;
       flex-wrap: wrap;
-      justify-content: center; 
+      justify-content: center;
       gap: 20px;
       margin-top: 16px;
       padding: 12px 16px;
@@ -29,15 +29,15 @@
       border: 1px solid rgba(255,255,255,0.06);
     }
     .legend-key {
-      display: flex; 
-      align-items: center; 
+      display: flex;
+      align-items: center;
       gap: 8px;
-      font-size: 12px; 
+      font-size: 12px;
       color: var(--brand-text-muted);
     }
-    .legend-key-item { 
-      display: flex; 
-      align-items: center; 
+    .legend-key-item {
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
     .key-line-solid { width: 24px; height: 2px; background: var(--brand-text-muted); }
@@ -65,7 +65,7 @@
     }
     .result-item .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
     .result-item .label { font-size: 13px; color: var(--brand-text-muted); margin-top: 4px; }
-    
+
     @media (max-width: 600px) {
       .visualization-wrapper { height: 360px; }
       .results-grid { grid-template-columns: 1fr 1fr; }
@@ -136,7 +136,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: RESPONSE CURVES -->
+    <!-- TAB 3: RESPONSE CURVES - POWER LAW MODEL -->
     <div class="tab-panel" id="mmm-panel-response">
       <div class="stage">
         <p class="prose" style="text-align:center;">
@@ -149,7 +149,8 @@
         <div class="chart-legend" id="rc-legend"></div>
         <div class="danger-callout" style="margin-top:20px;">
           <div class="callout-title">Average vs Marginal ROI</div>
-          <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated (the dashed area).
+          <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated (the dashed area).<br><br>
+          <span style="color:#34d399;">&#9679;</span> mROI &ge; 1.0 (efficient) &nbsp;&nbsp; <span style="color:#f87171;">&#9679;</span> mROI &lt; 1.0 (saturated)
         </div>
       </div>
     </div>
@@ -169,13 +170,68 @@
     return '$' + Math.round(v);
   }
 
-  /* --- Hill functions --- */
-  function hill(x, p) { 
-    return (p.alpha * Math.pow(x, p.k)) / (Math.pow(p.theta, p.k) + Math.pow(x, p.k)); 
+  /* ================================================================
+     POWER LAW MODEL (y = c * x^p) - FIXED VERSION
+
+     Changes from initial implementation:
+     1. Recalibrated coefficients for realistic ROAS (2-5x at current spend)
+     2. Added minimum spend threshold to handle infinite mROI at zero
+     3. Made targetMROI configurable
+     4. Added event listener cleanup to prevent memory leaks
+     5. Added tooltip legend for mROI colors
+     ================================================================ */
+
+  // === CONFIGURABLE PARAMETERS ===
+  var config = {
+    targetMROI: 1.0,        // Threshold for saturation knee
+    chartRange: 2.5,        // How far beyond current spend to show
+    minSpendThreshold: 1000 // Minimum spend to avoid infinite mROI
+  };
+
+  function powerLaw(spend, channel) {
+    // Revenue = coefficient * spend^exponent
+    // Clamp spend to minimum threshold to avoid infinity
+    if (spend <= 0) return 0;
+    var effectiveSpend = Math.max(spend, config.minSpendThreshold);
+    return channel.coefficient * Math.pow(effectiveSpend, channel.exponent);
   }
-  function dhill(x, p) {
-    var t = Math.max(x, 1e-6), thk = Math.pow(p.theta, p.k), sk1 = Math.pow(t, p.k - 1), sk = t * sk1;
-    return (p.alpha * p.k * thk * sk1) / Math.pow(thk + sk, 2);
+
+  function marginalROIPowerLaw(spend, channel) {
+    if (spend <= config.minSpendThreshold) {
+      // Demo fix: return the mROI at the threshold to avoid tooltip rendering glitches
+      return channel.coefficient * channel.exponent * Math.pow(config.minSpendThreshold, channel.exponent - 1);
+    }
+    return channel.coefficient * channel.exponent * Math.pow(spend, channel.exponent - 1);
+  }
+
+  function findSaturationKnee(channel, maxSpend) {
+    // Binary search to find where marginal ROI drops below targetMROI
+    var lo = config.minSpendThreshold;
+    var hi = maxSpend;
+    var targetMROI = config.targetMROI;
+    var maxIterations = 60;
+
+    for (var iter = 0; iter < maxIterations; iter++) {
+      var mid = (lo + hi) / 2;
+      var mroi = marginalROIPowerLaw(mid, channel);
+
+      if (Math.abs(mroi - targetMROI) < 0.0001) break;
+
+      if (mroi > targetMROI) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+
+    var result = (lo + hi) / 2;
+    var finalMROI = marginalROIPowerLaw(result, channel);
+
+    // Only return valid knee if mROI actually goes below threshold
+    if (finalMROI <= targetMROI && result >= config.minSpendThreshold) {
+      return result;
+    }
+    return maxSpend + 1; // Beyond chart range
   }
 
   /* --- Data Setup --- */
@@ -189,12 +245,25 @@
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
+  /* --- POWER LAW Response Curves ---
+       Recalibrated coefficients for REALISTIC ROAS at current spend:
+       - TV: 3.0x ROAS at $500k (coefficient: 21.48)
+       - Social: 3.5x ROAS at $300k (coefficient: 153.89)
+       - Search: 4.0x ROAS at $200k (coefficient: 527.80)
+       - Email: 2.5x ROAS at $50k (coefficient: 960.23)
+
+       Formula check: revenue = coefficient * spend^exponent
+       ROAS = revenue / spend = coefficient * spend^(exponent-1)
+  */
   var rcChannels =[
-    { name: 'TV',     spend: 500000, color: '#60a5fa', alpha: 800000, theta: 400000, k: 1.8 },
-    { name: 'Social', spend: 300000, color: '#a78bfa', alpha: 600000, theta: 250000, k: 1.6 },
-    { name: 'Search', spend: 200000, color: '#2dd4bf', alpha: 400000, theta: 150000, k: 1.4 },
-    { name: 'Email',  spend: 50000,  color: '#fbbf24', alpha: 150000, theta: 40000,  k: 1.2 }
+    { name: 'TV',     spend: 500000, color: '#60a5fa', coefficient: 21.48, exponent: 0.85 },
+    { name: 'Social', spend: 300000, color: '#a78bfa', coefficient: 153.89, exponent: 0.70 },
+    { name: 'Search', spend: 200000, color: '#2dd4bf', coefficient: 527.80, exponent: 0.60 },
+    { name: 'Email',  spend: 50000,  color: '#fbbf24', coefficient: 960.23, exponent: 0.45 }
   ];
+
+  // Store cleanup functions for event listeners
+  var rcCleanup = null;
 
   /* --- Tabs --- */
   var tabSelector = document.getElementById('mmm-tabs');
@@ -226,7 +295,7 @@
   function hideTip(tip) { tip.style.display = 'none'; }
 
   /* ============================================================
-     WATERFALL CHART
+     WATERFALL CHART (unchanged)
      ============================================================ */
   function renderWF() {
     var svg = document.getElementById('wf-svg');
@@ -332,19 +401,30 @@
   }
 
   /* ============================================================
-     RESPONSE CURVES - LABELS AT END OF CURVES (RIGHT SIDE)
-     Key insight: All curves start tangled at origin. Labels go where
-     curves FAN OUT and have clear vertical separation.
+     RESPONSE CURVES - POWER LAW MODEL (FIXED VERSION)
+
+     Improvements:
+     1. Realistic ROAS calibrated per channel
+     2. Minimum spend threshold prevents infinite mROI
+     3. Configurable targetMROI threshold
+     4. Event listener cleanup to prevent memory leaks
+     5. mROI color legend in tooltip
      ============================================================ */
   function renderRC() {
+    // Cleanup previous event listeners
+    if (rcCleanup) {
+      rcCleanup();
+      rcCleanup = null;
+    }
+
     var svg = document.getElementById('rc-svg');
     var wrapper = document.getElementById('rc-wrapper');
     var tip = document.getElementById('rc-tooltip');
     svg.innerHTML = '';
-    
+
     var svgW = svg.clientWidth || 800;
     var svgH = svg.clientHeight || 480;
-    var m = { top: 30, right: 80, bottom: 52, left: 72 }; // Extra right margin for labels
+    var m = { top: 30, right: 120, bottom: 52, left: 72 };
     var W = svgW - m.left - m.right;
     var H = svgH - m.top - m.bottom;
 
@@ -355,9 +435,12 @@
     // Calculate global max scales
     var maxSpend = 0;
     var maxRev = 0;
+    var chartRange = config.chartRange;
+
     for (var i = 0; i < rcChannels.length; i++) {
-      var endSpend = rcChannels[i].spend * 2.5;
-      var endRev = hill(endSpend, rcChannels[i]);
+      var ch = rcChannels[i];
+      var endSpend = ch.spend * chartRange;
+      var endRev = powerLaw(endSpend, ch);
       if (endSpend > maxSpend) maxSpend = endSpend;
       if (endRev > maxRev) maxRev = endRev;
     }
@@ -371,7 +454,7 @@
       var gyl = cEl('line');
       sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
       g.appendChild(gyl);
-      
+
       var tyv = ((5 - gi) / 5) * maxRev;
       var tyl = cEl('text');
       sA(tyl, { x: -10, y: yy + 4, fill: 'rgba(255,255,255,0.4)', 'font-size': '11px', 'text-anchor': 'end' });
@@ -402,31 +485,36 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    // Draw curves first (behind labels)
+    // Calculate saturation knee for each channel
+    for (var ki = 0; ki < rcChannels.length; ki++) {
+      rcChannels[ki].saturationKnee = findSaturationKnee(rcChannels[ki], maxSpend);
+    }
+
+    // Draw curves
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
-      var endSpend = ch.spend * 2.5;
+      var endSpend = ch.spend * chartRange;
 
       // 1. Solid line (0 to current spend)
       var ptsSolid =[];
-      var stepsSolid = 40;
+      var stepsSolid = 60;
       for (var si = 0; si <= stepsSolid; si++) {
         var s = (si / stepsSolid) * ch.spend;
-        var r = hill(s, ch);
+        var r = powerLaw(s, ch);
         var px = (s / maxSpend) * W;
-        var py = H - (r / maxRev) * H;
+        var py = H - (r / maxRev) * H; // Flip Y: SVG coords increase downward
         ptsSolid.push(px.toFixed(1) + ',' + py.toFixed(1));
       }
       var plSolid = cEl('polyline');
       sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
       g.appendChild(plSolid);
 
-      // 2. Dashed line (current spend to 2.5x current spend)
+      // 2. Dashed line (current spend to chart end)
       var ptsDashed =[];
-      var stepsDashed = 40;
+      var stepsDashed = 60;
       for (var di = 0; di <= stepsDashed; di++) {
         var sd = ch.spend + (di / stepsDashed) * (endSpend - ch.spend);
-        var rd = hill(sd, ch);
+        var rd = powerLaw(sd, ch);
         var pxd = (sd / maxSpend) * W;
         var pyd = H - (rd / maxRev) * H;
         ptsDashed.push(pxd.toFixed(1) + ',' + pyd.toFixed(1));
@@ -437,77 +525,140 @@
 
       // 3. Dot at current spend
       var dotX = (ch.spend / maxSpend) * W;
-      var dotY = H - (hill(ch.spend, ch) / maxRev) * H;
+      var dotY = H - (powerLaw(ch.spend, ch) / maxRev) * H;
       var dot = cEl('circle');
       sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#1e293b', 'stroke-width': 2 });
       g.appendChild(dot);
     }
-    
-    // NOW add labels at the RIGHT side where curves fan out
-    // Calculate label positions at the end of each curve
+
+    // Draw saturation knee lines (channel-specific)
+    for (var ki = 0; ki < rcChannels.length; ki++) {
+      var ch = rcChannels[ki];
+      var kneeX = (ch.saturationKnee / maxSpend) * W;
+
+      if (kneeX > 0 && kneeX < W) {
+        // Vertical dashed line at saturation point
+        var kneeLine = cEl('line');
+        sA(kneeLine, {
+          x1: kneeX, y1: 0, x2: kneeX, y2: H,
+          stroke: ch.color,
+          'stroke-width': 1.5,
+          'stroke-dasharray': '4 4',
+          'opacity': 0.5
+        });
+        g.appendChild(kneeLine);
+
+        // Label showing the saturation dollar amount (positioned inside chart to avoid clipping)
+        var kneeLabel = cEl('text');
+        sA(kneeLabel, {
+          x: kneeX, y: 14,
+          fill: ch.color,
+          'font-size': '10px',
+          'text-anchor': 'middle',
+          'opacity': 0.7
+        });
+        kneeLabel.textContent = fmt(ch.saturationKnee);
+        g.appendChild(kneeLabel);
+      }
+    }
+
+    // Labels at fan-out (right side) with collision detection
+    // Calculate final Y positions for each channel
+    var labelData =[];
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
-      var endSpend = ch.spend * 2.5;
-      
-      // Position label at end of curve, offset vertically based on channel index
+      var endSpend = ch.spend * chartRange;
       var labelX = (endSpend / maxSpend) * W;
-      var labelY = H - (hill(endSpend, ch) / maxRev) * H;
-      
-      // Vertical offset to spread labels (one per channel, no overlap)
-      // TV (top) to Email (bottom)
-      var vertOffset = li * 28; // pixels apart
-      labelY = labelY + vertOffset - 35; // Offset from curve endpoint
-      
+      var labelY = H - (powerLaw(endSpend, ch) / maxRev) * H;
+      labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
+    }
+
+    // Sort by Y to detect overlaps, then adjust positions
+    labelData.sort(function(a, b) { return a.y - b.y; });
+    var labelHeight = 20;
+    var labelGap = 6;
+    var minLabelY = 10;
+    var maxLabelY = H - 30;
+
+    // Assign Y positions with collision avoidance
+    var prevY = minLabelY;
+    for (var si = 0; si < labelData.length; si++) {
+      var item = labelData[si];
+      // Offset from curve endpoint
+      item.labelY = item.y + (item.index * 26) - 30;
+      // Clamp to viewport
+      item.labelY = Math.max(minLabelY, Math.min(maxLabelY, item.labelY));
+      // Ensure no overlap with previous label
+      if (si > 0 && item.labelY < labelData[si - 1]._usedY + labelHeight + labelGap) {
+        item.labelY = labelData[si - 1]._usedY + labelHeight + labelGap;
+      }
+      item._usedY = item.labelY;
+    }
+
+    // Sort back by index for consistent ordering
+    labelData.sort(function(a, b) { return a.index - b.index; });
+
+    for (var lp = 0; lp < labelData.length; lp++) {
+      var item = labelData[lp];
+      var ch = item.ch;
+      var labelX = item.x;
+      var labelY = item.labelY;
+
       // Background rectangle for readability
       var labelW = ch.name.length * 8 + 14;
-      var labelH = 20;
+      var labelH = labelHeight;
       var bg = cEl('rect');
-      sA(bg, { 
-        x: labelX + 8, 
-        y: labelY - 2, 
-        width: labelW, 
-        height: labelH, 
-        fill: 'rgba(30,41,59,0.9)', 
-        rx: 4, ry: 4 
+      sA(bg, {
+        x: labelX + 8,
+        y: labelY - 2,
+        width: labelW,
+        height: labelH,
+        fill: 'rgba(30,41,59,0.9)',
+        rx: 4, ry: 4
       });
       g.appendChild(bg);
-      
+
       // Label text
       var txt = cEl('text');
-      sA(txt, { 
-        x: labelX + 8 + labelW/2, 
-        y: labelY + 12, 
-        fill: ch.color, 
-        'font-size': '12px', 
-        'font-weight': '700', 
+      sA(txt, {
+        x: labelX + 8 + labelW/2,
+        y: labelY + 12,
+        fill: ch.color,
+        'font-size': '12px',
+        'font-weight': '700',
         'text-anchor': 'middle'
       });
       txt.textContent = ch.name;
       g.appendChild(txt);
     }
 
-    // Dynamic Tooltip Intercept
+    // Dynamic Tooltip with mROI color legend
     var overlay = cEl('rect');
     sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
-    overlay.addEventListener('mousemove', function(e) {
+
+    // Mouse move handler
+    function handleMouseMove(e) {
       var rect = wrapper.getBoundingClientRect();
       var svgRect = svg.getBoundingClientRect();
       var mx = e.clientX - svgRect.left - m.left;
       if (mx < 0 || mx > W) { hideTip(tip); return; }
-      
+
       var spendVal = (mx / W) * maxSpend;
       var hasData = false;
       var html = '<strong>Spend: ' + fmt(spendVal) + '</strong><div style="margin-top:6px;"></div>';
-      
+
       for (var i = 0; i < rcChannels.length; i++) {
         var c = rcChannels[i];
-        if (spendVal <= c.spend * 2.5) {
+        var maxChartSpend = c.spend * chartRange;
+        if (spendVal <= maxChartSpend) {
           hasData = true;
-          var rev = hill(spendVal, c);
-          var mroi = dhill(spendVal, c);
+          var rev = powerLaw(spendVal, c);
+          var mroi = marginalROIPowerLaw(spendVal, c);
+          var mroiColor = mroi >= config.targetMROI ? '#34d399' : '#f87171';
+          var mroiLabel = mroi >= config.targetMROI ? 'efficient' : 'saturated';
           html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
                   '<span style="color:' + c.color + '; font-weight:600;">' + c.name + '</span>' +
-                  '<span>' + fmt(rev) + ' <span style="color:var(--brand-text-muted); font-size:11px;">(' + mroi.toFixed(2) + 'x mROI)</span></span></div>';
+                  '<span>' + fmt(rev) + ' <span style="color:' + mroiColor + '; font-size:11px;">(' + mroi.toFixed(2) + 'x ' + mroiLabel + ')</span></span></div>';
         }
       }
       if (hasData) {
@@ -515,22 +666,33 @@
       } else {
         hideTip(tip);
       }
-    });
-    overlay.addEventListener('mouseleave', function() { hideTip(tip); });
+    }
+
+    function handleMouseLeave() { hideTip(tip); }
+
+    overlay.addEventListener('mousemove', handleMouseMove);
+    overlay.addEventListener('mouseleave', handleMouseLeave);
     g.appendChild(overlay);
+
+    // Store cleanup function
+    rcCleanup = function() {
+      overlay.removeEventListener('mousemove', handleMouseMove);
+      overlay.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }
 
-  /* --- Legend - Just line types, channels labeled on chart --- */
+  /* --- Legend --- */
   function buildLegend() {
     var legendEl = document.getElementById('rc-legend');
     legendEl.innerHTML = '';
-    
+
     var keyRow = document.createElement('div');
     keyRow.className = 'legend-key';
-    keyRow.innerHTML = 
+    keyRow.innerHTML =
       '<div class="legend-key-item"><div class="key-line-solid"></div><span>Below current spend</span></div>' +
       '<div class="legend-key-item"><div class="key-line-dashed"></div><span>Above current spend</span></div>' +
-      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>';
+      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>' +
+      '<div class="legend-key-item"><div style="width:24px;height:2px;border-top:2px dashed #94a3b8;"></div><span>Saturation knee (mROI=' + config.targetMROI + ')</span></div>';
     legendEl.appendChild(keyRow);
   }
 
