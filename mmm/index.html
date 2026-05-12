@@ -136,7 +136,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: RESPONSE CURVES - POWER LAW MODEL -->
+    <!-- TAB 3: RESPONSE CURVES -->
     <div class="tab-panel" id="mmm-panel-response">
       <div class="stage">
         <p class="prose" style="text-align:center;">
@@ -165,32 +165,18 @@
   function sA(el, attrs) { for (var k in attrs) { if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]); } return el; }
 
   function fmt(v) {
-    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
     if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
     return '$' + Math.round(v);
   }
 
-  /* ================================================================
-     POWER LAW MODEL (y = c * x^p) - FIXED VERSION
-
-     Changes from initial implementation:
-     1. Recalibrated coefficients for realistic ROAS (2-5x at current spend)
-     2. Added minimum spend threshold to handle infinite mROI at zero
-     3. Made targetMROI configurable
-     4. Added event listener cleanup to prevent memory leaks
-     5. Added tooltip legend for mROI colors
-     ================================================================ */
-
-  // === CONFIGURABLE PARAMETERS ===
   var config = {
-    targetMROI: 1.0,        // Threshold for saturation knee
-    chartRange: 2.5,        // How far beyond current spend to show
-    minSpendThreshold: 1000 // Minimum spend to avoid infinite mROI
+    targetMROI: 1.0,        
+    chartRange: 2.5,        
+    minSpendThreshold: 1000 
   };
 
   function powerLaw(spend, channel) {
-    // Revenue = coefficient * spend^exponent
-    // Clamp spend to minimum threshold to avoid infinity
     if (spend <= 0) return 0;
     var effectiveSpend = Math.max(spend, config.minSpendThreshold);
     return channel.coefficient * Math.pow(effectiveSpend, channel.exponent);
@@ -198,14 +184,12 @@
 
   function marginalROIPowerLaw(spend, channel) {
     if (spend <= config.minSpendThreshold) {
-      // Demo fix: return the mROI at the threshold to avoid tooltip rendering glitches
       return channel.coefficient * channel.exponent * Math.pow(config.minSpendThreshold, channel.exponent - 1);
     }
     return channel.coefficient * channel.exponent * Math.pow(spend, channel.exponent - 1);
   }
 
   function findSaturationKnee(channel, maxSpend) {
-    // Binary search to find where marginal ROI drops below targetMROI
     var lo = config.minSpendThreshold;
     var hi = maxSpend;
     var targetMROI = config.targetMROI;
@@ -214,27 +198,16 @@
     for (var iter = 0; iter < maxIterations; iter++) {
       var mid = (lo + hi) / 2;
       var mroi = marginalROIPowerLaw(mid, channel);
-
       if (Math.abs(mroi - targetMROI) < 0.0001) break;
-
-      if (mroi > targetMROI) {
-        lo = mid;
-      } else {
-        hi = mid;
-      }
+      if (mroi > targetMROI) lo = mid; else hi = mid;
     }
 
     var result = (lo + hi) / 2;
     var finalMROI = marginalROIPowerLaw(result, channel);
-
-    // Only return valid knee if mROI actually goes below threshold
-    if (finalMROI <= targetMROI && result >= config.minSpendThreshold) {
-      return result;
-    }
-    return maxSpend + 1; // Beyond chart range
+    if (finalMROI <= targetMROI && result >= config.minSpendThreshold) return result;
+    return maxSpend + 1; 
   }
 
-  /* --- Data Setup --- */
   var wfData =[
     { name: 'Baseline', value: 1200000, color: '#94a3b8' },
     { name: 'TV',       value: 450000,  color: '#60a5fa' },
@@ -245,15 +218,11 @@
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* --- POWER LAW Response Curves ---
-       Recalibrated coefficients for REALISTIC ROAS at current spend:
-       - TV: 3.0x ROAS at $500k (coefficient: 21.48)
-       - Social: 3.5x ROAS at $300k (coefficient: 153.89)
-       - Search: 4.0x ROAS at $200k (coefficient: 527.80)
-       - Email: 2.5x ROAS at $50k (coefficient: 960.23)
-
-       Formula check: revenue = coefficient * spend^exponent
-       ROAS = revenue / spend = coefficient * spend^(exponent-1)
+  /* REALISTIC ROAS COEFFICIENTS
+     - TV: 3.0x ROAS at $500k
+     - Social: 3.5x ROAS at $300k
+     - Search: 4.0x ROAS at $200k
+     - Email: 2.5x ROAS at $50k 
   */
   var rcChannels =[
     { name: 'TV',     spend: 500000, color: '#60a5fa', coefficient: 21.48, exponent: 0.85 },
@@ -262,10 +231,8 @@
     { name: 'Email',  spend: 50000,  color: '#fbbf24', coefficient: 960.23, exponent: 0.45 }
   ];
 
-  // Store cleanup functions for event listeners
   var rcCleanup = null;
 
-  /* --- Tabs --- */
   var tabSelector = document.getElementById('mmm-tabs');
   var activeTab = 'overview';
 
@@ -294,9 +261,6 @@
   }
   function hideTip(tip) { tip.style.display = 'none'; }
 
-  /* ============================================================
-     WATERFALL CHART (unchanged)
-     ============================================================ */
   function renderWF() {
     var svg = document.getElementById('wf-svg');
     var wrapper = document.getElementById('wf-wrapper');
@@ -400,18 +364,7 @@
       '<div class="result-item"><div class="value">' + ((mediaTotal / wfTotal) * 100).toFixed(1) + '%</div><div class="label">Media-Driven Share</div></div>';
   }
 
-  /* ============================================================
-     RESPONSE CURVES - POWER LAW MODEL (FIXED VERSION)
-
-     Improvements:
-     1. Realistic ROAS calibrated per channel
-     2. Minimum spend threshold prevents infinite mROI
-     3. Configurable targetMROI threshold
-     4. Event listener cleanup to prevent memory leaks
-     5. mROI color legend in tooltip
-     ============================================================ */
   function renderRC() {
-    // Cleanup previous event listeners
     if (rcCleanup) {
       rcCleanup();
       rcCleanup = null;
@@ -432,42 +385,44 @@
     sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
     svg.appendChild(g);
 
-    // Calculate global max scales
-    var maxSpend = 0;
-    var maxRev = 0;
-    var chartRange = config.chartRange;
-
+    // 1. Find the highest global spend to establish a unified X-axis for all channels
+    var maxCurrentSpend = 0;
     for (var i = 0; i < rcChannels.length; i++) {
-      var ch = rcChannels[i];
-      var endSpend = ch.spend * chartRange;
-      var endRev = powerLaw(endSpend, ch);
-      if (endSpend > maxSpend) maxSpend = endSpend;
+      if (rcChannels[i].spend > maxCurrentSpend) maxCurrentSpend = rcChannels[i].spend;
+    }
+    
+    // Scale X-axis out to 2.5x of the highest spend channel
+    var chartMaxSpend = maxCurrentSpend * config.chartRange; 
+    var maxRev = 0;
+
+    // 2. Project ALL channels across this unified X-axis to find the true max Y
+    for (var i = 0; i < rcChannels.length; i++) {
+      var endRev = powerLaw(chartMaxSpend, rcChannels[i]); 
       if (endRev > maxRev) maxRev = endRev;
     }
-    maxSpend *= 1.05;
-    maxRev *= 1.05;
+
+    var X_MAX = chartMaxSpend * 1.05;
+    var Y_MAX = maxRev * 1.05;
 
     // Grid lines & Labels
     for (var gi = 0; gi <= 5; gi++) {
-      // Y-axis grid
       var yy = (gi / 5) * H;
       var gyl = cEl('line');
       sA(gyl, { x1: 0, y1: yy, x2: W, y2: yy, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
       g.appendChild(gyl);
 
-      var tyv = ((5 - gi) / 5) * maxRev;
+      var tyv = ((5 - gi) / 5) * Y_MAX;
       var tyl = cEl('text');
       sA(tyl, { x: -10, y: yy + 4, fill: 'rgba(255,255,255,0.4)', 'font-size': '11px', 'text-anchor': 'end' });
       tyl.textContent = fmt(tyv);
       g.appendChild(tyl);
 
-      // X-axis grid
       var xx = (gi / 5) * W;
       var gxl = cEl('line');
       sA(gxl, { x1: xx, y1: 0, x2: xx, y2: H, stroke: 'rgba(255,255,255,0.08)', 'stroke-width': 1 });
       g.appendChild(gxl);
 
-      var txv = (gi / 5) * maxSpend;
+      var txv = (gi / 5) * X_MAX;
       var txl = cEl('text');
       sA(txl, { x: xx, y: H + 18, fill: 'rgba(255,255,255,0.4)', 'font-size': '11px', 'text-anchor': 'middle' });
       txl.textContent = fmt(txv);
@@ -485,59 +440,56 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    // Calculate saturation knee for each channel
     for (var ki = 0; ki < rcChannels.length; ki++) {
-      rcChannels[ki].saturationKnee = findSaturationKnee(rcChannels[ki], maxSpend);
+      rcChannels[ki].saturationKnee = findSaturationKnee(rcChannels[ki], X_MAX);
     }
 
     // Draw curves
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
-      var endSpend = ch.spend * chartRange;
 
-      // 1. Solid line (0 to current spend)
+      // Solid line (0 to current spend)
       var ptsSolid =[];
       var stepsSolid = 60;
       for (var si = 0; si <= stepsSolid; si++) {
         var s = (si / stepsSolid) * ch.spend;
         var r = powerLaw(s, ch);
-        var px = (s / maxSpend) * W;
-        var py = H - (r / maxRev) * H; // Flip Y: SVG coords increase downward
+        var px = (s / X_MAX) * W;
+        var py = H - (r / Y_MAX) * H;
         ptsSolid.push(px.toFixed(1) + ',' + py.toFixed(1));
       }
       var plSolid = cEl('polyline');
       sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
       g.appendChild(plSolid);
 
-      // 2. Dashed line (current spend to chart end)
+      // Dashed line (extrapolating from current spend out to shared chart end)
       var ptsDashed =[];
-      var stepsDashed = 60;
+      var stepsDashed = 80; // slightly more steps for the long tail
       for (var di = 0; di <= stepsDashed; di++) {
-        var sd = ch.spend + (di / stepsDashed) * (endSpend - ch.spend);
+        var sd = ch.spend + (di / stepsDashed) * (chartMaxSpend - ch.spend);
         var rd = powerLaw(sd, ch);
-        var pxd = (sd / maxSpend) * W;
-        var pyd = H - (rd / maxRev) * H;
+        var pxd = (sd / X_MAX) * W;
+        var pyd = H - (rd / Y_MAX) * H;
         ptsDashed.push(pxd.toFixed(1) + ',' + pyd.toFixed(1));
       }
       var plDashed = cEl('polyline');
       sA(plDashed, { points: ptsDashed.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-dasharray': '5 5' });
       g.appendChild(plDashed);
 
-      // 3. Dot at current spend
-      var dotX = (ch.spend / maxSpend) * W;
-      var dotY = H - (powerLaw(ch.spend, ch) / maxRev) * H;
+      // Dot at current spend
+      var dotX = (ch.spend / X_MAX) * W;
+      var dotY = H - (powerLaw(ch.spend, ch) / Y_MAX) * H;
       var dot = cEl('circle');
       sA(dot, { cx: dotX, cy: dotY, r: 5, fill: ch.color, stroke: '#1e293b', 'stroke-width': 2 });
       g.appendChild(dot);
     }
 
-    // Draw saturation knee lines (channel-specific)
+    // Knee lines
     for (var ki = 0; ki < rcChannels.length; ki++) {
       var ch = rcChannels[ki];
-      var kneeX = (ch.saturationKnee / maxSpend) * W;
+      var kneeX = (ch.saturationKnee / X_MAX) * W;
 
       if (kneeX > 0 && kneeX < W) {
-        // Vertical dashed line at saturation point
         var kneeLine = cEl('line');
         sA(kneeLine, {
           x1: kneeX, y1: 0, x2: kneeX, y2: H,
@@ -548,7 +500,6 @@
         });
         g.appendChild(kneeLine);
 
-        // Label showing the saturation dollar amount (positioned inside chart to avoid clipping)
         var kneeLabel = cEl('text');
         sA(kneeLabel, {
           x: kneeX, y: 14,
@@ -562,40 +513,31 @@
       }
     }
 
-    // Labels at fan-out (right side) with collision detection
-    // Calculate final Y positions for each channel
+    // Right-side Labels
     var labelData =[];
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
-      var endSpend = ch.spend * chartRange;
-      var labelX = (endSpend / maxSpend) * W;
-      var labelY = H - (powerLaw(endSpend, ch) / maxRev) * H;
+      var labelX = (chartMaxSpend / X_MAX) * W;
+      var labelY = H - (powerLaw(chartMaxSpend, ch) / Y_MAX) * H;
       labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
     }
 
-    // Sort by Y to detect overlaps, then adjust positions
     labelData.sort(function(a, b) { return a.y - b.y; });
     var labelHeight = 20;
     var labelGap = 6;
     var minLabelY = 10;
     var maxLabelY = H - 30;
 
-    // Assign Y positions with collision avoidance
-    var prevY = minLabelY;
     for (var si = 0; si < labelData.length; si++) {
       var item = labelData[si];
-      // Offset from curve endpoint
-      item.labelY = item.y + (item.index * 26) - 30;
-      // Clamp to viewport
+      item.labelY = item.y; // Y values are nicely distributed now, simple assignment
       item.labelY = Math.max(minLabelY, Math.min(maxLabelY, item.labelY));
-      // Ensure no overlap with previous label
       if (si > 0 && item.labelY < labelData[si - 1]._usedY + labelHeight + labelGap) {
         item.labelY = labelData[si - 1]._usedY + labelHeight + labelGap;
       }
       item._usedY = item.labelY;
     }
 
-    // Sort back by index for consistent ordering
     labelData.sort(function(a, b) { return a.index - b.index; });
 
     for (var lp = 0; lp < labelData.length; lp++) {
@@ -604,53 +546,34 @@
       var labelX = item.x;
       var labelY = item.labelY;
 
-      // Background rectangle for readability
       var labelW = ch.name.length * 8 + 14;
-      var labelH = labelHeight;
       var bg = cEl('rect');
-      sA(bg, {
-        x: labelX + 8,
-        y: labelY - 2,
-        width: labelW,
-        height: labelH,
-        fill: 'rgba(30,41,59,0.9)',
-        rx: 4, ry: 4
-      });
+      sA(bg, { x: labelX + 8, y: labelY - 10, width: labelW, height: labelHeight, fill: 'rgba(30,41,59,0.9)', rx: 4, ry: 4 });
       g.appendChild(bg);
 
-      // Label text
       var txt = cEl('text');
-      sA(txt, {
-        x: labelX + 8 + labelW/2,
-        y: labelY + 12,
-        fill: ch.color,
-        'font-size': '12px',
-        'font-weight': '700',
-        'text-anchor': 'middle'
-      });
+      sA(txt, { x: labelX + 8 + labelW/2, y: labelY + 4, fill: ch.color, 'font-size': '12px', 'font-weight': '700', 'text-anchor': 'middle' });
       txt.textContent = ch.name;
       g.appendChild(txt);
     }
 
-    // Dynamic Tooltip with mROI color legend
+    // Dynamic Tooltip
     var overlay = cEl('rect');
     sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
 
-    // Mouse move handler
     function handleMouseMove(e) {
       var rect = wrapper.getBoundingClientRect();
       var svgRect = svg.getBoundingClientRect();
       var mx = e.clientX - svgRect.left - m.left;
       if (mx < 0 || mx > W) { hideTip(tip); return; }
 
-      var spendVal = (mx / W) * maxSpend;
+      var spendVal = (mx / W) * X_MAX;
       var hasData = false;
       var html = '<strong>Spend: ' + fmt(spendVal) + '</strong><div style="margin-top:6px;"></div>';
 
       for (var i = 0; i < rcChannels.length; i++) {
         var c = rcChannels[i];
-        var maxChartSpend = c.spend * chartRange;
-        if (spendVal <= maxChartSpend) {
+        if (spendVal <= chartMaxSpend) {
           hasData = true;
           var rev = powerLaw(spendVal, c);
           var mroi = marginalROIPowerLaw(spendVal, c);
@@ -674,14 +597,12 @@
     overlay.addEventListener('mouseleave', handleMouseLeave);
     g.appendChild(overlay);
 
-    // Store cleanup function
     rcCleanup = function() {
       overlay.removeEventListener('mousemove', handleMouseMove);
       overlay.removeEventListener('mouseleave', handleMouseLeave);
     };
   }
 
-  /* --- Legend --- */
   function buildLegend() {
     var legendEl = document.getElementById('rc-legend');
     legendEl.innerHTML = '';
@@ -696,7 +617,6 @@
     legendEl.appendChild(keyRow);
   }
 
-  /* --- Resize handler --- */
   window.addEventListener('resize', function() {
     if (activeTab === 'waterfall') renderWF();
     if (activeTab === 'response') renderRC();
