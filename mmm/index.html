@@ -16,34 +16,6 @@
       display: none; line-height: 1.5;
     }
 
-    /* Simple Line Type Legend */
-    .chart-legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 16px;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .legend-key {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--brand-text-muted);
-    }
-    .legend-key-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .key-line-solid { width: 24px; height: 2px; background: var(--brand-text-muted); }
-    .key-line-dashed { width: 24px; height: 2px; background: transparent; border-top: 2px dashed var(--brand-text-muted); }
-    .key-dot { width: 8px; height: 8px; background: var(--brand-text-muted); border-radius: 50%; }
-
     .warning-callout {
       background: var(--warning-tint); border-left: 3px solid var(--brand-warning);
       padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
@@ -146,10 +118,9 @@
           <svg class="chart-svg" id="rc-svg"></svg>
           <div class="chart-tooltip" id="rc-tooltip"></div>
         </div>
-        <div class="chart-legend" id="rc-legend"></div>
         <div class="danger-callout" style="margin-top:20px;">
           <div class="callout-title">Average vs Marginal ROI</div>
-          <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated (the dashed area).<br><br>
+          <strong>Average ROI</strong> divides total revenue by total spend. <strong>Marginal ROI (mROI)</strong> measures the return on the <em>next</em> dollar spent. A channel can have a high average ROI but a low marginal ROI if it is heavily saturated.<br><br>
           <span style="color:#34d399;">&#9679;</span> mROI &ge; 0.5 (efficient) &nbsp;&nbsp; <span style="color:#f87171;">&#9679;</span> mROI &lt; 0.5 (saturated)
         </div>
       </div>
@@ -170,7 +141,7 @@
     return '$' + Math.round(v);
   }
 
-  /* --- WATERFALL DATA (Restored to high-level demo numbers) --- */
+  /* --- WATERFALL DATA --- */
   var wfData =[
     { name: 'Baseline', value: 1200000, color: '#94a3b8' },
     { name: 'TV',       value: 450000,  color: '#60a5fa' },
@@ -181,8 +152,7 @@
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* --- RESPONSE CURVE DATA (Hardcoded from your spreadsheet) --- */
-  /* Each channel is an array of [Spend, Revenue] pairs */
+  /* --- RESPONSE CURVE DATA (HARDCODED) --- */
   var rcChannels = [
     { 
       name: 'TV', 
@@ -255,7 +225,7 @@
     var target = document.getElementById('mmm-panel-' + tabId);
     if (target) target.classList.add('active');
     if (tabId === 'waterfall') renderWF();
-    if (tabId === 'response') { renderRC(); buildLegend(); }
+    if (tabId === 'response') renderRC();
   });
 
   function showTip(tip, x, y, html) {
@@ -370,7 +340,7 @@
       '<div class="result-item"><div class="value">' + ((mediaTotal / wfTotal) * 100).toFixed(1) + '%</div><div class="label">Media-Driven Share</div></div>';
   }
 
-  /* --- RESPONSE CURVES RENDERER (Hardcoded Data) --- */
+  /* --- RESPONSE CURVES RENDERER --- */
   function renderRC() {
     if (rcCleanup) { rcCleanup(); rcCleanup = null; }
 
@@ -389,11 +359,10 @@
     sA(g, { transform: 'translate(' + m.left + ',' + m.top + ')' });
     svg.appendChild(g);
 
-    // Find max values for scaling
     var X_MAX = config.chartMaxSpend;
-    var Y_MAX = 2000; // Based on TV ceiling of 1800
+    var Y_MAX = 2000;
 
-    // Grid & Axis Labels
+    // Grid & Axis
     for (var gi = 0; gi <= 5; gi++) {
       var yy = (gi / 5) * H;
       var gyl = cEl('line');
@@ -418,7 +387,6 @@
       g.appendChild(txl);
     }
 
-    // Axis Titles
     var axX = cEl('text');
     sA(axX, { x: W / 2, y: H + 40, fill: 'rgba(255,255,255,0.5)', 'font-size': '12px', 'text-anchor': 'middle' });
     axX.textContent = 'Spend';
@@ -429,57 +397,106 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    // Draw Curves from Hardcoded Arrays
+    // Helper: Convert points to Catmull-Rom Spline Path (Smooth Curve)
+    function catmullRomToPath(points, xMax, yMax, h) {
+      var d = "M";
+      for (var i = 0; i < points.length; i++) {
+        var pt = points[i];
+        var x = (pt[0] / xMax) * W;
+        var y = h - (pt[1] / yMax) * h;
+        
+        // Catmull-Rom logic
+        var p0 = points[Math.max(i - 1, 0)];
+        var p1 = pt;
+        var p2 = points[Math.min(i + 1, points.length - 1)];
+        var p3 = points[Math.min(i + 2, points.length - 1)];
+
+        var cp1x = x + (p2[0] - p0[0]) / 6 * (W / xMax);
+        var cp1y = y - (p2[1] - p0[1]) / 6 * (h / yMax);
+        var cp2x = p2[0]/xMax * W - (p3[0] - p1[0]) / 6 * (W / xMax);
+        var cp2y = h - (p2[1]/yMax * h) + (p3[1] - p1[1]) / 6 * (h / yMax);
+
+        // For first and last points, we just draw line or close curve
+        if (i === 0) {
+            d += (x + "," + y) + " ";
+        } else {
+            // Calculate control points properly relative to current point p1
+            var prevPt = points[i-1];
+            var currX = (p1[0] / xMax) * W;
+            var currY = h - (p1[1] / yMax) * h;
+            var nextPt = points[Math.min(i+1, points.length-1)];
+            
+            var prevX = (prevPt[0] / xMax) * W;
+            var prevY = h - (prevPt[1] / yMax) * h;
+            var nextX = (nextPt[0] / xMax) * W;
+            var nextY = h - (nextPt[1] / yMax) * h;
+            
+            // Simple smoothing:
+            var cp1x_v = prevX + (currX - (i===0 ? prevX : points[i-2][0]/xMax*W)) / 2; // Simplified for safety
+            // Actually, let's just use a simpler smoothing factor since we have dense data
+            // A simple "rounded corner" using Q is safer and cleaner for this density
+            // But for true smooth curve (Cardinal Spline):
+            
+            var cp1_x = currX - (currX - prevX) / 4; 
+            var cp1_y = currY - (currY - prevY) / 4;
+            
+            // Re-doing the loop properly for Cardinal Spline
+            // We need to reconstruct d string from scratch for clarity
+        }
+      }
+      
+      // Proper implementation loop
+      var pathD = "M";
+      for (var i = 0; i < points.length; i++) {
+          var curr = points[i];
+          var currX = (curr[0] / xMax) * W;
+          var currY = h - (curr[1] / yMax) * h;
+          
+          if (i === 0) {
+              pathD += currX + "," + currY;
+              continue;
+          }
+          
+          var prev = points[i-1];
+          var next = points[Math.min(i+1, points.length-1)];
+          var next2 = points[Math.min(i+2, points.length-1)];
+          
+          var prevX = (prev[0] / xMax) * W;
+          var prevY = h - (prev[1] / yMax) * h;
+          var nextX = (next[0] / xMax) * W;
+          var nextY = h - (next[1] / yMax) * h;
+          var next2X = (next2[0] / xMax) * W;
+          var next2Y = h - (next2[1] / yMax) * h;
+
+          // Control Points
+          var cp1x = currX + (nextX - prevX) / 6;
+          var cp1y = currY + (nextY - prevY) / 6;
+          var cp2x = nextX - (next2X - currX) / 6;
+          var cp2y = nextY - (next2Y - currY) / 6;
+          
+          pathD += " C" + cp1x + "," + cp1y + " " + cp2x + "," + cp2y + " " + nextX + "," + nextY;
+      }
+      return pathD;
+    }
+
+    // Draw Curves
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
-      var ptsSolid = [];
-      var ptsDashed = [];
+      
+      // Generate Smooth Path
+      var dPath = catmullRomToPath(ch.data, X_MAX, Y_MAX, H);
 
-      // Find split point (last solid point before currentSpend, or just use logic)
-      // We will iterate the array. Points <= currentSpend are solid, > are dashed
-      for (var p = 0; p < ch.data.length; p++) {
-        var spend = ch.data[p][0];
-        var rev = ch.data[p][1];
-        var px = (spend / X_MAX) * W;
-        var py = H - (rev / Y_MAX) * H;
-        var pt = px.toFixed(1) + ',' + py.toFixed(1);
+      var path = cEl('path');
+      sA(path, { d: dPath, fill: 'none', stroke: ch.color, 'stroke-width': 2.5 });
+      g.appendChild(path);
 
-        if (spend <= ch.currentSpend) {
-          ptsSolid.push(pt);
-        }
-        // Dashed starts from the first point that exceeds currentSpend
-        // But to make it connect, we add the currentSpend point to dashed too
-        if (spend >= ch.currentSpend) {
-            ptsDashed.push(pt);
-        }
-      }
-
-      // Draw Solid
-      if (ptsSolid.length > 1) {
-        var plSolid = cEl('polyline');
-        sA(plSolid, { points: ptsSolid.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5 });
-        g.appendChild(plSolid);
-      }
-
-      // Draw Dashed
-      if (ptsDashed.length > 1) {
-        var plDashed = cEl('polyline');
-        sA(plDashed, { points: ptsDashed.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-dasharray': '5 5' });
-        g.appendChild(plDashed);
-      }
-
-      // Draw Dot at currentSpend
+      // Dot at current spend
       var currentRev = 0;
       for (var p = 0; p < ch.data.length; p++) {
-          if (ch.data[p][0] === ch.currentSpend) {
-              currentRev = ch.data[p][1];
-              break;
-          }
-          // Interpolate if exact match not found (simplified here: just find closest)
-          if (p > 0 && ch.data[p][0] > ch.currentSpend) {
-              currentRev = ch.data[p-1][1]; // fallback
-              break;
-          }
+        if (ch.data[p][0] === ch.currentSpend) {
+          currentRev = ch.data[p][1];
+          break;
+        }
       }
       
       var dotX = (ch.currentSpend / X_MAX) * W;
@@ -493,13 +510,12 @@
     var labelData =[];
     for (var li = 0; li < rcChannels.length; li++) {
       var ch = rcChannels[li];
-      var lastPoint = ch.data[ch.data.length - 1]; // End of chart
+      var lastPoint = ch.data[ch.data.length - 1];
       var labelX = W;
       var labelY = H - (lastPoint[1] / Y_MAX) * H;
       labelData.push({ ch: ch, x: labelX, y: labelY, index: li });
     }
 
-    // Simple collision avoidance
     labelData.sort(function(a, b) { return a.y - b.y; });
     var labelHeight = 20;
     var labelGap = 6;
@@ -532,7 +548,7 @@
       g.appendChild(txt);
     }
 
-    // Tooltip Logic (Finding data points closest to mouse X)
+    // Tooltip
     var overlay = cEl('rect');
     sA(overlay, { x: 0, y: 0, width: W, height: H, fill: 'transparent', cursor: 'crosshair' });
 
@@ -547,13 +563,11 @@
 
       for (var i = 0; i < rcChannels.length; i++) {
         var c = rcChannels[i];
-        // Find closest data point
         var closestRev = 0;
         for(var p=0; p<c.data.length; p++){
             if(c.data[p][0] <= spendVal) closestRev = c.data[p][1];
             else break; 
         }
-        // Interpolate simply
         if(closestRev > 0) {
              html += '<div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:2px;">' +
                   '<span style="color:' + c.color + '; font-weight:600;">' + c.name + '</span>' +
@@ -573,18 +587,6 @@
       overlay.removeEventListener('mousemove', handleMouseMove);
       overlay.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }
-
-  function buildLegend() {
-    var legendEl = document.getElementById('rc-legend');
-    legendEl.innerHTML = '';
-    var keyRow = document.createElement('div');
-    keyRow.className = 'legend-key';
-    keyRow.innerHTML =
-      '<div class="legend-key-item"><div class="key-line-solid"></div><span>Below current spend</span></div>' +
-      '<div class="legend-key-item"><div class="key-line-dashed"></div><span>Above current spend</span></div>' +
-      '<div class="legend-key-item"><div class="key-dot"></div><span>Current spend level</span></div>';
-    legendEl.appendChild(keyRow);
   }
 
   window.addEventListener('resize', function() {
