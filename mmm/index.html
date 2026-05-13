@@ -152,7 +152,7 @@
   var wfTotal = 0;
   for (var wi = 0; wi < wfData.length; wi++) wfTotal += wfData[wi].value;
 
-  /* --- RESPONSE CURVE DATA (HARDCODED) --- */
+  /* --- RESPONSE CURVE DATA (SMOOTHED) --- */
   var rcChannels = [
     { 
       name: 'TV', 
@@ -161,7 +161,7 @@
       data: [
         [0, 0], [500, 345.57], [1000, 561.38], [1500, 745.63], [2000, 911.97], 
         [2500, 1066.15], [3000, 1211.28], [3500, 1349.30], [4000, 1481.50], 
-        [4500, 1608.82], [5000, 1731.96], [5500, 1800], [6000, 1800], [6500, 1800],
+        [4500, 1608.82], [5000, 1731.96], [5500, 1770], [6000, 1790], [6500, 1798],
         [7000, 1800], [7500, 1800], [8000, 1800], [8500, 1800], [9000, 1800], 
         [9500, 1800], [10000, 1800]
       ]
@@ -173,8 +173,8 @@
       data: [
         [0, 0], [500, 341.17], [1000, 517.12], [1500, 659.55], [2000, 783.81], 
         [2500, 896.10], [3000, 999.69], [3500, 1096.57], [4000, 1188.04], 
-        [4500, 1275.04], [5000, 1358.24], [5500, 1438.18], [6000, 1500], [6500, 1500],
-        [7000, 1500], [7500, 1500], [8000, 1500], [8500, 1500], [9000, 1500], 
+        [4500, 1275.04], [5000, 1358.24], [5500, 1410], [6000, 1450], [6500, 1480],
+        [7000, 1495], [7500, 1500], [8000, 1500], [8500, 1500], [9000, 1500], 
         [9500, 1500], [10000, 1500]
       ]
     },
@@ -185,8 +185,8 @@
       data: [
         [0, 0], [500, 275.27], [1000, 389.29], [1500, 476.78], [2000, 550.53], 
         [2500, 615.52], [3000, 674.26], [3500, 728.29], [4000, 778.57], 
-        [4500, 825.80], [5000, 870.47], [5500, 912.96], [6000, 953.55], [6500, 992.49],
-        [7000, 1000], [7500, 1000], [8000, 1000], [8500, 1000], [9000, 1000], 
+        [4500, 825.80], [5000, 870.47], [5500, 912.96], [6000, 953.55], [6500, 980],
+        [7000, 995], [7500, 1000], [8000, 1000], [8500, 1000], [9000, 1000], 
         [9500, 1000], [10000, 1000]
       ]
     },
@@ -198,7 +198,7 @@
         [0, 0], [500, 143.83], [1000, 196.48], [1500, 235.80], [2000, 268.40], 
         [2500, 296.75], [3000, 322.12], [3500, 345.26], [4000, 366.64], 
         [4500, 386.60], [5000, 405.37], [5500, 423.13], [6000, 440.03], [6500, 456.17],
-        [7000, 471.63], [7500, 486.51], [8000, 500], [8500, 500], [9000, 500], 
+        [7000, 471.63], [7500, 486.51], [8000, 495], [8500, 499], [9000, 500], 
         [9500, 500], [10000, 500]
       ]
     }
@@ -397,98 +397,22 @@
     axY.textContent = 'Incremental Revenue';
     g.appendChild(axY);
 
-    // Helper: Convert points to Catmull-Rom Spline Path (Smooth Curve)
-    function catmullRomToPath(points, xMax, yMax, h) {
-      var d = "M";
-      for (var i = 0; i < points.length; i++) {
-        var pt = points[i];
-        var x = (pt[0] / xMax) * W;
-        var y = h - (pt[1] / yMax) * h;
-        
-        // Catmull-Rom logic
-        var p0 = points[Math.max(i - 1, 0)];
-        var p1 = pt;
-        var p2 = points[Math.min(i + 1, points.length - 1)];
-        var p3 = points[Math.min(i + 2, points.length - 1)];
-
-        var cp1x = x + (p2[0] - p0[0]) / 6 * (W / xMax);
-        var cp1y = y - (p2[1] - p0[1]) / 6 * (h / yMax);
-        var cp2x = p2[0]/xMax * W - (p3[0] - p1[0]) / 6 * (W / xMax);
-        var cp2y = h - (p2[1]/yMax * h) + (p3[1] - p1[1]) / 6 * (h / yMax);
-
-        // For first and last points, we just draw line or close curve
-        if (i === 0) {
-            d += (x + "," + y) + " ";
-        } else {
-            // Calculate control points properly relative to current point p1
-            var prevPt = points[i-1];
-            var currX = (p1[0] / xMax) * W;
-            var currY = h - (p1[1] / yMax) * h;
-            var nextPt = points[Math.min(i+1, points.length-1)];
-            
-            var prevX = (prevPt[0] / xMax) * W;
-            var prevY = h - (prevPt[1] / yMax) * h;
-            var nextX = (nextPt[0] / xMax) * W;
-            var nextY = h - (nextPt[1] / yMax) * h;
-            
-            // Simple smoothing:
-            var cp1x_v = prevX + (currX - (i===0 ? prevX : points[i-2][0]/xMax*W)) / 2; // Simplified for safety
-            // Actually, let's just use a simpler smoothing factor since we have dense data
-            // A simple "rounded corner" using Q is safer and cleaner for this density
-            // But for true smooth curve (Cardinal Spline):
-            
-            var cp1_x = currX - (currX - prevX) / 4; 
-            var cp1_y = currY - (currY - prevY) / 4;
-            
-            // Re-doing the loop properly for Cardinal Spline
-            // We need to reconstruct d string from scratch for clarity
-        }
-      }
-      
-      // Proper implementation loop
-      var pathD = "M";
-      for (var i = 0; i < points.length; i++) {
-          var curr = points[i];
-          var currX = (curr[0] / xMax) * W;
-          var currY = h - (curr[1] / yMax) * h;
-          
-          if (i === 0) {
-              pathD += currX + "," + currY;
-              continue;
-          }
-          
-          var prev = points[i-1];
-          var next = points[Math.min(i+1, points.length-1)];
-          var next2 = points[Math.min(i+2, points.length-1)];
-          
-          var prevX = (prev[0] / xMax) * W;
-          var prevY = h - (prev[1] / yMax) * h;
-          var nextX = (next[0] / xMax) * W;
-          var nextY = h - (next[1] / yMax) * h;
-          var next2X = (next2[0] / xMax) * W;
-          var next2Y = h - (next2[1] / yMax) * h;
-
-          // Control Points
-          var cp1x = currX + (nextX - prevX) / 6;
-          var cp1y = currY + (nextY - prevY) / 6;
-          var cp2x = nextX - (next2X - currX) / 6;
-          var cp2y = nextY - (next2Y - currY) / 6;
-          
-          pathD += " C" + cp1x + "," + cp1y + " " + cp2x + "," + cp2y + " " + nextX + "," + nextY;
-      }
-      return pathD;
-    }
-
     // Draw Curves
     for (var ci = 0; ci < rcChannels.length; ci++) {
       var ch = rcChannels[ci];
-      
-      // Generate Smooth Path
-      var dPath = catmullRomToPath(ch.data, X_MAX, Y_MAX, H);
+      var pts =[];
 
-      var path = cEl('path');
-      sA(path, { d: dPath, fill: 'none', stroke: ch.color, 'stroke-width': 2.5 });
-      g.appendChild(path);
+      for (var p = 0; p < ch.data.length; p++) {
+        var spend = ch.data[p][0];
+        var rev = ch.data[p][1];
+        var px = (spend / X_MAX) * W;
+        var py = H - (rev / Y_MAX) * H;
+        pts.push(px.toFixed(1) + ',' + py.toFixed(1));
+      }
+
+      var pl = cEl('polyline');
+      sA(pl, { points: pts.join(' '), fill: 'none', stroke: ch.color, 'stroke-width': 2.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      g.appendChild(pl);
 
       // Dot at current spend
       var currentRev = 0;
