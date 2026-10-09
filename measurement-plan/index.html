@@ -101,11 +101,74 @@
 
   var nodes = [], i;
   for (i = 0; i < NODE_COUNT; i++) {
-    var gridCols = 16, col = i % gridCols, row = Math.floor(i / gridCols);
-    nodes.push({ chaosX: 0, chaosY: 0, absorbX: 0, absorbY: 0, tu: (col + rand() * 0.6) / gridCols, tv: (row + rand() * 0.6) / (NODE_COUNT / gridCols), jx: (rand() - 0.5) * 2, jy: (rand() - 0.5) * 2, vx: (rand() - 0.5) * 0.3, vy: (rand() - 0.5) * 0.3, r: 2 + rand() * 2.5, alpha: 0.5 + rand() * 0.5, ring: rand() < 0.18, dissolveStart: rand() * 0.4, dissolveDur: 0.25 + rand() * 0.35 });
+    nodes.push({ chaosX: 0, chaosY: 0, vx: (rand() - 0.5) * 0.3, vy: (rand() - 0.5) * 0.3, r: 2 + rand() * 2.5, alpha: 0.5 + rand() * 0.5, ring: rand() < 0.18, delay: rand() });
   }
   var micros = [];
-  for (i = 0; i < MICRO_COUNT; i++) { micros.push({ x: 0, y: 0, vx: (rand() - 0.5) * 0.15, vy: (rand() - 0.5) * 0.15, r: 1 + rand() * 1.2, a: 0.3 + rand() * 0.4, dissolveStart: rand() * 0.5, dissolveDur: 0.2 + rand() * 0.3 }); }
+  for (i = 0; i < MICRO_COUNT; i++) { micros.push({ x: 0, y: 0, vx: (rand() - 0.5) * 0.15, vy: (rand() - 0.5) * 0.15, r: 1 + rand() * 1.2, a: 0.3 + rand() * 0.4, delay: rand() }); }
+
+  // Plan layout in page units: 1 unit = 1% of the page width, so the page is 100 x 129.4 and the folded corner covers x > 82, y < 18.
+  // Everything sits inside the 12..88 margins, and the title and meta lines stop short of the fold.
+  // Row kinds: t title, m meta, h section heading, p paragraph, th table header, tr table row (outcome -> KPI -> event), c checklist item.
+  // Each row lists glyphs g [type, x], text bars b [x0, x1] and arrows a [x0, x1].
+  function tableRow(y) { return { k: 'tr', y: y, g: [['dot', 19], ['dot', 44], ['dot', 69]], b: [[23, 36], [48, 61], [73, 86]], a: [[38, 41.5], [63, 66.5]] }; }
+  var ROWS = [
+    { k: 't', y: 13, b: [[13, 58]] },
+    { k: 'm', y: 20, b: [[13, 76]] },
+    { k: 'h', y: 31, g: [['ring', 14]], b: [[20, 50]] },
+    { k: 'p', y: 38, b: [[20, 87]] },
+    { k: 'p', y: 44.5, b: [[20, 72]] },
+    { k: 'h', y: 55, g: [['ring', 14]], b: [[20, 58]] },
+    { k: 'th', y: 62, b: [[18, 34], [43, 59], [68, 84]] },
+    tableRow(69), tableRow(76), tableRow(83),
+    { k: 'h', y: 94, g: [['ring', 14]], b: [[20, 44]] },
+    { k: 'c', y: 101, g: [['dot', 21]], b: [[25, 80]] },
+    { k: 'c', y: 107.5, g: [['dot', 21]], b: [[25, 66]] },
+    { k: 'c', y: 114, g: [['dot', 21]], b: [[25, 74]] }
+  ];
+  // w = bar stroke width, a = bar opacity, r = radius of a node settled on that bar (all in page units).
+  var STYLE = { t: { w: 3.4, a: 0.95, r: 1.5 }, m: { w: 1.4, a: 0.5, r: 0.9 }, h: { w: 2.4, a: 0.85, r: 1.2 }, p: { w: 1.4, a: 0.6, r: 0.9 }, th: { w: 1.1, a: 0.4, r: 0.8 }, tr: { w: 1.9, a: 0.8, r: 1.05 }, c: { w: 1.4, a: 0.6, r: 0.9 } };
+  var GLYPH_R = { ring: 1.9, dot: 1.2 };
+
+  // Every node gets one slot: one per glyph, the rest spread along the text bars in proportion to bar length.
+  // Every micro gets one spot on a text bar, like a character in a line.
+  var slots = [], bars = [], glyphs = [], arrows = [], spots = [], rowSlots = [], rowSpots = [];
+  (function buildLayout() {
+    var r, j, s, row, b, q, len = 0, used = 0, order = [];
+    for (r = 0; r < ROWS.length; r++) { row = ROWS[r]; row.x0 = Infinity; row.x1 = -Infinity; rowSlots.push([]); rowSpots.push([]);
+      for (j = 0; row.g && j < row.g.length; j++) { glyphs.push({ row: r, type: row.g[j][0], x: row.g[j][1], y: row.y }); row.x0 = Math.min(row.x0, row.g[j][1] - GLYPH_R[row.g[j][0]]); }
+      for (j = 0; j < row.b.length; j++) { b = { row: r, k: row.k, x0: row.b[j][0], x1: row.b[j][1], y: row.y, n: 0, rem: 0 }; bars.push(b); len += b.x1 - b.x0; row.x0 = Math.min(row.x0, b.x0); row.x1 = Math.max(row.x1, b.x1); }
+      for (j = 0; row.a && j < row.a.length; j++) arrows.push({ row: r, x0: row.a[j][0], x1: row.a[j][1], y: row.y }); }
+    var budget = NODE_COUNT - glyphs.length;
+    for (j = 0; j < bars.length; j++) { q = budget * (bars[j].x1 - bars[j].x0) / len; bars[j].n = Math.floor(q); bars[j].rem = q - bars[j].n; used += bars[j].n; order.push(j); }
+    order.sort(function(a, c) { return bars[c].rem - bars[a].rem; });
+    for (j = 0; j < budget - used; j++) bars[order[j]].n++;
+    for (j = 0; j < glyphs.length; j++) { rowSlots[glyphs[j].row].push(slots.length); slots.push({ row: glyphs[j].row, k: ROWS[glyphs[j].row].k, x: glyphs[j].x, y: glyphs[j].y, glyph: glyphs[j].type, next: -1 }); }
+    for (j = 0; j < bars.length; j++) { b = bars[j]; for (s = 0; s < b.n; s++) { rowSlots[b.row].push(slots.length); slots.push({ row: b.row, k: b.k, x: b.n > 1 ? lerp(b.x0, b.x1, s / (b.n - 1)) : (b.x0 + b.x1) / 2, y: b.y, glyph: null, next: s < b.n - 1 ? slots.length + 1 : -1 }); } }
+    for (j = 0; j < MICRO_COUNT; j++) { q = rand() * len; for (s = 0; s < bars.length - 1 && q > bars[s].x1 - bars[s].x0; s++) q -= bars[s].x1 - bars[s].x0; b = bars[s]; rowSpots[b.row].push(spots.length); spots.push({ row: b.row, x: b.x0 + Math.min(q, b.x1 - b.x0), y: b.y }); }
+    function byX(list) { return function(a, c) { return list[a].x - list[c].x; }; }
+    for (r = 0; r < ROWS.length; r++) { rowSlots[r].sort(byX(slots)); rowSpots[r].sort(byX(spots)); }
+  })();
+
+  // Rows take items top-to-bottom by current height, and within a row targets go left-to-right by current x, so paths don't cross.
+  function assignRows(items, xKey, yKey, rowTargets, out) {
+    var order = [], j, r, k = 0, group, list;
+    for (j = 0; j < items.length; j++) order.push(j);
+    order.sort(function(a, c) { return items[a][yKey] - items[c][yKey]; });
+    for (r = 0; r < rowTargets.length; r++) { list = rowTargets[r]; group = order.slice(k, k + list.length); k += list.length;
+      group.sort(function(a, c) { return items[a][xKey] - items[c][xKey]; });
+      for (j = 0; j < list.length; j++) out[group[j]] = list[j]; }
+  }
+  var slotOf = new Array(NODE_COUNT), nodeAt = new Array(NODE_COUNT), spotOf = new Array(MICRO_COUNT), assignedCycle = -1;
+  function assignTargets() { assignRows(nodes, 'chaosX', 'chaosY', rowSlots, slotOf); assignRows(micros, 'x', 'y', rowSpots, spotOf); for (var j = 0; j < NODE_COUNT; j++) nodeAt[slotOf[j]] = j; }
+
+  // Top rows settle first, so the page fills the way it would be written; each row is then inked left-to-right.
+  // An item drops into its line first (y), then slides along it into place (x), so text lines form before they tighten up.
+  var STAGGER = 0.45, INK_DUR = 0.3;
+  function settleQ(p, row, jitter) { return clamp((p - STAGGER * (0.8 * row / (ROWS.length - 1) + 0.2 * jitter)) / (1 - STAGGER), 0, 1); }
+  function inkF(p, row) { return smooth01((p - 0.05 - 0.55 * row / (ROWS.length - 1)) / INK_DUR); }
+  function pagePt(g, x, y) { var u = g.docW / 100; return { x: g.x + x * u, y: g.y + y * u }; }
+  // Position plus look: the node's chaos look (k = 0) blends into its slot's look (k = 1).
+  function place(n, x, y, s, k, u) { return { x: x, y: y, r: s ? lerp(n.r, (s.glyph ? GLYPH_R[s.glyph] : STYLE[s.k].r) * u, k) : n.r, ring: lerp(n.ring ? 1 : 0, s && s.glyph === 'ring' ? 1 : 0, k), a: lerp(n.alpha, 0.95, k) }; }
 
   function stepParticles(w, h) {
     var j, n, m;
@@ -142,49 +205,63 @@
   function drawNodes(nodePositions, alphaScale, nodeWeights) {
     var aS = clamp(alphaScale, 0, 1); if (aS <= 0.001) return;
     ctx.save(); ctx.shadowColor = hexToRgba(COLORS.cyan, 0.95); ctx.shadowBlur = 10;
-    var ii, n, p, w, a, shrink, rr;
-    for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; p = nodePositions[ii]; w = nodeWeights ? nodeWeights[ii] : 1; a = clamp(n.alpha * aS * w, 0, 1); if (a <= 0.01) continue; shrink = 0.35 + 0.65 * w; rr = n.r * shrink;
-      if (n.ring) { ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.strokeStyle = hexToRgba(COLORS.cyan, 0.85 * a); ctx.lineWidth = 2 * shrink; ctx.stroke(); } else { ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.fillStyle = hexToRgba(COLORS.cyan, 0.90 * a); ctx.fill(); } }
+    var ii, p, w, a, shrink, rr;
+    for (ii = 0; ii < NODE_COUNT; ii++) { p = nodePositions[ii]; w = nodeWeights ? nodeWeights[ii] : 1; a = clamp(p.a * aS * w, 0, 1); if (a <= 0.01) continue; shrink = 0.35 + 0.65 * w; rr = p.r * shrink;
+      if (p.ring > 0.01) { ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.strokeStyle = hexToRgba(COLORS.cyan, 0.85 * a * p.ring); ctx.lineWidth = 2 * shrink; ctx.stroke(); }
+      if (p.ring < 0.99) { ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.fillStyle = hexToRgba(COLORS.cyan, 0.90 * a * (1 - p.ring)); ctx.fill(); } }
     ctx.shadowBlur = 0; ctx.restore();
   }
 
-  function drawMicrosTravel(alphaScale, pull) {
+  // Once settled, a node links only to its neighbours on the same text bar: the structure comes from the page, not from proximity.
+  function drawRowLinks(nodePositions, weights, alphaScale) {
+    var maxA = 0.5 * clamp(alphaScale, 0, 1); if (maxA <= 0) return;
+    var paths = [], b, j, s, a, c, op;
+    for (b = 0; b < 8; b++) paths.push(new Path2D());
+    for (j = 0; j < slots.length; j++) { s = slots[j]; if (s.next < 0) continue; a = nodeAt[j]; c = nodeAt[s.next]; op = Math.min(weights[a], weights[c]); if (op < 0.03) continue; b = Math.min(7, Math.floor(op * 8)); paths[b].moveTo(nodePositions[a].x, nodePositions[a].y); paths[b].lineTo(nodePositions[c].x, nodePositions[c].y); }
+    ctx.save(); ctx.lineWidth = 1; ctx.shadowBlur = 0; for (b = 0; b < 8; b++) { ctx.strokeStyle = hexToRgba(COLORS.cyan2, ((b + 1) / 8) * maxA); ctx.stroke(paths[b]); } ctx.restore();
+  }
+
+  function drawMicrosTravel(alphaScale, p) {
     var aS = clamp(alphaScale, 0, 1); if (aS <= 0) return;
     ctx.save(); ctx.shadowColor = hexToRgba(COLORS.cyan, 0.85); ctx.shadowBlur = 6; ctx.fillStyle = hexToRgba(COLORS.cyan, 0.55);
-    var g = docGeom(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height); var cx = g.x + g.docW / 2, cy = g.y + g.docH / 2;
-    var j, m, tx, ty; for (j = 0; j < micros.length; j++) { m = micros[j]; tx = lerp(m.x, cx + (m.x - cx) * 0.25, pull); ty = lerp(m.y, cy + (m.y - cy) * 0.25, pull); ctx.globalAlpha = aS * m.a; ctx.beginPath(); ctx.arc(tx, ty, m.r, 0, Math.PI * 2); ctx.fill(); }
+    var g = docGeom(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+    var j, m, s, q, tp, tx, ty, rr; for (j = 0; j < micros.length; j++) { m = micros[j]; tx = m.x; ty = m.y; rr = m.r; if (p > 0) { s = spots[spotOf[j]]; q = settleQ(p, s.row, m.delay); tp = pagePt(g, s.x, s.y); tx = lerp(m.x, tp.x, smooth01(q)); ty = lerp(m.y, tp.y, smooth01(q * 1.8)); rr = m.r * lerp(1, 0.7, smooth01(q)); } ctx.globalAlpha = aS * m.a; ctx.beginPath(); ctx.arc(tx, ty, rr, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
 
-  function drawMicrosDissolve(alphaScale, p) {
+  function drawMicrosDissolve(alphaScale, ink) {
     var aS = clamp(alphaScale, 0, 1); if (aS <= 0) return;
     ctx.save(); ctx.shadowColor = hexToRgba(COLORS.cyan, 0.85); ctx.shadowBlur = 6; ctx.fillStyle = hexToRgba(COLORS.cyan, 0.55);
-    var g = docGeom(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height); var cx = g.x + g.docW / 2, cy = g.y + g.docH / 2;
-    var j, m, tx, ty, localP, vis, a; for (j = 0; j < micros.length; j++) { m = micros[j]; tx = cx + (m.x - cx) * 0.25; ty = cy + (m.y - cy) * 0.25; localP = clamp((p - m.dissolveStart) / m.dissolveDur, 0, 1); vis = 1 - smooth01(localP); a = aS * m.a * vis; if (a <= 0.01) continue; ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(tx, ty, m.r * (0.4 + 0.6 * vis), 0, Math.PI * 2); ctx.fill(); }
+    var g = docGeom(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+    var j, m, s, tp, vis, a; for (j = 0; j < micros.length; j++) { m = micros[j]; s = spots[spotOf[j]]; tp = pagePt(g, s.x, s.y); vis = 1 - smooth01((ink[s.row] - s.x + 1) / 3); a = aS * m.a * vis; if (a <= 0.01) continue; ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(tp.x, tp.y, m.r * 0.7 * (0.4 + 0.6 * vis), 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
 
-  function computeAbsorbPos(g) {
-    var x = g.x, y = g.y, docW = g.docW, docH = g.docH, fold = g.fold;
-    var j, n, margin, px, py, foldX, foldY;
-    for (j = 0; j < nodes.length; j++) { n = nodes[j]; margin = 0.12; px = x + docW * lerp(margin, 1 - margin, n.tu); py = y + docH * lerp(margin, 1 - margin, n.tv); foldX = x + docW - fold; foldY = y + fold;
-      if (px > foldX && py < foldY) { n.absorbX = foldX - 10 + n.jx * 8; n.absorbY = foldY + 10 + n.jy * 8; } else { n.absorbX = px + n.jx * 12; n.absorbY = py + n.jy * 12; } }
+  // The finished plan: text bars, section markers and outcome -> KPI -> event arrows. With ink, each row is revealed up to ink[row].
+  function drawPlanContent(g, ink, alpha) {
+    var aS = clamp(alpha, 0, 1); if (aS <= 0.001) return;
+    var u = g.docW / 100, j, b, e, gl, x1, p0, p1, a, hx = 1.2 * u, hy = 1.1 * u;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.shadowColor = hexToRgba(COLORS.cyan, 0.8); ctx.shadowBlur = 8;
+    for (j = 0; j < bars.length; j++) { b = bars[j]; x1 = ink ? Math.min(b.x1, ink[b.row]) : b.x1; if (x1 <= b.x0) continue; p0 = pagePt(g, b.x0, b.y); p1 = pagePt(g, x1, b.y); ctx.strokeStyle = hexToRgba(COLORS.cyan, STYLE[b.k].a * aS); ctx.lineWidth = STYLE[b.k].w * u; ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke(); }
+    ctx.lineWidth = Math.max(1, 0.5 * u); ctx.strokeStyle = hexToRgba(COLORS.cyan, 0.7 * aS);
+    for (j = 0; j < arrows.length; j++) { e = arrows[j]; x1 = ink ? Math.min(e.x1, ink[e.row]) : e.x1; if (x1 <= e.x0) continue; p0 = pagePt(g, e.x0, e.y); p1 = pagePt(g, x1, e.y); ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); if (x1 >= e.x1) { ctx.moveTo(p1.x - hx, p1.y - hy); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p1.x - hx, p1.y + hy); } ctx.stroke(); }
+    for (j = 0; j < glyphs.length; j++) { gl = glyphs[j]; a = (ink ? smooth01((ink[gl.row] - gl.x + GLYPH_R[gl.type]) / 3) : 1) * 0.95 * aS; if (a <= 0.01) continue; p0 = pagePt(g, gl.x, gl.y); ctx.beginPath(); ctx.arc(p0.x, p0.y, GLYPH_R[gl.type] * u, 0, Math.PI * 2);
+      if (gl.type === 'ring') { ctx.lineWidth = 2; ctx.strokeStyle = hexToRgba(COLORS.cyan, 0.85 * a); ctx.stroke(); } else { ctx.fillStyle = hexToRgba(COLORS.cyan, 0.90 * a); ctx.fill(); } }
+    ctx.restore();
   }
 
   function renderStaticFinal() {
-    var w = canvas.getBoundingClientRect().width, h = canvas.getBoundingClientRect().height;
-    ctx.clearRect(0, 0, w, h); ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, w, h); drawDocSolid(ctx, docGeom(w, h), 1);
+    var w = canvas.getBoundingClientRect().width, h = canvas.getBoundingClientRect().height, g = docGeom(w, h);
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, w, h); drawDocSolid(ctx, g, 1); drawPlanContent(g, null, 1);
   }
 
   var T_FADE_IN = 600, T_CHAOS = 2000, T_TRAVEL = 3500, T_DISSOLVE = 3500, T_HOLD = 2000, T_BLACK = 800;
   var T_TOTAL = T_FADE_IN + T_CHAOS + T_TRAVEL + T_DISSOLVE + T_HOLD + T_BLACK;
-  var lastW = 0, lastH = 0;
 
   function render(now) {
     var w = canvas.getBoundingClientRect().width, h = canvas.getBoundingClientRect().height;
     if (reduced) { renderStaticFinal(); return; }
     stepParticles(w, h); ctx.clearRect(0, 0, w, h); ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, w, h);
-    if (Math.abs(w - lastW) > 0.5 || Math.abs(h - lastH) > 0.5) { computeAbsorbPos(docGeom(w, h)); lastW = w; lastH = h; }
     var g = docGeom(w, h), t = now % T_TOTAL, stage = 'fade_in', p = 0;
     if (t < T_FADE_IN) { stage = 'fade_in'; p = t / T_FADE_IN; }
     else if (t < T_FADE_IN + T_CHAOS) { stage = 'chaos'; p = (t - T_FADE_IN) / T_CHAOS; }
@@ -193,12 +270,17 @@
     else if (t < T_FADE_IN + T_CHAOS + T_TRAVEL + T_DISSOLVE + T_HOLD) { stage = 'hold'; p = (t - T_FADE_IN - T_CHAOS - T_TRAVEL - T_DISSOLVE) / T_HOLD; }
     else { stage = 'black'; }
 
-    var pos = new Array(NODE_COUNT), ii, n, pull, nodeW, linkW, totalDissolved, localP, vis, fillAlpha, fadeStart, holdAlpha;
-    if (stage === 'fade_in') { var alpha = smooth01(p); for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = { x: n.chaosX, y: n.chaosY }; } drawLinks(pos, alpha); drawMicrosTravel(alpha, 0); drawNodes(pos, alpha); }
-    else if (stage === 'chaos') { for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = { x: n.chaosX, y: n.chaosY }; } drawLinks(pos, 1); drawMicrosTravel(1, 0); drawNodes(pos, 1); }
-    else if (stage === 'travel') { pull = smooth01(p); drawDocOutline(ctx, g, 0.6 + 0.4 * pull, lerp(12, 22, pull)); for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = { x: lerp(n.chaosX, n.absorbX, pull), y: lerp(n.chaosY, n.absorbY, pull) }; } drawLinks(pos, 1); drawMicrosTravel(1, pull); drawNodes(pos, 1); }
-    else if (stage === 'dissolve') { nodeW = new Array(NODE_COUNT); linkW = new Array(NODE_COUNT); totalDissolved = 0; for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = { x: n.absorbX, y: n.absorbY }; localP = clamp((p - n.dissolveStart) / n.dissolveDur, 0, 1); vis = 1 - smooth01(localP); nodeW[ii] = vis; linkW[ii] = vis * vis; totalDissolved += smooth01(localP); } fillAlpha = smooth01(totalDissolved / NODE_COUNT); drawDocSolid(ctx, g, fillAlpha); drawLinks(pos, 1, linkW); drawMicrosDissolve(1, p); drawNodes(pos, 1, nodeW); drawDocOutline(ctx, g, 1 - fillAlpha * 0.5, lerp(22, 12, fillAlpha)); }
-    else if (stage === 'hold') { fadeStart = 0.7; holdAlpha = p < fadeStart ? 1 : 1 - (p - fadeStart) / (1 - fadeStart); drawDocSolid(ctx, g, holdAlpha); }
+    var u = g.docW / 100, pos = new Array(NODE_COUNT), ii, r, n, s, q, kx, ky, f, tp, pull, nodeW, linkW, ink, inkSum, fillAlpha, fadeStart, holdAlpha;
+    if (stage !== 'fade_in' && stage !== 'chaos' && assignedCycle !== Math.floor(now / T_TOTAL)) { assignTargets(); assignedCycle = Math.floor(now / T_TOTAL); }
+    if (stage === 'fade_in') { var alpha = smooth01(p); for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = place(n, n.chaosX, n.chaosY, null, 0, u); } drawLinks(pos, alpha); drawMicrosTravel(alpha, 0); drawNodes(pos, alpha); }
+    else if (stage === 'chaos') { for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; pos[ii] = place(n, n.chaosX, n.chaosY, null, 0, u); } drawLinks(pos, 1); drawMicrosTravel(1, 0); drawNodes(pos, 1); }
+    else if (stage === 'travel') { pull = smooth01(p); drawDocOutline(ctx, g, 0.6 + 0.4 * pull, lerp(12, 22, pull)); nodeW = new Array(NODE_COUNT); linkW = new Array(NODE_COUNT);
+      for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; s = slots[slotOf[ii]]; q = settleQ(p, s.row, n.delay); kx = smooth01(q); ky = smooth01(q * 1.8); tp = pagePt(g, s.x, s.y); pos[ii] = place(n, lerp(n.chaosX, tp.x, kx), lerp(n.chaosY, tp.y, ky), s, kx, u); linkW[ii] = (1 - ky) * (1 - ky); nodeW[ii] = smooth01((ky - 0.5) / 0.5); }
+      drawLinks(pos, 1, linkW); drawRowLinks(pos, nodeW, 1); drawMicrosTravel(1, p); drawNodes(pos, 1); }
+    else if (stage === 'dissolve') { ink = new Array(ROWS.length); inkSum = 0; for (r = 0; r < ROWS.length; r++) { f = inkF(p, r); inkSum += f; ink[r] = lerp(ROWS[r].x0 - 1, ROWS[r].x1 + 1, f); } fillAlpha = smooth01(inkSum / ROWS.length);
+      nodeW = new Array(NODE_COUNT); for (ii = 0; ii < NODE_COUNT; ii++) { n = nodes[ii]; s = slots[slotOf[ii]]; tp = pagePt(g, s.x, s.y); pos[ii] = place(n, tp.x, tp.y, s, 1, u); nodeW[ii] = 1 - smooth01((ink[s.row] - s.x + 1) / 4); }
+      drawDocSolid(ctx, g, fillAlpha); drawPlanContent(g, ink, 1); drawRowLinks(pos, nodeW, 1); drawMicrosDissolve(1, ink); drawNodes(pos, 1, nodeW); drawDocOutline(ctx, g, 1 - fillAlpha * 0.5, lerp(22, 12, fillAlpha)); }
+    else if (stage === 'hold') { fadeStart = 0.7; holdAlpha = p < fadeStart ? 1 : 1 - (p - fadeStart) / (1 - fadeStart); drawDocSolid(ctx, g, holdAlpha); drawPlanContent(g, null, holdAlpha); }
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
