@@ -3,7 +3,7 @@
 Interactive pages on marketing measurement by Aaron Goodin — attribution, incrementality, MMM, uplift modeling, and budget decisions.
 
 Live at **[8139causal.github.io/measurement](https://8139causal.github.io/measurement/)**
-Author: [causalscience.com](https://causalscience.com) · goodaaron@causalscience.com
+Author: [causalscience.com](https://causalscience.com) · goodinaaron@causalscience.com
 
 ## What's here
 
