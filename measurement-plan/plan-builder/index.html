@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan Builder — Causal Science</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .page { text-align: center; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 24px; }
+    .view-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: transparent; border: 1px solid var(--brand-border); color: var(--brand-text-muted); }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); border-color: var(--brand-accent); color: var(--brand-background); }
+    .view-button .dot { width: 6px; height: 6px; border-radius: 50%; background: #00D4FF; }
+    .view-button.active .dot { background: var(--brand-background); }
+
+    .builder-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; min-height: 500px; display: flex; flex-direction: column; text-align: left; }
+    .step-progress { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--brand-background); border-bottom: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; }
+    .step-content { display: none; padding: 24px; flex: 1; overflow-y: auto; }
+    .step-content.active { display: block; }
+    .step-indicator { appearance: none; border: none; background: transparent; padding: 12px 8px 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: rgba(255,255,255,0.5); transition: all 0.2s; position: relative; text-align: center; font-family: inherit; }
+    .step-indicator:hover { background: rgba(255,255,255,0.03); color: var(--brand-text-muted); }
+    .step-indicator.active { color: #fff; }
+    .step-indicator.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--brand-accent); }
+    .step-check { height: 14px; font-size: 12px; color: var(--brand-accent); }
+    .step-indicator.completed .step-check::before { content: '\2713'; }
+    .step-indicator.completed { color: var(--brand-accent); }
+    .step-number { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .step-label { font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .step-header { margin-bottom: 24px; }
+    .step-question { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .step-hint { font-size: 14px; color: var(--brand-text-muted); line-height: 1.5; }
+    .step-hint strong { color: #fff; }
+
+    .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .option-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; color: #fff; transition: all 0.2s; font-family: inherit; }
+    .option-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+    .option-btn.selected { border-color: var(--brand-accent); background: rgba(45,212,191,0.15); }
+    .option-icon { font-size: 24px; margin-bottom: 8px; opacity: 0.8; }
+    .option-title { font-size: 14px; font-weight: 500; color: var(--brand-text-muted); }
+    .option-btn.selected .option-title { color: #fff; }
+
+    .context-preview { margin-top: 0; padding: 20px 24px; background: rgba(59,75,119,0.6); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; display: none; }
+    .context-preview.visible { display: block; }
+    .context-preview-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .context-arrow { color: var(--brand-accent); font-size: 14px; }
+    .context-preview-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--brand-accent); }
+    .context-preview-body { font-size: 14px; color: var(--brand-text-muted); line-height: 1.6; }
+    .context-preview-body strong { color: #fff; font-weight: 600; }
+    .funnel-label { font-size: 12px; font-weight: 600; margin: 16px 0 10px; }
+    .funnel-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .funnel-pill { background: var(--brand-accent); color: var(--brand-background); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 500; font-family: "SF Mono", Monaco, Consolas, monospace; }
+    .funnel-arrow { color: var(--brand-text-muted); font-size: 14px; }
+    .context-tip { font-size: 14px; color: #f59e0b; display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+
+    .kpi-list { display: flex; flex-direction: column; gap: 8px; }
+    .kpi-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; transition: all 0.2s; }
+    .kpi-row:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
+    .kpi-row.selected { background: rgba(45,212,191,0.15); border-color: var(--brand-accent); }
+    .checkbox-dummy { width: 18px; height: 18px; min-width: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .kpi-row.selected .checkbox-dummy { background: var(--brand-accent); border-color: var(--brand-accent); }
+    .kpi-row.selected .checkbox-dummy::after { content: '\2713'; color: var(--brand-background); font-size: 12px; font-weight: 800; }
+    .kpi-name { flex: 1; font-size: 14px; }
+    .kpi-badge { font-size: 12px; padding: 3px 8px; border-radius: 9999px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
+    .kpi-badge.strong { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); font-weight: 600; }
+    .warning { display: none; margin-top: 12px; padding: 10px 14px; background: rgba(249,115,22,0.12); border: 1px solid #f97316; border-radius: 8px; color: #f97316; font-size: 14px; }
+    .warning.visible { display: block; }
+    .custom-kpi-form { display: flex; gap: 8px; margin-top: 16px; }
+    .custom-kpi-input { flex: 1; padding: 10px 14px; background: var(--brand-background); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 14px; font-family: inherit; }
+    .custom-kpi-input::placeholder { color: rgba(255,255,255,0.5); }
+    .custom-kpi-input:focus { outline: none; border-color: var(--brand-accent); }
+    .custom-kpi-btn { padding: 10px 16px; background: var(--brand-accent); border: none; border-radius: 8px; color: var(--brand-background); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .custom-kpi-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .mapping-table-wrapper, .implementation-table-wrapper { overflow-x: auto; }
+    .mapping-table, .implementation-table { width: 100%; border-collapse: collapse; }
+    .mapping-table th, .implementation-table th { text-align: left; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .mapping-table td, .implementation-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); font-size: 14px; }
+    .event-input { width: 100%; padding: 8px 10px; background: var(--brand-background); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 14px; font-family: "SF Mono", Monaco, Consolas, monospace; }
+    .event-input:focus { outline: none; border-color: var(--brand-accent); }
+    .tool-pill { display: inline-block; padding: 3px 8px; margin-right: 4px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; font-size: 12px; color: var(--brand-text-muted); }
+
+    .reality-check { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+    .check-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; gap: 16px; }
+    .check-row.slider-row { flex-direction: column; align-items: stretch; }
+    .check-label { font-size: 14px; }
+    .toggle-group { display: flex; gap: 4px; background: var(--brand-background); padding: 4px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; }
+    .toggle-btn { padding: 8px 16px; border: none; border-radius: 9999px; background: transparent; color: var(--brand-text-muted); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .toggle-btn:hover { color: #fff; }
+    .toggle-btn.active { background: var(--brand-accent); color: var(--brand-background); }
+
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .slider-label-left, .slider-label-right { font-size: 14px; color: var(--brand-text-muted); }
+    .slider-track { position: relative; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; width: 100%; cursor: pointer; }
+    .slider-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--brand-accent); border-radius: 3px; width: 50%; transition: width 0.1s; pointer-events: none; }
+    .slider-thumb { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: #fff; border-radius: 50%; cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 10; touch-action: none; }
+    .slider-thumb:active { cursor: grabbing; }
+
+    .reality-insights { padding: 20px 24px; background: rgba(59,75,119,0.6); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; }
+    .insights-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--brand-accent); margin-bottom: 16px; font-weight: 600; }
+    .insight-item { display: flex; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--brand-text-muted); line-height: 1.5; align-items: flex-start; }
+    .insight-item:last-child { margin-bottom: 0; }
+    .insight-item strong { color: #fff; }
+    .insight-icon { flex-shrink: 0; width: 18px; }
+
+    .output-summary { display: flex; flex-direction: column; margin-bottom: 24px; background: rgba(59,75,119,0.6); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; overflow: hidden; }
+    .summary-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.12); font-weight: 600; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { font-size: 14px; color: var(--brand-text-muted); }
+    .summary-value { font-size: 14px; font-weight: 600; text-align: right; }
+    .summary-value.priority-value { color: var(--brand-accent); }
+
+    .implementation-section { margin-bottom: 24px; background: rgba(59,75,119,0.6); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; overflow: hidden; }
+    .implementation-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.12); font-weight: 600; }
+    .implementation-table code { font-family: "SF Mono", Monaco, Consolas, monospace; font-size: 13px; color: var(--brand-accent); }
+    .badge-now { display: inline-block; background: var(--brand-accent); color: var(--brand-background); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge-later { display: inline-block; background: #f97316; color: var(--brand-background); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    .note-text { font-size: 12px; color: rgba(255,255,255,0.5); font-style: italic; }
+
+    .final-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 8px; flex-wrap: nowrap; }
+    .final-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 9999px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid var(--brand-accent); background: transparent; color: var(--brand-accent); font-family: inherit; white-space: nowrap; flex: 1; max-width: 200px; transition: all 0.2s; }
+    .final-btn:hover { background: rgba(45,212,191,0.15); }
+    .final-btn-primary { background: var(--brand-accent); color: var(--brand-background); }
+    .final-btn-primary:hover { filter: brightness(1.1); background: var(--brand-accent); }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #fff; color: var(--brand-background); padding: 12px 24px; border-radius: 9999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: all 0.3s; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) { .step-label { display: none; } .step-number { font-size: 10px; } }
+    @media (max-width: 700px) { .final-buttons { flex-direction: column; } .final-btn { width: 100%; max-width: none; } }
+    @media (max-width: 600px) { .option-grid { grid-template-columns: 1fr; } .step-content { padding: 20px; } .step-question { font-size: 18px; } .check-row { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../without-vs-with/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Plan Builder</h1>
+      <a href="../../attribution/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">Answer five quick questions. We'll generate a mini measurement plan and a prioritized implementation table you can export.</p>
+
+    <div class="view-selector">
+      <a href="../" class="view-button"><span class="dot"></span> Measurement plan</a>
+      <a href="../without-vs-with/" class="view-button"><span class="dot"></span> Without vs with a plan</a>
+      <a href="./" class="view-button active"><span class="dot"></span> Plan builder</a>
+    </div>
+
+    <section class="builder-section">
+      <div class="builder-card">
+        <div class="step-progress" role="tablist" aria-label="Plan builder steps">
+          <button type="button" class="step-indicator active" data-step="1" role="tab" aria-selected="true"><span class="step-check"></span><span class="step-number">STEP 1</span><span class="step-label">Business win</span></button>
+          <button type="button" class="step-indicator" data-step="2" role="tab" aria-selected="false"><span class="step-check"></span><span class="step-number">STEP 2</span><span class="step-label">Primary KPIs</span></button>
+          <button type="button" class="step-indicator" data-step="3" role="tab" aria-selected="false"><span class="step-check"></span><span class="step-number">STEP 3</span><span class="step-label">Event mapping</span></button>
+          <button type="button" class="step-indicator" data-step="4" role="tab" aria-selected="false"><span class="step-check"></span><span class="step-number">STEP 4</span><span class="step-label">Reality check</span></button>
+          <button type="button" class="step-indicator" data-step="5" role="tab" aria-selected="false"><span class="step-check"></span><span class="step-number">STEP 5</span><span class="step-label">Your plan</span></button>
+        </div>
+
+        <!-- Step 1: Business Model -->
+        <div class="step-content active" data-step="1">
+          <div class="step-header">
+            <div class="step-question">Step 1 — Business win</div>
+            <div class="step-hint">What is the main way this site creates value? Measurement starts from the business model — not from GA4 menus.</div>
+          </div>
+          <div class="option-grid">
+            <button type="button" class="option-btn" data-value="ecommerce"><div class="option-icon">&#128722;</div><div class="option-title">Online sales</div></button>
+            <button type="button" class="option-btn" data-value="leadgen"><div class="option-icon">&#128196;</div><div class="option-title">Leads or inquiries</div></button>
+            <button type="button" class="option-btn" data-value="bookings"><div class="option-icon">&#128197;</div><div class="option-title">Bookings or appointments</div></button>
+            <button type="button" class="option-btn" data-value="content"><div class="option-icon">&#128101;</div><div class="option-title">Content or community</div></button>
+          </div>
+          <div class="context-preview" id="mp3-context-preview">
+            <div class="context-preview-header"><span class="context-arrow">&rarr;</span><span class="context-preview-title">WHAT THIS MEANS FOR YOUR MEASUREMENT PLAN</span></div>
+            <div class="context-preview-body" id="mp3-context-preview-body"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: KPIs -->
+        <div class="step-content" data-step="2">
+          <div class="step-header">
+            <div class="step-question">Pick 3-6 primary KPIs</div>
+            <div class="step-hint">Start with the few that actually move revenue. You can always add more later.</div>
+          </div>
+          <div class="kpi-selection">
+            <div class="kpi-list" id="mp3-kpi-list"></div>
+            <div class="warning" id="mp3-kpi-warning"><strong>Too many KPIs.</strong> Keep to 3-6 for focus.</div>
+          </div>
+          <div class="custom-kpi-form">
+            <input id="mp3-custom-kpi-input" class="custom-kpi-input" type="text" placeholder="My KPI">
+            <button id="mp3-custom-kpi-btn" class="custom-kpi-btn" type="button" disabled>+ Add KPI</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Event Mapping -->
+        <div class="step-content" data-step="3">
+          <div class="step-header">
+            <div class="step-question">Translate KPIs into events</div>
+            <div class="step-hint">For each KPI, here's a <strong>suggested</strong> event name. Edit to match your naming convention.</div>
+          </div>
+          <div class="mapping-table-wrapper">
+            <table class="mapping-table"><thead><tr><th>KPI</th><th>SUGGESTED GA4 EVENT NAME</th><th>OTHER TOOLS</th></tr></thead><tbody id="mp3-mapping-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Step 4: Reality Check -->
+        <div class="step-content" data-step="4">
+          <div class="step-header">
+            <div class="step-question">Reality check: Budget and effort</div>
+            <div class="step-hint">This helps prioritize which events to implement now vs. later.</div>
+          </div>
+          <div class="reality-check">
+            <div class="check-row"><div class="check-label">We have dev time available this quarter</div><div class="toggle-group"><button type="button" class="toggle-btn" data-group="dev" data-value="yes">Yes</button><button type="button" class="toggle-btn" data-group="dev" data-value="no">No</button></div></div>
+            <div class="check-row"><div class="check-label">We already use Google Tag Manager</div><div class="toggle-group"><button type="button" class="toggle-btn" data-group="gtm" data-value="yes">Yes</button><button type="button" class="toggle-btn" data-group="gtm" data-value="no">No</button></div></div>
+            <div class="check-row slider-row">
+              <div class="slider-header"><span class="slider-label-left">Perfect setup first</span><span class="slider-label-right">Fast wins first</span></div>
+              <div class="slider-track" id="mp3-slider-track">
+                <div class="slider-fill" id="mp3-priority-fill"></div>
+                <div class="slider-thumb" id="mp3-priority-thumb" tabindex="0"></div>
+              </div>
+            </div>
+          </div>
+          <div class="reality-insights"><div class="insights-title">IMPLEMENTATION RECOMMENDATIONS</div><div class="insights-content" id="mp3-insights-content"></div></div>
+        </div>
+
+        <!-- Step 5: Output -->
+        <div class="step-content" data-step="5">
+          <div class="step-header">
+            <div class="step-question">Your mini measurement plan</div>
+            <div class="step-hint">A summary you can share with your team or use as a starting point.</div>
+          </div>
+          <div class="output-summary">
+            <div class="summary-title">PLAN SUMMARY</div>
+            <div class="summary-row"><div class="summary-label">Business Model</div><div class="summary-value" id="mp3-out-model">&mdash;</div></div>
+            <div class="summary-row"><div class="summary-label">Primary KPIs</div><div class="summary-value" id="mp3-out-kpis">&mdash;</div></div>
+            <div class="summary-row"><div class="summary-label">Implementation Priority</div><div class="summary-value priority-value" id="mp3-out-priority">Balanced</div></div>
+          </div>
+          <div class="implementation-section">
+            <div class="implementation-title">EVENT IMPLEMENTATION PLAN</div>
+            <div class="implementation-table-wrapper"><table class="implementation-table"><thead><tr><th>KPI</th><th>EVENT NAME</th><th>PRIORITY</th><th>NOTES</th></tr></thead><tbody id="mp3-implementation-table"></tbody></table></div>
+          </div>
+          <div class="final-buttons">
+            <button id="mp3-btn-export" type="button" class="final-btn final-btn-primary"><span class="btn-icon">&#8595;</span> Download CSV</button>
+            <button id="mp3-btn-copy" type="button" class="final-btn"><span class="btn-icon">&#9112;</span> Copy to Clipboard</button>
+            <button id="mp3-btn-email" type="button" class="final-btn"><span class="btn-icon">&#9993;</span> Email this plan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="mp3-toast"></div>
+  </div>
+
+  <script>
+  (function(){
+  'use strict';
+  var state = { step: 1, model: null, kpis: [], customKpis: [], overrides: {}, reality: { dev: null, gtm: null, priority: 50 } };
+
+  var models = {
+    ecommerce: { name: "Online Sales", exp: "<strong>E-commerce measurement</strong> focuses on the purchase funnel. Your primary outcome is completed transactions, with supporting signals from cart activity and product engagement.", funnel: ['view_item','add_to_cart','begin_checkout','purchase'], tip: "Strong signals like purchases and checkout starts should be prioritized over weaker signals like product views.", kpis: [{ id:'purchase', name:'Purchases', event:'purchase', tools:['GA4'], strength:'strong' },{ id:'checkout', name:'Checkout starts', event:'begin_checkout', tools:['GA4'], strength:'strong' },{ id:'addtocart', name:'Add to cart', event:'add_to_cart', tools:['GA4'], strength:'weak' },{ id:'viewitem', name:'Product views', event:'view_item', tools:['GA4'], strength:'weak' }] },
+    leadgen: { name: "Lead Generation", exp: "<strong>Lead generation measurement</strong> centers on form submissions and contact attempts. Your primary outcome is qualified leads entering your CRM or sales process.", funnel: ['view_pricing','generate_lead','qualified_lead'], tip: "Track multiple lead types (forms, calls, chats) but unify them under a common \"lead\" definition for reporting.", kpis: [{ id:'lead', name:'Lead submitted', event:'generate_lead', tools:['GA4'], strength:'strong' },{ id:'qualified', name:'Qualified lead', event:'qualified_lead', tools:['GA4'], strength:'strong' },{ id:'form_start', name:'Form started', event:'form_start', tools:['GA4'], strength:'weak' },{ id:'pricing', name:'View pricing', event:'view_pricing', tools:['GA4'], strength:'weak' }] },
+    bookings: { name: "Bookings", exp: "<strong>Booking measurement</strong> tracks the reservation funnel. Your primary outcome is confirmed appointments or reservations.", funnel: ['view_availability','begin_booking','booking_confirmed'], tip: "The booking system is often the source of truth\u2014make sure GA4 events reconcile with it.", kpis: [{ id:'booked', name:'Booking confirmed', event:'booking_confirmed', tools:['GA4'], strength:'strong' },{ id:'begin_booking', name:'Begin booking', event:'begin_booking', tools:['GA4'], strength:'strong' },{ id:'availability', name:'View availability', event:'view_availability', tools:['GA4'], strength:'weak' }] },
+    content: { name: "Content & Community", exp: "<strong>Content/community measurement</strong> focuses on engagement and audience building. Your primary outcome is growing an engaged, returning audience.", funnel: ['page_view','engaged_session','sign_up'], tip: "Unlike commerce, \"success\" here is often about depth (time, scroll, return visits) rather than a single transaction.", kpis: [{ id:'signup', name:'Newsletter signups', event:'sign_up', tools:['GA4'], strength:'strong' },{ id:'engaged', name:'Engaged sessions', event:'engaged_session', tools:['GA4'], strength:'strong' },{ id:'share', name:'Content shares', event:'share', tools:['GA4'], strength:'strong' },{ id:'article', name:'Article completions', event:'scroll_90', tools:['GA4'], strength:'weak' },{ id:'video', name:'Video completes', event:'video_complete', tools:['GA4'], strength:'weak' },{ id:'comment', name:'Comments posted', event:'comment', tools:['GA4'], strength:'weak' }] }
+  };
+
+  function showToast(msg) { var t = document.getElementById('mp3-toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2000); }
+
+  function goToStep(stepNum) {
+    state.step = stepNum;
+    var indicators = document.querySelectorAll('.step-indicator');
+    for (var i = 0; i < indicators.length; i++) { var btn = indicators[i]; var s = parseInt(btn.getAttribute('data-step'), 10); btn.classList.remove('active', 'completed'); if (s === stepNum) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); } else { btn.setAttribute('aria-selected', 'false'); if (s < stepNum) btn.classList.add('completed'); } }
+    var panels = document.querySelectorAll('.step-content');
+    for (var j = 0; j < panels.length; j++) { if (parseInt(panels[j].getAttribute('data-step'), 10) === stepNum) { panels[j].classList.add('active'); } else { panels[j].classList.remove('active'); } }
+    if (stepNum === 2) renderStep2();
+    if (stepNum === 3) renderStep3();
+    if (stepNum === 4) renderStep4();
+    if (stepNum === 5) renderStep5();
+  }
+
+  function renderStep2() {
+    var list = document.getElementById('mp3-kpi-list'); if (!list) return; list.innerHTML = '';
+    var pool = []; if (state.model && models[state.model]) pool = models[state.model].kpis.slice();
+    pool = pool.concat(state.customKpis);
+    if (pool.length === 0) { list.innerHTML = '<div style="opacity:0.6;padding:10px;">Select a business model first.</div>'; return; }
+    for (var i = 0; i < pool.length; i++) {
+      (function(k) {
+        var row = document.createElement('div'); row.className = 'kpi-row';
+        if (state.kpis.indexOf(k.id) !== -1) row.classList.add('selected');
+        row.addEventListener('click', function() { var idx = state.kpis.indexOf(k.id); if (idx !== -1) { state.kpis.splice(idx, 1); row.classList.remove('selected'); } else { state.kpis.push(k.id); row.classList.add('selected'); } var warning = document.getElementById('mp3-kpi-warning'); if (warning) { if (state.kpis.length > 6) warning.classList.add('visible'); else warning.classList.remove('visible'); } });
+        var strengthClass = (k.strength === 'strong') ? 'strong' : 'weak';
+        var strengthLabel = (k.strength === 'strong') ? 'Strong signal' : 'Supporting';
+        row.innerHTML = '<div class="checkbox-dummy"></div><div class="kpi-name">' + k.name + '</div><div class="kpi-badge ' + strengthClass + '">' + strengthLabel + '</div>';
+        list.appendChild(row);
+      })(pool[i]);
+    }
+  }
+
+  function renderStep3() {
+    var tbody = document.getElementById('mp3-mapping-tbody'); if (!tbody) return; tbody.innerHTML = '';
+    var allKpis = []; if (state.model && models[state.model]) allKpis = models[state.model].kpis.slice();
+    allKpis = allKpis.concat(state.customKpis);
+    var selected = []; for (var i = 0; i < allKpis.length; i++) { if (state.kpis.indexOf(allKpis[i].id) !== -1) selected.push(allKpis[i]); }
+    if (selected.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;opacity:0.6;">No KPIs selected.</td></tr>'; return; }
+    for (var j = 0; j < selected.length; j++) {
+      (function(k) {
+        var tr = document.createElement('tr');
+        var toolsHtml = ''; for (var t = 0; t < k.tools.length; t++) toolsHtml += '<span class="tool-pill">' + k.tools[t] + '</span>';
+        var currentVal = state.overrides[k.id] || k.event;
+        tr.innerHTML = '<td>' + k.name + '</td><td><input class="event-input" data-id="' + k.id + '" value="' + currentVal + '"></td><td>' + toolsHtml + '</td>';
+        tbody.appendChild(tr);
+        var inp = tr.querySelector('input');
+        if (inp) inp.addEventListener('input', function(e) { state.overrides[k.id] = e.target.value; });
+      })(selected[j]);
+    }
+  }
+
+  function renderStep4() {
+    var content = document.getElementById('mp3-insights-content'); if (!content) return;
+    var html = '', p = state.reality.priority, d = state.reality.dev, g = state.reality.gtm;
+    var kpiNames = [], allKpis = (state.model && models[state.model]) ? models[state.model].kpis.slice() : [];
+    allKpis = allKpis.concat(state.customKpis);
+    for (var i = 0; i < allKpis.length; i++) { if (state.kpis.indexOf(allKpis[i].id) !== -1) kpiNames.push(allKpis[i].name); }
+    var kpiList = kpiNames.join(', ') || 'your selected KPIs';
+    if (d === 'yes') html += '<div class="insight-item"><span class="insight-icon">\u2713</span> Great! With dev time available, you can implement ' + kpiList + ' properly with server-side validation.</div>';
+    else if (d === 'no') html += '<div class="insight-item"><span class="insight-icon">\u26A0</span> ' + kpiNames.length + ' of your selected KPIs (' + kpiList + ') typically require developer involvement. Consider deferring these or using GTM workarounds.</div>';
+    if (g === 'yes') html += '<div class="insight-item"><span class="insight-icon">\u2713</span> ' + Math.ceil(kpiNames.length / 2) + ' of your KPIs can be implemented quickly via GTM without code changes.</div>';
+    else if (g === 'no') html += '<div class="insight-item"><span class="insight-icon">\uD83D\uDCA1</span> Without GTM, all tracking changes will require code deployments. Consider setting up GTM to enable faster iteration.</div>';
+    if (p < 30) html += '<div class="insight-item"><span class="insight-icon">\uD83C\uDFAF</span> <strong>Perfect setup priority:</strong> We\'ll recommend implementing events with proper data validation and server-side verification first, even if it takes longer.</div>';
+    else if (p > 70) html += '<div class="insight-item"><span class="insight-icon">\u26A1</span> <strong>Fast wins priority:</strong> We\'ll recommend starting with GTM-friendly, client-side events you can ship this week, then iterating.</div>';
+    else html += '<div class="insight-item"><span class="insight-icon">\u26F5</span> <strong>Balanced priority:</strong> We\'ll mix quick GTM implementations with properly validated events based on business impact.</div>';
+    content.innerHTML = html;
+  }
+
+  function renderStep5() {
+    var modelOut = document.getElementById('mp3-out-model');
+    if (modelOut) modelOut.textContent = state.model ? models[state.model].name : 'Not set';
+    var pVal = state.reality.priority, priorityText = 'Balanced';
+    if (pVal < 30) priorityText = 'Perfect setup first';
+    if (pVal > 70) priorityText = 'Fast wins first';
+    var priorityOut = document.getElementById('mp3-out-priority');
+    if (priorityOut) priorityOut.textContent = priorityText;
+
+    var allKpis = (state.model && models[state.model]) ? models[state.model].kpis.slice() : [];
+    allKpis = allKpis.concat(state.customKpis);
+    var selected = []; for (var i = 0; i < allKpis.length; i++) { if (state.kpis.indexOf(allKpis[i].id) !== -1) selected.push(allKpis[i]); }
+    var kpiOut = document.getElementById('mp3-out-kpis');
+    if (kpiOut) { var names = []; for (var n = 0; n < selected.length; n++) names.push(selected[n].name); kpiOut.textContent = names.join(', ') || 'None'; }
+
+    var tbody = document.getElementById('mp3-implementation-table'); if (!tbody) return; tbody.innerHTML = '';
+    if (selected.length === 0) { tbody.innerHTML = '<tr><td colspan="4">No KPIs selected.</td></tr>'; return; }
+    var gtmOk = state.reality.gtm === 'yes';
+    for (var j = 0; j < selected.length; j++) {
+      var k = selected[j], eventName = state.overrides[k.id] || k.event;
+      var tr = document.createElement('tr');
+      var note = gtmOk ? '<span class="note-text">Quick GTM win</span>' : '';
+      tr.innerHTML = '<td>' + k.name + '</td><td><code>' + eventName + '</code></td><td><span class="badge-now">Implement now</span></td><td>' + note + '</td>';
+      tbody.appendChild(tr);
+    }
+  }
+
+  function generateCSV() {
+    var lines = ['KPI,Event,Priority,Notes'];
+    var allKpis = state.model ? models[state.model].kpis.slice() : [];
+    allKpis = allKpis.concat(state.customKpis);
+    var gtmOk = state.reality.gtm === 'yes';
+    for (var i = 0; i < allKpis.length; i++) { if (state.kpis.indexOf(allKpis[i].id) !== -1) { var k = allKpis[i]; lines.push(k.name + ',' + (state.overrides[k.id] || k.event) + ',Implement now,' + (gtmOk ? 'Quick GTM win' : '')); } }
+    return lines.join('\n');
+  }
+
+  function generateText() {
+    var txt = 'MEASUREMENT PLAN\n\nBusiness Model: ' + (state.model ? models[state.model].name : 'Not set') + '\n\nKPIs:\n';
+    var allKpis = state.model ? models[state.model].kpis.slice() : [];
+    allKpis = allKpis.concat(state.customKpis);
+    for (var i = 0; i < allKpis.length; i++) { if (state.kpis.indexOf(allKpis[i].id) !== -1) { var k = allKpis[i]; txt += '- ' + k.name + ': ' + (state.overrides[k.id] || k.event) + '\n'; } }
+    return txt;
+  }
+
+  function setReality(key, val) {
+    state.reality[key] = val;
+    var toggles = document.querySelectorAll('.toggle-btn[data-group="' + key + '"]');
+    for (var i = 0; i < toggles.length; i++) { if (toggles[i].getAttribute('data-value') === val) toggles[i].classList.add('active'); else toggles[i].classList.remove('active'); }
+    renderStep4();
+  }
+
+  // Step indicator clicks
+  var stepIndicators = document.querySelectorAll('.step-indicator');
+  for (var si = 0; si < stepIndicators.length; si++) { (function(btn) { btn.addEventListener('click', function() { goToStep(parseInt(btn.getAttribute('data-step'), 10)); }); })(stepIndicators[si]); }
+
+  // Business model selection
+  var optionBtns = document.querySelectorAll('.option-btn');
+  for (var ob = 0; ob < optionBtns.length; ob++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        for (var x = 0; x < optionBtns.length; x++) optionBtns[x].classList.remove('selected');
+        btn.classList.add('selected');
+        var val = btn.getAttribute('data-value'); state.model = val; state.kpis = [];
+        var ctx = document.getElementById('mp3-context-preview'), ctxBody = document.getElementById('mp3-context-preview-body');
+        if (models[val] && ctxBody) {
+          var m = models[val];
+          var html = '<p>' + m.exp + '</p><div class="funnel-label">Typical measurement funnel:</div><div class="funnel-row">';
+          for (var f = 0; f < m.funnel.length; f++) { if (f > 0) html += ' <span class="funnel-arrow">\u2192</span> '; html += '<span class="funnel-pill">' + m.funnel[f] + '</span>'; }
+          html += '</div><div class="context-tip">' + m.tip + '</div>';
+          ctxBody.innerHTML = html; ctx.classList.add('visible');
+        }
+      });
+    })(optionBtns[ob]);
+  }
+
+  // Custom KPI
+  var addBtn = document.getElementById('mp3-custom-kpi-btn'), addInput = document.getElementById('mp3-custom-kpi-input');
+  if (addInput && addBtn) {
+    addInput.addEventListener('input', function() { addBtn.disabled = !addInput.value.trim(); });
+    addBtn.addEventListener('click', function() { var name = addInput.value.trim(); if (!name) return; var id = 'custom_' + Date.now(); state.customKpis.push({ id: id, name: name, event: name.toLowerCase().replace(/\s+/g, '_'), tools: ['Custom'], strength: 'strong' }); state.kpis.push(id); addInput.value = ''; addBtn.disabled = true; renderStep2(); });
+  }
+
+  // Toggle buttons
+  var toggleBtns = document.querySelectorAll('.toggle-btn');
+  for (var tb = 0; tb < toggleBtns.length; tb++) { (function(btn) { btn.addEventListener('click', function() { setReality(btn.getAttribute('data-group'), btn.getAttribute('data-value')); }); })(toggleBtns[tb]); }
+
+  // Priority slider
+  var slider = document.getElementById('mp3-slider-track'), thumb = document.getElementById('mp3-priority-thumb'), fill = document.getElementById('mp3-priority-fill');
+  if (slider && thumb) {
+    var dragging = false;
+    function updateSlider(pct) { pct = Math.max(0, Math.min(100, pct)); state.reality.priority = pct; thumb.style.left = pct + '%'; if (fill) fill.style.width = pct + '%'; renderStep4(); }
+    thumb.addEventListener('mousedown', function(e) { e.preventDefault(); dragging = true; });
+    thumb.addEventListener('touchstart', function() { dragging = true; }, { passive: true });
+    document.addEventListener('mouseup', function() { dragging = false; });
+    document.addEventListener('touchend', function() { dragging = false; });
+    document.addEventListener('mousemove', function(e) { if (!dragging) return; var rect = slider.getBoundingClientRect(); updateSlider(((e.clientX - rect.left) / rect.width) * 100); });
+    document.addEventListener('touchmove', function(e) { if (!dragging || !e.touches || !e.touches[0]) return; var rect = slider.getBoundingClientRect(); updateSlider(((e.touches[0].clientX - rect.left) / rect.width) * 100); }, { passive: true });
+    slider.addEventListener('click', function(e) { var rect = slider.getBoundingClientRect(); updateSlider(((e.clientX - rect.left) / rect.width) * 100); });
+    updateSlider(50);
+  }
+
+  // Export buttons
+  var btnCopy = document.getElementById('mp3-btn-copy');
+  if (btnCopy) btnCopy.addEventListener('click', function() { var txt = generateText(); if (navigator.clipboard) navigator.clipboard.writeText(txt); showToast('Copied!'); });
+  var btnExport = document.getElementById('mp3-btn-export');
+  if (btnExport) btnExport.addEventListener('click', function() { var csv = generateCSV(); var blob = new Blob([csv], { type: 'text/csv' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'measurement-plan.csv'; a.click(); showToast('Downloaded'); });
+  var btnEmail = document.getElementById('mp3-btn-email');
+  if (btnEmail) btnEmail.addEventListener('click', function() { var txt = generateText(); window.location.href = 'mailto:?subject=Measurement Plan&body=' + encodeURIComponent(txt); });
+  })();
+  </script>
+</body>
+</html>

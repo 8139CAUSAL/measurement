@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Attribution Trap — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Attribution Page Styles === */
+    .app-content { min-height: 450px; overflow: hidden; }
+
+    .model-selector { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .model-button {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--brand-border);
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--brand-text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .model-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .model-button.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+
+    .visualization-wrapper { position: relative; width: 100%; max-width: 520px; height: 280px; margin: 0 auto; }
+    .funnel-container {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 220px; height: 280px;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      display: flex; flex-direction: column; z-index: 1;
+    }
+    .funnel-segment { height: 33.33%; width: 100%; transition: background-color 0.4s ease; background: rgba(255, 255, 255, 0.1); }
+    .funnel-segment.active { background: var(--brand-accent); }
+
+    .touchpoint-item {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      z-index: 2; pointer-events: none;
+    }
+    .touchpoint-emoji { font-size: 2rem; opacity: 0.85; color: var(--brand-text); }
+    .touchpoint-label { font-weight: 600; font-size: 1rem; color: var(--brand-text-muted); text-align: right; white-space: nowrap; }
+    .touchpoint-item.active .touchpoint-emoji { color: var(--brand-background); }
+    .touchpoint-item.active .touchpoint-label { color: var(--brand-text); }
+
+    .results-header { margin-top: 10px; border-top: 1px solid var(--brand-border); padding-top: 8px; text-align: center; }
+    .results-header h2 { font-size: 1.25rem; margin-bottom: 2px; }
+    #model-explanation { font-style: italic; font-size: 0.95rem; min-height: 28px; color: var(--brand-text-muted); }
+
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-top: 10px; text-align: center; }
+    .result-item .value { font-size: 1.6rem; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
+    .result-item .label { font-size: 0.9rem; color: var(--brand-text-muted); margin-top: 0.3rem; }
+
+    @media (max-width: 600px) {
+      .visualization-wrapper { transform: scale(0.92); }
+      .result-item .value { font-size: 1.45rem; }
+    }
+    @media (max-width: 1366px) and (hover: none), (max-width: 1366px) and (pointer: coarse) {
+      #model-explanation, .result-item .label, .result-item .value, .touchpoint-label { font-size: 16px !important; }
+    }
+    @media (max-width: 600px) {
+      #model-explanation, .result-item .label, .result-item .value, .touchpoint-label { font-size: 14px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">The Attribution Trap</h1>
+      <a href="../markov/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      A simple change in the attribution model can dramatically shift budget decisions.
+      Explore how different models assign value across a customer journey.
+    </p>
+
+    <div class="app-content">
+      <div class="model-selector" id="model-selector"></div>
+      <div class="visualization-wrapper" id="visualization-wrapper">
+        <div class="funnel-container">
+          <div class="funnel-segment" id="funnel-tofu"></div>
+          <div class="funnel-segment" id="funnel-mofu"></div>
+          <div class="funnel-segment" id="funnel-bofu"></div>
+        </div>
+      </div>
+      <div class="results-header">
+        <h2>Attributed Revenue</h2>
+        <p id="model-explanation"></p>
+      </div>
+      <div class="results-grid" id="results-display"></div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var appState = {
+      totalRevenue: 1000000,
+      currentModelId: 'last-touch',
+      journey: [
+        { name: 'Social Ad', stage: 'tofu', emoji: '\uD83D\uDCF1', top: '6%' },
+        { name: 'Blog Post', stage: 'mofu', emoji: '\u270D\uFE0F', top: '38%' },
+        { name: 'Paid Search', stage: 'bofu', emoji: '\uD83D\uDD0D', top: '64%' },
+        { name: 'Email', stage: 'bofu', emoji: '\uD83D\uDCE7', top: '84%' }
+      ]
+    };
+
+    var MODELS = {
+      'last-touch': {
+        name: 'Last-Touch',
+        explanation: '100% credit to the final touchpoint. Simple, but ignores the top of the funnel.',
+        getWeights: function(j) { var w = Array(j.length).fill(0); w[j.length - 1] = 1; return w; }
+      },
+      'first-touch': {
+        name: 'First-Touch',
+        explanation: '100% credit to the first touchpoint. Highlights demand generation channels.',
+        getWeights: function(j) { var w = Array(j.length).fill(0); w[0] = 1; return w; }
+      },
+      'linear': {
+        name: 'Linear',
+        explanation: 'Credit is distributed equally across all touchpoints, valuing each interaction the same.',
+        getWeights: function(j) { return Array(j.length).fill(1 / j.length); }
+      },
+      'u-shaped': {
+        name: 'U-Shaped',
+        explanation: '40% credit to the first touch, 40% to the last, and the remaining 20% is split among the middle touches.',
+        getWeights: function(j) {
+          var w = Array(j.length).fill(0);
+          if (j.length < 2) return [1];
+          if (j.length === 2) return [0.5, 0.5];
+          w[0] = 0.4; w[w.length - 1] = 0.4;
+          var midShare = 0.2 / (j.length - 2);
+          for (var i = 1; i < j.length - 1; i++) w[i] = midShare;
+          return w;
+        }
+      }
+    };
+
+    function selectModel(modelId) { appState.currentModelId = modelId; render(); }
+    function formatCurrency(v) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v); }
+
+    function render() {
+      var vizWrapper = document.getElementById('visualization-wrapper');
+      var modelSelectorEl = document.getElementById('model-selector');
+      var resultsDisplayEl = document.getElementById('results-display');
+      var modelExplanationEl = document.getElementById('model-explanation');
+      if (!vizWrapper || !modelSelectorEl || !resultsDisplayEl || !modelExplanationEl) return;
+
+      var selectedModel = MODELS[appState.currentModelId];
+      var weights = selectedModel.getWeights(appState.journey);
+
+      var activeStages = { tofu: false, mofu: false, bofu: false };
+      appState.journey.forEach(function(tp, i) {
+        tp.isActive = weights[i] > 0;
+        if (tp.isActive) activeStages[tp.stage] = true;
+      });
+
+      modelSelectorEl.innerHTML = '';
+      for (var modelId in MODELS) {
+        var m = MODELS[modelId];
+        var btn = document.createElement('button');
+        btn.className = 'model-button';
+        btn.textContent = m.name;
+        if (modelId === appState.currentModelId) btn.classList.add('active');
+        btn.setAttribute('data-model', modelId);
+        btn.addEventListener('click', function() { selectModel(this.getAttribute('data-model')); });
+        modelSelectorEl.appendChild(btn);
+      }
+
+      var oldTouchpoints = vizWrapper.querySelectorAll('.touchpoint-item');
+      for (var t = 0; t < oldTouchpoints.length; t++) oldTouchpoints[t].remove();
+
+      appState.journey.forEach(function(tp) {
+        var item = document.createElement('div');
+        item.className = 'touchpoint-item';
+        if (tp.isActive) item.classList.add('active');
+        item.style.top = tp.top;
+        item.innerHTML = '<span class="touchpoint-emoji">' + tp.emoji + '</span><span class="touchpoint-label">' + tp.name + '</span>';
+        vizWrapper.appendChild(item);
+      });
+
+      document.getElementById('funnel-tofu').classList.toggle('active', activeStages.tofu);
+      document.getElementById('funnel-mofu').classList.toggle('active', activeStages.mofu);
+      document.getElementById('funnel-bofu').classList.toggle('active', activeStages.bofu);
+
+      modelExplanationEl.textContent = selectedModel.explanation;
+      resultsDisplayEl.innerHTML = appState.journey.map(function(tp, i) {
+        return '<div class="result-item"><div class="value">' + formatCurrency(appState.totalRevenue * weights[i]) + '</div><div class="label">' + tp.name + '</div></div>';
+      }).join('');
+    }
+
+    if (document.readyState !== 'loading') render();
+    else document.addEventListener('DOMContentLoaded', render);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Mix Modeling — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === MMM Page Styles === */
+    .visualization-wrapper {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      margin: 0 auto;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.88);
+      border: 1px solid var(--brand-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #fff;
+      white-space: nowrap;
+      z-index: 10;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .warning-callout {
+      background: var(--warning-tint);
+      border-left: 3px solid var(--brand-warning);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--brand-text-muted);
+    }
+
+    .warning-callout strong {
+      color: var(--brand-text);
+    }
+
+    .warning-callout .callout-title {
+      color: var(--brand-warning);
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .danger-callout {
+      background: var(--danger-tint);
+      border-left: 3px solid var(--brand-danger);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--brand-text-muted);
+    }
+
+    .danger-callout strong {
+      color: var(--brand-text);
+    }
+
+    .danger-callout .callout-title {
+      color: var(--brand-danger);
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .result-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .result-item .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--brand-accent);
+      white-space: nowrap;
+    }
+
+    .result-item .label {
+      font-size: 13px;
+      color: var(--brand-text-muted);
+      margin-top: 4px;
+    }
+
+    /* === Brand-Aligned Response Explorer === */
+
+    .rc-channel-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 16px 0 12px;
+    }
+
+    .rc-channel-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--brand-border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--brand-text-muted);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .rc-channel-btn:hover {
+      border-color: var(--brand-text);
+      color: var(--brand-text);
+    }
+
+    .rc-channel-btn.active {
+      background: var(--brand-accent);
+      color: var(--brand-background);
+      border-color: var(--brand-accent);
+    }
+
+    .rc-channel-btn:focus-visible,
+    .rc-spend-input:focus-visible {
+      outline: 2px solid var(--brand-text);
+      outline-offset: 3px;
+    }
+
+    .rc-channel-swatch {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--swatch-color);
+      flex: none;
+    }
+
+    .rc-channel-btn.active .rc-channel-swatch {
+      outline: 1px solid var(--brand-background);
+    }
+
+    #rc-wrapper {
+      height: 390px;
+      margin: 0 auto;
+    }
+
+    #rc-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .rc-spend-control {
+      margin-top: 12px;
+    }
+
+    .rc-spend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .rc-spend-header label {
+      color: var(--brand-text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .rc-spend-value {
+      color: var(--brand-accent);
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .rc-spend-input {
+      display: block;
+      width: 100%;
+      accent-color: var(--brand-accent);
+      cursor: pointer;
+    }
+
+    .rc-range-limits {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
+      color: var(--brand-text-muted);
+      font-size: 11px;
+    }
+
+    .rc-metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .rc-metrics .result-item {
+      min-width: 0;
+    }
+
+    .rc-metrics .value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rc-note {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--brand-text-muted);
+      text-align: center;
+      margin: 14px 0 0;
+    }
+
+    @media (max-width: 600px) {
+      .visualization-wrapper {
+        height: 360px;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #rc-wrapper {
+        height: 320px;
+      }
+
+      .rc-channel-selector {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .rc-channel-btn {
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .rc-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .rc-metrics .result-item {
+        padding: 11px 5px;
+      }
+
+      .rc-metrics .value {
+        font-size: 14px;
+      }
+
+      .rc-metrics .label {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../saturation/" class="sec-nav__btn sec-nav__btn--back"
+         aria-label="Go back">&larr; BACK</a>
+
+      <h1 class="sec-nav__header">Marketing Mix Modeling</h1>
+
+      <a href="../incrementality/" class="sec-nav__btn sec-nav__btn--next"
+         aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      MMM uses regression to decompose total sales into the contribution of each marketing channel,
+      baseline demand, and external factors &mdash; so you can see what actually drove results.
+    </p>
+
+    <div class="tab-selector" id="mmm-tabs">
+      <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+      <button class="tab-btn" data-tab="waterfall" type="button">Waterfall</button>
+      <button class="tab-btn" data-tab="response" type="button">Response Curves</button>
+      <a href="../mmm-readiness/" class="tab-btn">Readiness</a>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+
+    <div class="tab-panel active" id="mmm-panel-overview">
+      <div class="stage">
+        <p class="prose">
+          <strong>Marketing Mix Modeling (MMM)</strong> is a top-down statistical technique that uses
+          aggregate time-series data &mdash; weekly spend, impressions, sales, seasonality, promotions &mdash;
+          to estimate the <em>contribution</em> of each marketing input to business outcomes.
+        </p>
+
+        <div class="callout">
+          <div class="callout-title">The Core Equation</div>
+          At its heart, every MMM fits a regression of this form:
+        </div>
+
+        <div class="formula-box" style="text-align:center; margin: 16px 0;">
+          Sales = Baseline + (Media &times; Efficiency) + External Factors
+        </div>
+
+        <p class="prose">
+          <strong>Baseline</strong> represents demand that would exist without any marketing &mdash;
+          brand equity, organic traffic, seasonal patterns, and pricing effects. <strong>Media terms</strong>
+          capture the incremental contribution of each channel (TV, social, search, email, etc.),
+          typically transformed through saturation curves to model diminishing returns.
+        </p>
+
+        <div class="callout warning">
+          <div class="callout-title">Key Assumption</div>
+          MMM assumes the past is a reasonable guide to the future. If your media mix, creative,
+          or competitive landscape changes dramatically, historical coefficients may not hold.
+          Always <strong>calibrate</strong> MMM outputs with incrementality experiments.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: WATERFALL -->
+
+    <div class="tab-panel" id="mmm-panel-waterfall">
+      <div class="stage">
+        <p class="prose" style="text-align:center;">
+          Each bar shows a channel&rsquo;s incremental contribution, stacking left to right from baseline to total sales.
+        </p>
+
+        <div class="visualization-wrapper" id="wf-wrapper">
+          <svg class="chart-svg" id="wf-svg"></svg>
+          <div class="chart-tooltip" id="wf-tooltip"></div>
+        </div>
+
+        <div class="results-grid" id="wf-metrics"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RESPONSE CURVES -->
+
+    <div class="tab-panel" id="mmm-panel-response">
+      <div class="stage">
+
+        <p class="prose" style="text-align:center;">
+          Select a channel and adjust weekly spend to see how incremental revenue,
+          average return, and marginal return change along its response curve.
+        </p>
+
+        <div class="rc-channel-selector" id="rc-channel-selector"
+             role="group" aria-label="Select marketing channel">
+
+          <button class="rc-channel-btn active" type="button"
+                  data-channel="TV" aria-pressed="true">
+            <span class="rc-channel-swatch"
+                  style="--swatch-color:#60a5fa"
+                  aria-hidden="true"></span>TV
+          </button>
+
+          <button class="rc-channel-btn" type="button"
+                  data-channel="Social" aria-pressed="false">
+            <span class="rc-channel-swatch"
+                  style="--swatch-color:#a78bfa"
+                  aria-hidden="true"></span>Social
+          </button>
+
+          <button class="rc-channel-btn" type="button"
+                  data-channel="Search" aria-pressed="false">
+            <span class="rc-channel-swatch"
+                  style="--swatch-color:#2dd4bf"
+                  aria-hidden="true"></span>Search
+          </button>
+
+          <button class="rc-channel-btn" type="button"
+                  data-channel="Email" aria-pressed="false">
+            <span class="rc-channel-swatch"
+                  style="--swatch-color:#fbbf24"
+                  aria-hidden="true"></span>Email
+          </button>
+        </div>
+
+        <div class="visualization-wrapper" id="rc-wrapper">
+          <svg class="chart-svg" id="rc-svg" role="img"
+               aria-label="Channel response curves showing diminishing incremental revenue as weekly spend increases"></svg>
+        </div>
+
+        <div class="rc-spend-control">
+          <div class="rc-spend-header">
+            <label for="rc-spend">Current weekly spend</label>
+            <output class="rc-spend-value" id="rc-spend-value"
+                    for="rc-spend">$4,000</output>
+          </div>
+
+          <input class="rc-spend-input" id="rc-spend" type="range"
+                 min="0" max="10000" step="250" value="4000">
+
+          <div class="rc-range-limits">
+            <span>$0</span>
+            <span>$10,000</span>
+          </div>
+        </div>
+
+        <div class="results-grid rc-metrics"
+             aria-live="polite" aria-atomic="true">
+
+          <div class="result-item">
+            <div class="value" id="rc-revenue">$0</div>
+            <div class="label">Incremental Revenue</div>
+          </div>
+
+          <div class="result-item">
+            <div class="value" id="rc-average">—</div>
+            <div class="label">Average ROAS</div>
+          </div>
+
+          <div class="result-item">
+            <div class="value" id="rc-marginal">—</div>
+            <div class="label">Marginal ROAS</div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:20px;">
+          <div class="callout-title">Average vs Marginal Return</div>
+          <strong>Average ROAS</strong> is incremental revenue divided by spend.
+          <strong>Marginal ROAS</strong> is the derivative of incremental revenue with respect to spend:
+          the modeled return on an additional dollar. A channel can have positive average
+          ROAS even when its marginal return has become low. The appropriate spending
+          decision also depends on business margins, uncertainty, and budget constraints.
+        </div>
+
+        <p class="rc-note">
+          Illustrative response functions with hypothetical parameters; these are not fitted MMM estimates.
+          Other channels remain visible as faint curves for comparison.
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    var NS = 'http://www.w3.org/2000/svg';
+
+    function cEl(tag) {
+      return document.createElementNS(NS, tag);
+    }
+
+    function sA(el, attrs) {
+      for (var k in attrs) {
+        if (attrs.hasOwnProperty(k)) {
+          el.setAttribute(k, attrs[k]);
+        }
+      }
+      return el;
+    }
+
+    function fmt(v) {
+      if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+      if (v >= 1e3) return '$' + Math.round(v / 1e3) + 'K';
+      return '$' + Math.round(v);
+    }
+
+    /* --- WATERFALL DATA --- */
+
+    var wfData = [
+      { name: 'Baseline', value: 1200000, color: '#94a3b8' },
+      { name: 'TV',       value: 450000,  color: '#60a5fa' },
+      { name: 'Social',   value: 320000,  color: '#a78bfa' },
+      { name: 'Search',   value: 180000,  color: '#2dd4bf' },
+      { name: 'Email',    value: 80000,   color: '#fbbf24' }
+    ];
+
+    var wfTotal = 0;
+
+    for (var wi = 0; wi < wfData.length; wi++) {
+      wfTotal += wfData[wi].value;
+    }
+
+    /* --- RESPONSE EXPLORER: MODEL PARAMETERS --- */
+
+    // R_c(s) = A_c * (1 - exp(-k_c * s))
+    // Dollars per week.
+    // Hypothetical parameters, not estimated from data.
+
+    var rcChannels = [
+      { name: 'TV',     color: '#60a5fa', A: 6000, k: 0.00036 },
+      { name: 'Social', color: '#a78bfa', A: 4500, k: 0.00042 },
+      { name: 'Search', color: '#2dd4bf', A: 3000, k: 0.00050 },
+      { name: 'Email',  color: '#fbbf24', A: 2000, k: 0.00062 }
+    ];
+
+    var rcState = {
+      channel: 'TV',
+      spend: 4000
+    };
+
+    var rcMaxSpend = 10000;
+    var rcMaxRevenue = 6000;
+
+    function rcResponse(spend, channel) {
+      return channel.A * (1 - Math.exp(-channel.k * spend));
+    }
+
+    function rcMarginalResponse(spend, channel) {
+      return channel.A * channel.k *
+        Math.exp(-channel.k * spend);
+    }
+
+    function rcSelectedChannel() {
+      for (var i = 0; i < rcChannels.length; i++) {
+        if (rcChannels[i].name === rcState.channel) {
+          return rcChannels[i];
+        }
+      }
+      return rcChannels[0];
+    }
+
+    function rcFormatTick(value) {
+      if (value === 0) return '$0';
+
+      var thousands = value / 1000;
+
+      return '$' +
+        (Number.isInteger(thousands)
+          ? thousands.toFixed(0)
+          : thousands.toFixed(1)) +
+        'K';
+    }
+
+    /* --- TABS --- */
+
+    var tabSelector = document.getElementById('mmm-tabs');
+    var activeTab = 'overview';
+
+    tabSelector.addEventListener('click', function(e) {
+      var btn = e.target;
+
+      if (!btn.classList.contains('tab-btn') ||
+          btn.tagName === 'A') {
+        return;
+      }
+
+      var tabId = btn.getAttribute('data-tab');
+
+      if (!tabId || tabId === activeTab) return;
+
+      activeTab = tabId;
+
+      var btns = tabSelector.querySelectorAll('.tab-btn');
+
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.remove('active');
+      }
+
+      btn.classList.add('active');
+
+      var panels = document.querySelectorAll('.tab-panel');
+
+      for (var j = 0; j < panels.length; j++) {
+        panels[j].classList.remove('active');
+      }
+
+      var target = document.getElementById(
+        'mmm-panel-' + tabId
+      );
+
+      if (target) target.classList.add('active');
+
+      if (tabId === 'waterfall') renderWF();
+      if (tabId === 'response') renderRC();
+    });
+
+    function showTip(tip, x, y, html) {
+      tip.innerHTML = html;
+      tip.style.display = 'block';
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+    }
+
+    function hideTip(tip) {
+      tip.style.display = 'none';
+    }
+
+    /* --- WATERFALL RENDERER --- */
+
+    function renderWF() {
+      var svg = document.getElementById('wf-svg');
+      var wrapper = document.getElementById('wf-wrapper');
+      var tip = document.getElementById('wf-tooltip');
+
+      svg.innerHTML = '';
+
+      var svgW = svg.clientWidth || 800;
+      var svgH = svg.clientHeight || 320;
+
+      var m = {
+        top: 24,
+        right: 30,
+        bottom: 50,
+        left: 100
+      };
+
+      var W = svgW - m.left - m.right;
+      var H = svgH - m.top - m.bottom;
+
+      var g = cEl('g');
+
+      sA(g, {
+        transform: 'translate(' + m.left + ',' + m.top + ')'
+      });
+
+      svg.appendChild(g);
+
+      var rows = wfData.length + 1;
+      var barH = Math.min(32, (H - (rows - 1) * 6) / rows);
+      var gap = 6;
+      var totalH = rows * barH + (rows - 1) * gap;
+      var yOff = (H - totalH) / 2;
+
+      for (var gi = 0; gi <= 5; gi++) {
+        var gx = (gi / 5) * W;
+        var gl = cEl('line');
+
+        sA(gl, {
+          x1: gx,
+          y1: 0,
+          x2: gx,
+          y2: H,
+          stroke: 'rgba(255,255,255,0.1)',
+          'stroke-width': 1,
+          'shape-rendering': 'crispEdges'
+        });
+
+        g.appendChild(gl);
+
+        var gt = cEl('text');
+
+        sA(gt, {
+          x: gx,
+          y: H + 18,
+          fill: 'rgba(255,255,255,0.5)',
+          'font-size': '11px',
+          'text-anchor': 'middle'
+        });
+
+        gt.textContent = fmt((gi / 5) * wfTotal);
+        g.appendChild(gt);
+      }
+
+      var cumulative = 0;
+
+      for (var bi = 0; bi < wfData.length; bi++) {
+        var d = wfData[bi];
+        var bx = (cumulative / wfTotal) * W;
+        var bw = (d.value / wfTotal) * W;
+        var by = yOff + bi * (barH + gap);
+
+        var rect = cEl('rect');
+
+        sA(rect, {
+          x: bx,
+          y: by,
+          width: Math.max(bw, 1),
+          height: barH,
+          fill: d.color,
+          rx: 3,
+          ry: 3
+        });
+
+        g.appendChild(rect);
+
+        var rl = cEl('text');
+
+        sA(rl, {
+          x: -10,
+          y: by + barH / 2 + 4,
+          fill: '#fff',
+          'font-size': '13px',
+          'font-weight': '600',
+          'text-anchor': 'end'
+        });
+
+        rl.textContent = d.name;
+        g.appendChild(rl);
+
+        var vl = cEl('text');
+
+        sA(vl, {
+          x: bx + bw + 6,
+          y: by + barH / 2 + 4,
+          fill: 'rgba(255,255,255,0.7)',
+          'font-size': '12px',
+          'font-weight': '600'
+        });
+
+        vl.textContent = fmt(d.value);
+        g.appendChild(vl);
+
+        if (bi < wfData.length - 1) {
+          var cx = bx + bw;
+          var ny = yOff + (bi + 1) * (barH + gap);
+          var cl = cEl('line');
+
+          sA(cl, {
+            x1: cx,
+            y1: by + barH,
+            x2: cx,
+            y2: ny,
+            stroke: 'rgba(255,255,255,0.25)',
+            'stroke-width': 1,
+            'stroke-dasharray': '3 3'
+          });
+
+          g.appendChild(cl);
+        }
+
+        (function(d, bx, bw, by) {
+          var overlay = cEl('rect');
+
+          sA(overlay, {
+            x: bx,
+            y: by,
+            width: Math.max(bw, 1),
+            height: barH,
+            fill: 'transparent',
+            cursor: 'pointer'
+          });
+
+          overlay.addEventListener('mousemove', function(e) {
+            var pct = ((d.value / wfTotal) * 100).toFixed(1);
+            var r = wrapper.getBoundingClientRect();
+
+            showTip(
+              tip,
+              e.clientX - r.left + 12,
+              e.clientY - r.top - 10,
+              '<strong>' + d.name + '</strong><br>' +
+              fmt(d.value) + ' (' + pct + '% of total)'
+            );
+          });
+
+          overlay.addEventListener('mouseleave', function() {
+            hideTip(tip);
+          });
+
+          g.appendChild(overlay);
+        })(d, bx, bw, by);
+
+        cumulative += d.value;
+      }
+
+      var ty = yOff + wfData.length * (barH + gap);
+      var tr = cEl('rect');
+
+      sA(tr, {
+        x: 0,
+        y: ty,
+        width: W,
+        height: barH,
+        fill: 'none',
+        stroke: '#fff',
+        'stroke-width': 2,
+        rx: 3,
+        ry: 3,
+        'stroke-dasharray': '6 3'
+      });
+
+      g.appendChild(tr);
+
+      var tl = cEl('text');
+
+      sA(tl, {
+        x: -10,
+        y: ty + barH / 2 + 4,
+        fill: '#fff',
+        'font-size': '13px',
+        'font-weight': '700',
+        'text-anchor': 'end'
+      });
+
+      tl.textContent = 'Total';
+      g.appendChild(tl);
+
+      var tvl = cEl('text');
+
+      sA(tvl, {
+        x: W + 6,
+        y: ty + barH / 2 + 4,
+        fill: '#fff',
+        'font-size': '12px',
+        'font-weight': '700'
+      });
+
+      tvl.textContent = fmt(wfTotal);
+      g.appendChild(tvl);
+
+      var lastEnd = W;
+      var lastBy = yOff + (wfData.length - 1) * (barH + gap);
+      var connT = cEl('line');
+
+      sA(connT, {
+        x1: lastEnd,
+        y1: lastBy + barH,
+        x2: lastEnd,
+        y2: ty,
+        stroke: 'rgba(255,255,255,0.25)',
+        'stroke-width': 1,
+        'stroke-dasharray': '3 3'
+      });
+
+      g.appendChild(connT);
+
+      var mediaTotal = wfTotal - wfData[0].value;
+      var metricsEl = document.getElementById('wf-metrics');
+
+      metricsEl.innerHTML =
+        '<div class="result-item">' +
+          '<div class="value">' + fmt(wfTotal) + '</div>' +
+          '<div class="label">Total Sales</div>' +
+        '</div>' +
+        '<div class="result-item">' +
+          '<div class="value">' +
+            ((wfData[0].value / wfTotal) * 100).toFixed(1) +
+          '%</div>' +
+          '<div class="label">Baseline Share</div>' +
+        '</div>' +
+        '<div class="result-item">' +
+          '<div class="value">' +
+            ((mediaTotal / wfTotal) * 100).toFixed(1) +
+          '%</div>' +
+          '<div class="label">Media-Driven Share</div>' +
+        '</div>';
+    }
+
+    /* --- RESPONSE CURVES RENDERER --- */
+
+    function renderRC() {
+      var svg = document.getElementById('rc-svg');
+      var wrapper = document.getElementById('rc-wrapper');
+
+      svg.replaceChildren();
+
+      var svgW = Math.max(
+        280,
+        Math.round(wrapper.clientWidth || 760)
+      );
+
+      var svgH = Math.max(
+        280,
+        Math.round(wrapper.clientHeight || 390)
+      );
+
+      svg.setAttribute(
+        'viewBox',
+        '0 0 ' + svgW + ' ' + svgH
+      );
+
+      var m = {
+        top: 22,
+        right: 22,
+        bottom: 56,
+        left: 72
+      };
+
+      var W = svgW - m.left - m.right;
+      var H = svgH - m.top - m.bottom;
+      var compact = svgW < 480;
+
+      var g = cEl('g');
+
+      sA(g, {
+        transform: 'translate(' + m.left + ',' + m.top + ')'
+      });
+
+      svg.appendChild(g);
+
+      function X(spend) {
+        return (spend / rcMaxSpend) * W;
+      }
+
+      function Y(revenue) {
+        return H - (revenue / rcMaxRevenue) * H;
+      }
+
+      function append(tag, attrs, content) {
+        var element = cEl(tag);
+        sA(element, attrs);
+
+        if (content !== undefined) {
+          element.textContent = content;
+        }
+
+        g.appendChild(element);
+        return element;
+      }
+
+      /* --- GRID AND AXES --- */
+
+      var revenueTicks = [0, 2000, 4000, 6000];
+
+      for (var yi = 0; yi < revenueTicks.length; yi++) {
+        var revenueTick = revenueTicks[yi];
+        var yy = Y(revenueTick);
+
+        append('line', {
+          x1: 0,
+          y1: yy,
+          x2: W,
+          y2: yy,
+          stroke: 'var(--brand-border-dim)',
+          'stroke-width': 1
+        });
+
+        append('text', {
+          x: -12,
+          y: yy + 4,
+          'text-anchor': 'end',
+          fill: 'var(--brand-text-muted)',
+          'font-size': '11px'
+        }, rcFormatTick(revenueTick));
+      }
+
+      var spendTicks = compact
+        ? [0, 5000, 10000]
+        : [0, 2500, 5000, 7500, 10000];
+
+      for (var xi = 0; xi < spendTicks.length; xi++) {
+        var spendTick = spendTicks[xi];
+        var xx = X(spendTick);
+
+        append('line', {
+          x1: xx,
+          y1: 0,
+          x2: xx,
+          y2: H,
+          stroke: 'var(--brand-border-dim)',
+          'stroke-width': 1
+        });
+
+        append('text', {
+          x: xx,
+          y: H + 19,
+          'text-anchor': 'middle',
+          fill: 'var(--brand-text-muted)',
+          'font-size': '11px'
+        }, rcFormatTick(spendTick));
+      }
+
+      append('text', {
+        x: W / 2,
+        y: H + 44,
+        'text-anchor': 'middle',
+        fill: 'var(--brand-text-muted)',
+        'font-size': '12px'
+      }, 'Weekly Spend');
+
+      append('text', {
+        x: -H / 2,
+        y: -52,
+        transform: 'rotate(-90)',
+        'text-anchor': 'middle',
+        fill: 'var(--brand-text-muted)',
+        'font-size': '12px'
+      }, 'Incremental Revenue');
+
+      /* --- DRAW RESPONSE CURVES --- */
+
+      var ordered = [];
+      var selected = rcSelectedChannel();
+
+      for (var ci = 0; ci < rcChannels.length; ci++) {
+        if (rcChannels[ci].name !== selected.name) {
+          ordered.push(rcChannels[ci]);
+        }
+      }
+
+      ordered.push(selected);
+
+      for (var oi = 0; oi < ordered.length; oi++) {
+        var ch = ordered[oi];
+        var path = [];
+
+        for (var p = 0; p <= 160; p++) {
+          var spend = (p / 160) * rcMaxSpend;
+
+          path.push(
+            (p === 0 ? 'M' : 'L') +
+            X(spend).toFixed(2) + ',' +
+            Y(rcResponse(spend, ch)).toFixed(2)
+          );
+        }
+
+        var isSelected = ch.name === selected.name;
+
+        append('path', {
+          d: path.join(' '),
+          fill: 'none',
+          stroke: ch.color,
+          'stroke-width': isSelected ? 3 : 1.6,
+          'stroke-opacity': isSelected ? 1 : 0.32,
+          'stroke-linejoin': 'round',
+          'stroke-linecap': 'round'
+        });
+      }
+
+      /* --- CURRENT SPENDING MARKER --- */
+
+      var currentRevenue = rcResponse(
+        rcState.spend,
+        selected
+      );
+
+      var dotX = X(rcState.spend);
+      var dotY = Y(currentRevenue);
+
+      append('line', {
+        x1: dotX,
+        y1: dotY,
+        x2: dotX,
+        y2: H,
+        stroke: 'var(--brand-accent)',
+        'stroke-width': 1.5,
+        'stroke-dasharray': '4 4'
+      });
+
+      append('line', {
+        x1: 0,
+        y1: dotY,
+        x2: dotX,
+        y2: dotY,
+        stroke: 'var(--brand-accent)',
+        'stroke-width': 1,
+        'stroke-opacity': 0.5,
+        'stroke-dasharray': '4 4'
+      });
+
+      append('circle', {
+        cx: dotX,
+        cy: dotY,
+        r: 5.5,
+        fill: 'var(--brand-accent)',
+        stroke: 'var(--brand-background)',
+        'stroke-width': 2
+      });
+
+      /* --- CALCULATED METRICS --- */
+
+      var average = rcState.spend > 0
+        ? currentRevenue / rcState.spend
+        : null;
+
+      var marginal = rcMarginalResponse(
+        rcState.spend,
+        selected
+      );
+
+      document.getElementById('rc-spend-value').textContent =
+        '$' + rcState.spend.toLocaleString('en-US');
+
+      document.getElementById('rc-revenue').textContent =
+        '$' + Math.round(currentRevenue).toLocaleString('en-US');
+
+      document.getElementById('rc-average').textContent =
+        average === null
+          ? '—'
+          : average.toFixed(2) + '×';
+
+      document.getElementById('rc-marginal').textContent =
+        marginal.toFixed(2) + '×';
+    }
+
+    /* --- RESPONSE EXPLORER EVENTS --- */
+
+    document.getElementById('rc-spend')
+      .addEventListener('input', function(e) {
+        rcState.spend = Number(e.target.value);
+        renderRC();
+      });
+
+    var rcChannelSelector = document.getElementById(
+      'rc-channel-selector'
+    );
+
+    rcChannelSelector.addEventListener('click', function(e) {
+      var button = e.target.closest('button[data-channel]');
+
+      if (!button || !rcChannelSelector.contains(button)) {
+        return;
+      }
+
+      rcState.channel = button.getAttribute('data-channel');
+
+      var buttons = rcChannelSelector.querySelectorAll(
+        'button[data-channel]'
+      );
+
+      for (var i = 0; i < buttons.length; i++) {
+        var active =
+          buttons[i].getAttribute('data-channel') === rcState.channel;
+
+        buttons[i].classList.toggle('active', active);
+
+        buttons[i].setAttribute(
+          'aria-pressed',
+          String(active)
+        );
+      }
+
+      renderRC();
+    });
+
+    window.addEventListener('resize', function() {
+      if (activeTab === 'waterfall') renderWF();
+      if (activeTab === 'response') renderRC();
+    });
+
+  })();
+  </script>
+
+</body>
+</html>

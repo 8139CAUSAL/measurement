@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applied Response Modeling — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* --- Card Grid --- */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 8px;
+    }
+    @media (max-width: 600px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    /* --- Clickable Card Link --- */
+    .card-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 28px;
+      transition: border-color 0.2s ease;
+    }
+    .card-link:hover {
+      border-color: var(--brand-accent);
+    }
+
+    .card-link h2 {
+      color: var(--brand-text);
+      font-size: 1.25rem;
+      margin: 0 0 16px;
+    }
+    .card-link h3 {
+      color: var(--brand-accent);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 14px 0 6px;
+    }
+    .card-link h3:first-of-type {
+      margin-top: 0;
+    }
+    .card-link p {
+      color: var(--brand-text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 8px;
+    }
+
+    /* --- Card CTA --- */
+    .card-cta {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--brand-accent);
+      font-weight: 600;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav">
+      <a href="../surveys/" class="sec-nav__btn sec-nav__btn--back">&#8592; BACK</a>
+      <h1 class="sec-nav__header">Applied Response Modeling</h1>
+      <a href="../propensity/" class="sec-nav__btn sec-nav__btn--next">NEXT &#8594;</a>
+    </nav>
+
+    <p class="problem-statement">One score fixes the past (bias). The other predicts the future (impact).</p>
+
+    <div class="card-grid">
+      <!-- Card 1: Propensity & Balance -->
+      <a href="../propensity/" class="card-link">
+        <h2>Propensity &amp; Balance</h2>
+        <h3>The Problem</h3>
+        <p>Observational data is riddled with selection bias. Treated and untreated groups differ systematically, so naive comparisons confound the true effect with pre-existing differences.</p>
+        <h3>The Goal</h3>
+        <p>Simulate a randomized experiment after the fact. Propensity scores estimate each unit's likelihood of treatment, then re-weight or match the data so treated and control groups are balanced on observed covariates.</p>
+        <span class="card-cta">Explore Propensity Scores &rarr;</span>
+      </a>
+
+      <!-- Card 2: Uplift & Segmentation -->
+      <a href="../uplift/" class="card-link">
+        <h2>Uplift &amp; Segmentation</h2>
+        <h3>The Problem</h3>
+        <p>Standard response models predict who will convert, but they can't distinguish genuine incrementality from "Sure Things" who would have converted anyway.</p>
+        <h3>The Goal</h3>
+        <p>Predict the incremental lift caused by treatment for each individual. Isolate the "Persuadables" — the segment where marketing spend actually moves the needle — and stop wasting budget on everyone else.</p>
+        <span class="card-cta">Explore Uplift Modeling &rarr;</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

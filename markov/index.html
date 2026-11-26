@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markov Chains — Causal Science</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* === Markov Page Styles === */
+    .journey-input { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 16px; }
+    .input-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .journeys-list { margin-top: 16px; }
+    .journey-item {
+      background: var(--bg-card-raised); padding: 12px 16px; border-radius: 8px;
+      margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+      border: 1px solid var(--brand-border-dim);
+    }
+    .journey-path { font-family: 'Courier New', monospace; font-weight: 600; font-size: 13px; color: var(--brand-text); }
+
+    .transition-matrix { overflow-x: auto; margin-top: 20px; }
+    .matrix-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--brand-border-dim); }
+    .matrix-table th, .matrix-table td { padding: 10px 12px; text-align: center; border: 1px solid var(--brand-border-dim); font-size: 13px; }
+    .matrix-table th { background: var(--bg-card-raised); color: var(--brand-accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .matrix-table td { color: var(--brand-text-muted); }
+    .probability-value { font-weight: 700; color: var(--brand-text); }
+    .matrix-table small { color: var(--brand-text-muted); opacity: 0.6; font-size: 11px; }
+
+    .calculations { margin-top: 20px; }
+    .calc-step {
+      margin-bottom: 12px; padding: 16px 20px; background: var(--bg-card); border-radius: 8px;
+      border-left: 3px solid var(--brand-accent); font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .calc-step strong { color: var(--brand-text); }
+
+    .revenue-input { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .revenue-input label { font-weight: 600; color: var(--brand-text); font-size: 14px; }
+    .revenue-input input { width: 140px; }
+
+    .channel-removal { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+    .channel-card {
+      background: var(--bg-card-raised); padding: 20px; border-radius: 10px; text-align: center;
+      border: 1px solid var(--brand-border-dim); transition: transform 0.3s, border-color 0.3s;
+    }
+    .channel-card:hover { transform: translateY(-3px); border-color: var(--brand-accent); }
+    .channel-name { font-size: 0.9rem; font-weight: 700; color: var(--brand-text); margin-bottom: 8px; }
+    .channel-value { font-size: 1.8rem; font-weight: 700; color: var(--brand-accent); margin-bottom: 6px; }
+    .channel-revenue { font-size: 0.95rem; color: var(--brand-success); font-weight: 600; }
+
+    .insights {
+      background: var(--bg-card); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 24px; margin-top: 24px;
+    }
+    .insights h3 { margin-bottom: 16px; font-size: 1rem; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.5px; }
+    .insights ul { list-style: none; padding-left: 0; margin: 0; }
+    .insights li { margin-bottom: 10px; padding-left: 24px; position: relative; font-size: 14px; line-height: 1.6; color: var(--brand-text-muted); }
+    .insights li::before { content: "\2192"; position: absolute; left: 0; color: var(--brand-accent); font-weight: bold; }
+
+    @media (max-width: 600px) {
+      .journey-input { grid-template-columns: 1fr; }
+      .input-actions { justify-content: center; }
+      .channel-removal { grid-template-columns: 1fr 1fr; }
+      .channel-value { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="sec-nav" role="navigation" aria-label="Section navigation">
+      <a href="../attribution/" class="sec-nav__btn sec-nav__btn--back" aria-label="Go back">&larr; BACK</a>
+      <h1 class="sec-nav__header">Markov Chains</h1>
+      <a href="../calibrate/" class="sec-nav__btn sec-nav__btn--next" aria-label="Go to next section">NEXT &rarr;</a>
+    </nav>
+
+    <p class="problem-statement">
+      A first-order Markov chain with removal effects&mdash;the math behind advanced attribution.
+    </p>
+
+    <div class="tab-selector">
+      <button class="tab-btn active" data-tab="math" type="button">The Math</button>
+      <button class="tab-btn" data-tab="build" type="button">Build a Model</button>
+    </div>
+
+    <!-- TAB 1: THE MATH -->
+    <div class="tab-panel active" id="mk-panel-math">
+      <div class="stage">
+        <p class="prose">
+          A <strong>Markov chain</strong> is a system that moves between states, where the probability
+          of the next state depends <em>only on the current state</em>&mdash;not on how you got there.
+          This is the <strong>Markov property</strong> (memorylessness).
+        </p>
+        <div class="callout">
+          <div class="callout-title">Transition Matrix</div>
+          Every Markov chain is defined by a <strong>transition matrix</strong>. Each row represents
+          a &ldquo;from&rdquo; state, each column a &ldquo;to&rdquo; state. The values are probabilities,
+          so every row sums to 1.0.
+        </div>
+        <p class="prose">
+          In attribution, the states are <strong>marketing channels</strong> (Display, Search, Email, etc.)
+          plus two <em>absorbing states</em>: <strong>Conversion</strong> and <strong>No Conversion</strong>.
+          Once you enter an absorbing state, you stay there forever&mdash;the journey is over.
+        </p>
+        <div class="callout warning">
+          <div class="callout-title">Absorbing States</div>
+          An absorbing Markov chain has at least one state you can never leave.
+          Conversion and No Conversion are absorbing: once a customer converts (or drops off),
+          the journey ends. The math question becomes: <strong>what is the probability of being
+          absorbed into Conversion vs. No Conversion?</strong>
+        </div>
+        <p class="prose">
+          <strong>Removal effects</strong> are the key insight. For each channel, we ask:
+          &ldquo;What happens to the overall conversion rate if we <em>remove</em> this channel entirely?&rdquo;
+        </p>
+        <p class="prose">
+          If removing Search drops conversions from 70% to 30%, Search has a large removal effect.
+          If removing Display only drops conversions from 70% to 65%, Display is less critical.
+          We normalize these effects so they sum to 100%, giving each channel its
+          <strong>attribution share</strong>.
+        </p>
+        <div class="callout">
+          <div class="callout-title">The Formula</div>
+          <strong>Removal Effect(channel)</strong> = (Baseline conversion &minus; Conversion without channel) / Baseline conversion<br><br>
+          <strong>Attribution(channel)</strong> = Removal Effect(channel) / Sum of all removal effects
+        </div>
+        <p class="prose">
+          Unlike last-click or first-click models, Markov chain attribution captures
+          <strong>interdependencies between channels</strong>. A channel that rarely gets the last click
+          but frequently assists conversions will still receive appropriate credit.
+        </p>
+        <div class="callout danger">
+          <div class="callout-title">Why This Matters</div>
+          Traditional attribution models are deterministic rules. Markov chains are
+          <strong>probabilistic</strong>&mdash;they model the actual paths customers take and compute
+          how much each channel contributes to the probability of conversion. This makes
+          budget decisions less arbitrary and more defensible.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: BUILD A MODEL -->
+    <div class="tab-panel" id="mk-panel-build">
+      <div class="section" id="mk-journeySection">
+        <h2><span class="step-number">1</span> Customer Journeys</h2>
+        <p>Enter customer journeys using the format: <strong>Channel &rarr; Channel &rarr; Conversion ($value)</strong> or <strong>No Conversion</strong></p>
+        <p><strong>Channels:</strong> D (Display), F (Facebook), S (Search), E (Email)</p>
+        <div class="journey-input">
+          <input type="text" id="mk-journeyInput" placeholder="e.g., D &rarr; F &rarr; S &rarr; Conversion ($100)">
+          <div class="input-actions">
+            <button class="btn btn-primary" id="mk-btnAdd" type="button">Add</button>
+            <button class="btn btn-secondary" id="mk-btnExample" type="button">Load Example</button>
+          </div>
+        </div>
+        <div class="journeys-list" id="mk-journeysList"></div>
+      </div>
+
+      <div class="section hidden" id="mk-matrixSection">
+        <h2><span class="step-number">2</span> Transition Matrix</h2>
+        <p>This matrix shows the probability of moving from one state to another based on your journey data.</p>
+        <div class="transition-matrix" id="mk-transitionMatrix"></div>
+      </div>
+
+      <div class="section hidden" id="mk-calculationSection">
+        <h2><span class="step-number">3</span> Removal Effects</h2>
+        <div class="revenue-input">
+          <label for="mk-totalRevenue">Total Revenue: $</label>
+          <input type="number" id="mk-totalRevenue" value="850">
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" id="mk-btnCalculate" type="button">Calculate Attribution</button>
+          <button class="btn btn-ghost" id="mk-btnReset" type="button">Reset</button>
+        </div>
+        <div class="calculations" id="mk-calculations"></div>
+      </div>
+
+      <div class="section hidden" id="mk-resultsSection">
+        <h2><span class="step-number">4</span> Attribution Results</h2>
+        <div class="channel-removal" id="mk-channelResults"></div>
+        <div class="insights" id="mk-insights">
+          <h3>Key Insights</h3>
+          <ul id="mk-insightsList"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+  'use strict';
+
+  var journeys = [];
+  var channels = {};
+  var transitionCounts = {};
+  var totalRevenue = 850;
+  var ARROW = ' \u2192 ';
+
+  function $(id) { return document.getElementById(id); }
+  var els = {
+    journeyInput: $('mk-journeyInput'),
+    btnAdd: $('mk-btnAdd'),
+    btnExample: $('mk-btnExample'),
+    btnCalculate: $('mk-btnCalculate'),
+    btnReset: $('mk-btnReset'),
+    journeysList: $('mk-journeysList'),
+    matrixSection: $('mk-matrixSection'),
+    calculationSection: $('mk-calculationSection'),
+    resultsSection: $('mk-resultsSection'),
+    transitionMatrix: $('mk-transitionMatrix'),
+    totalRevenue: $('mk-totalRevenue'),
+    calculations: $('mk-calculations'),
+    channelResults: $('mk-channelResults'),
+    insightsList: $('mk-insightsList')
+  };
+
+  var channelNames = { 'D': 'Display Ads', 'F': 'Facebook Ads', 'S': 'Search Ads', 'E': 'Email Marketing' };
+  function getChannelName(code) { return channelNames[code] || code; }
+
+  /* Tab switching */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+  function activateTab(tabId) {
+    for (var i = 0; i < tabBtns.length; i++) tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+    for (var j = 0; j < tabPanels.length; j++) tabPanels[j].classList[tabPanels[j].id === 'mk-panel-' + tabId ? 'add' : 'remove']('active');
+  }
+  for (var ti = 0; ti < tabBtns.length; ti++) {
+    tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+  }
+
+  /* Journey management */
+  function addJourney() {
+    var journey = els.journeyInput.value.trim();
+    if (!journey) return;
+    journeys.push(journey);
+    updateJourneysList();
+    els.journeyInput.value = '';
+    if (journeys.length >= 3) { els.matrixSection.classList.remove('hidden'); buildTransitionMatrix(); }
+  }
+
+  function removeJourney(index) {
+    journeys.splice(index, 1);
+    updateJourneysList();
+    if (journeys.length >= 3) { buildTransitionMatrix(); }
+    else { els.matrixSection.classList.add('hidden'); els.calculationSection.classList.add('hidden'); els.resultsSection.classList.add('hidden'); }
+  }
+
+  function updateJourneysList() {
+    var list = els.journeysList;
+    list.innerHTML = '';
+    for (var i = 0; i < journeys.length; i++) {
+      var item = document.createElement('div');
+      item.className = 'journey-item';
+      var pathSpan = document.createElement('span');
+      pathSpan.className = 'journey-path';
+      pathSpan.textContent = journeys[i];
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-danger';
+      removeBtn.textContent = 'Remove';
+      removeBtn.setAttribute('data-index', i);
+      removeBtn.addEventListener('click', function() { removeJourney(parseInt(this.getAttribute('data-index'), 10)); });
+      item.appendChild(pathSpan);
+      item.appendChild(removeBtn);
+      list.appendChild(item);
+    }
+  }
+
+  function loadExampleData() {
+    journeys = [
+      'D' + ARROW + 'F' + ARROW + 'S' + ARROW + 'Conversion ($100)',
+      'D' + ARROW + 'F' + ARROW + 'No Conversion',
+      'S' + ARROW + 'Conversion ($150)',
+      'D' + ARROW + 'S' + ARROW + 'Conversion ($200)',
+      'F' + ARROW + 'S' + ARROW + 'E' + ARROW + 'Conversion ($120)',
+      'E' + ARROW + 'No Conversion',
+      'D' + ARROW + 'F' + ARROW + 'S' + ARROW + 'Conversion ($80)',
+      'F' + ARROW + 'E' + ARROW + 'S' + ARROW + 'Conversion ($90)',
+      'D' + ARROW + 'No Conversion',
+      'S' + ARROW + 'E' + ARROW + 'Conversion ($110)'
+    ];
+    updateJourneysList();
+    els.matrixSection.classList.remove('hidden');
+    buildTransitionMatrix();
+  }
+
+  /* Parsing */
+  function parseJourneys() {
+    channels = {}; transitionCounts = {};
+    channels['Start'] = true; channels['Conversion'] = true; channels['No Conversion'] = true;
+    for (var j = 0; j < journeys.length; j++) {
+      var parts = journeys[j].split(ARROW);
+      for (var i = 0; i < parts.length - 1; i++) channels[parts[i]] = true;
+      var fromStart = 'Start' + ARROW + parts[0];
+      transitionCounts[fromStart] = (transitionCounts[fromStart] || 0) + 1;
+      for (var k = 0; k < parts.length - 1; k++) {
+        var from = parts[k], to = parts[k + 1];
+        if (to.indexOf('Conversion') === -1) {
+          var t = from + ARROW + to;
+          transitionCounts[t] = (transitionCounts[t] || 0) + 1;
+        } else {
+          var dest = to.indexOf('No') !== -1 ? 'No Conversion' : 'Conversion';
+          var t2 = from + ARROW + dest;
+          transitionCounts[t2] = (transitionCounts[t2] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  /* Transition matrix */
+  function buildTransitionMatrix() {
+    parseJourneys();
+    var channelArray = Object.keys(channels).sort();
+    var outgoingCounts = {};
+    var keys = Object.keys(transitionCounts);
+    for (var i = 0; i < keys.length; i++) {
+      var from = keys[i].split(ARROW)[0];
+      outgoingCounts[from] = (outgoingCounts[from] || 0) + transitionCounts[keys[i]];
+    }
+    var html = '<table class="matrix-table"><thead><tr><th>From \\ To</th>';
+    for (var c = 0; c < channelArray.length; c++) html += '<th>' + channelArray[c] + '</th>';
+    html += '</tr></thead><tbody>';
+    for (var r = 0; r < channelArray.length; r++) {
+      html += '<tr><th>' + channelArray[r] + '</th>';
+      for (var col = 0; col < channelArray.length; col++) {
+        var transition = channelArray[r] + ARROW + channelArray[col];
+        var count = transitionCounts[transition] || 0;
+        var probability = outgoingCounts[channelArray[r]] ? (count / outgoingCounts[channelArray[r]]).toFixed(3) : '0.000';
+        html += count > 0 ? '<td><span class="probability-value">' + probability + '</span><br><small>(' + count + ')</small></td>' : '<td>-</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    els.transitionMatrix.innerHTML = html;
+    els.calculationSection.classList.remove('hidden');
+  }
+
+  /* Calculations */
+  function calculateBaseline() {
+    var conversions = 0;
+    for (var i = 0; i < journeys.length; i++) {
+      if (journeys[i].indexOf('Conversion') !== -1 && journeys[i].indexOf('No Conversion') === -1) conversions++;
+    }
+    return conversions / journeys.length;
+  }
+
+  function calculateRemovalEffect(excludeChannel) {
+    var filtered = [];
+    for (var i = 0; i < journeys.length; i++) {
+      var parts = journeys[i].split(ARROW);
+      parts = parts.slice(0, parts.length - 1);
+      var hasChannel = false;
+      for (var p = 0; p < parts.length; p++) { if (parts[p] === excludeChannel) { hasChannel = true; break; } }
+      if (!hasChannel) filtered.push(journeys[i]);
+    }
+    if (filtered.length === 0) return 0;
+    var conversions = 0;
+    for (var j = 0; j < filtered.length; j++) {
+      if (filtered[j].indexOf('Conversion') !== -1 && filtered[j].indexOf('No Conversion') === -1) conversions++;
+    }
+    return (conversions / filtered.length) * (filtered.length / journeys.length);
+  }
+
+  function calculateAttribution() {
+    totalRevenue = parseFloat(els.totalRevenue.value) || 850;
+    var baseline = calculateBaseline();
+    var actualChannels = [];
+    var chKeys = Object.keys(channels);
+    for (var i = 0; i < chKeys.length; i++) {
+      if (chKeys[i] !== 'Start' && chKeys[i] !== 'Conversion' && chKeys[i] !== 'No Conversion') actualChannels.push(chKeys[i]);
+    }
+    var removalEffects = {};
+    var html = '<div class="calc-step"><strong>Baseline Conversion Rate:</strong> ' + (baseline * 100).toFixed(1) + '%' +
+      '<div class="formula">Baseline = ' + baseline.toFixed(3) + ' (' + Math.round(baseline * journeys.length) + ' conversions out of ' + journeys.length + ' journeys)</div></div>';
+    for (var c = 0; c < actualChannels.length; c++) {
+      var ch = actualChannels[c];
+      var withoutChannel = calculateRemovalEffect(ch);
+      var effect = (baseline - withoutChannel) / baseline;
+      removalEffects[ch] = Math.max(0, effect);
+      html += '<div class="calc-step"><strong>Removing ' + getChannelName(ch) + ' (' + ch + '):</strong><br>' +
+        'Conversion rate without ' + ch + ': ' + (withoutChannel * 100).toFixed(1) + '%<br>' +
+        'Removal effect: ' + (effect * 100).toFixed(1) + '%' +
+        '<div class="formula">Effect = (' + baseline.toFixed(3) + ' \u2212 ' + withoutChannel.toFixed(3) + ') / ' + baseline.toFixed(3) + ' = ' + effect.toFixed(3) + '</div></div>';
+    }
+    var totalEffect = 0;
+    var reKeys = Object.keys(removalEffects);
+    for (var n = 0; n < reKeys.length; n++) totalEffect += removalEffects[reKeys[n]];
+    var normalizedAttribution = {};
+    if (totalEffect > 0) {
+      for (var a = 0; a < actualChannels.length; a++) normalizedAttribution[actualChannels[a]] = removalEffects[actualChannels[a]] / totalEffect;
+    }
+    html += '<div class="calc-step"><strong>Normalization:</strong><br>Total removal effects: ' + (totalEffect * 100).toFixed(1) + '%<br>Each channel\'s attribution = (Channel effect / Total effects) \u00d7 100%</div>';
+    els.calculations.innerHTML = html;
+    displayResults(normalizedAttribution);
+  }
+
+  function displayResults(attribution) {
+    var sorted = [];
+    var aKeys = Object.keys(attribution);
+    for (var i = 0; i < aKeys.length; i++) sorted.push([aKeys[i], attribution[aKeys[i]]]);
+    sorted.sort(function(a, b) { return b[1] - a[1]; });
+    var html = '';
+    for (var s = 0; s < sorted.length; s++) {
+      var ch = sorted[s][0], val = sorted[s][1];
+      html += '<div class="channel-card"><div class="channel-name">' + getChannelName(ch) + '</div><div class="channel-value">' + (val * 100).toFixed(1) + '%</div><div class="channel-revenue">$' + (totalRevenue * val).toFixed(2) + '</div></div>';
+    }
+    els.channelResults.innerHTML = html;
+    var insights = [];
+    if (sorted.length > 0) {
+      insights.push(getChannelName(sorted[0][0]) + ' has the highest attribution (' + (sorted[0][1] * 100).toFixed(1) + '%), indicating it is critical in conversion paths.');
+      if (sorted.length > 1) {
+        var last = sorted[sorted.length - 1];
+        insights.push(getChannelName(last[0]) + ' has the lowest impact (' + (last[1] * 100).toFixed(1) + '%), suggesting it supports other channels rather than driving direct conversions.');
+      }
+      insights.push('Markov chain attribution captures interdependencies between channels, unlike last-click attribution.');
+      insights.push('Channels that frequently appear in successful conversion paths receive higher attribution.');
+    }
+    els.insightsList.innerHTML = '';
+    for (var ins = 0; ins < insights.length; ins++) {
+      var li = document.createElement('li');
+      li.textContent = insights[ins];
+      els.insightsList.appendChild(li);
+    }
+    els.resultsSection.classList.remove('hidden');
+    els.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetAll() {
+    journeys = []; channels = {}; transitionCounts = {};
+    els.journeysList.innerHTML = '';
+    els.matrixSection.classList.add('hidden');
+    els.calculationSection.classList.add('hidden');
+    els.resultsSection.classList.add('hidden');
+    els.calculations.innerHTML = '';
+    els.channelResults.innerHTML = '';
+    els.insightsList.innerHTML = '';
+    els.totalRevenue.value = '850';
+  }
+
+  els.btnAdd.addEventListener('click', addJourney);
+  els.journeyInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') addJourney(); });
+  els.btnExample.addEventListener('click', loadExampleData);
+  els.btnCalculate.addEventListener('click', calculateAttribution);
+  els.btnReset.addEventListener('click', resetAll);
+  })();
+  </script>
+</body>
+</html>
