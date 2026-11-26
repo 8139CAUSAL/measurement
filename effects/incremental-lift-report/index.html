@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Incremental Lift Report | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Reporting Page Styles === */
+    .page { max-width: 1200px; }
+
+    .sim-card {
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--brand-border);
+      border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    }
+    .sim-card__title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      color: var(--brand-text-muted); letter-spacing: 0.05em; margin-bottom: 12px; display: block;
+    }
+    .input-group { flex: 1; }
+    .input-group label { display: block; font-size: 11px; color: var(--brand-text-muted); margin-bottom: 4px; }
+    .sim-input {
+      width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--brand-border);
+      color: #fff; padding: 6px 10px; border-radius: 4px; font-family: inherit; font-size: 13px;
+    }
+    .metric-row { margin-bottom: 16px; }
+    .metric-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .metric-name { font-size: 13px; color: var(--brand-text-muted); }
+    .metric-val { font-size: 18px; font-weight: 700; font-family: "SF Mono", monospace; }
+
+    /* Tooltips */
+    .tooltip-wrap { position: relative; border-bottom: 1px dashed var(--brand-border); cursor: help; display: inline-block; }
+    .tooltip-wrap:hover { color: #fff; border-bottom-color: #fff; }
+    .tooltip-content {
+      visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%;
+      transform: translateX(-50%); width: 240px; background: #1e293b;
+      border: 1px solid var(--brand-border); padding: 12px; border-radius: 8px;
+      font-size: 12px; line-height: 1.4; color: #fff; z-index: 10;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: 0.2s; pointer-events: none;
+    }
+    .tooltip-wrap:hover .tooltip-content { visibility: visible; opacity: 1; }
+    .tooltip-title { font-weight: 700; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 4px; display: block; }
+    .metric-val.tooltip-wrap { cursor: help; border-bottom: 1px dashed var(--brand-border); }
+    .metric-val.tooltip-wrap .tooltip-content { font-weight: 400; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+    /* Campaign Row */
+    .yd-campaign-row { display: grid; grid-template-columns: 1fr 1fr 3fr; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+    /* Data Table */
+    .yd-table-wrap { overflow-x: auto; margin-top: 8px; }
+    .yd-table { width: 100%; border-collapse: collapse; }
+    .yd-table th, .yd-table td { padding: 8px 10px; text-align: center; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .yd-table th { color: var(--brand-text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .yd-table th:first-child, .yd-table td:first-child { text-align: left; }
+    .yd-group-header { border-bottom: 2px solid rgba(255,255,255,0.15) !important; }
+    .yd-group-test { color: var(--brand-accent) !important; }
+    .yd-group-ctrl { color: #3b82f6 !important; }
+    .yd-subheader th { font-size: 10px; padding-top: 4px; }
+    .yd-table .seg-name-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--brand-text); font-size: 13px; white-space: nowrap; }
+    .yd-table input[type=number] {
+      width: 72px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; padding: 5px 8px; border-radius: 4px; font-family: "SF Mono", monospace; font-size: 13px; text-align: right;
+    }
+    .yd-table input[type=number]:focus { outline: none; border-color: var(--brand-accent); }
+
+    /* Results Grid */
+    .yd-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .yd-results-section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--brand-accent);
+      letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sr-header, .sr-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .sr-header { border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 2px; }
+    .sr-val-hdr { font-size: 10px; text-transform: uppercase; color: var(--brand-text-muted); font-weight: 600; letter-spacing: 0.03em; text-align: right; }
+    .sr-seg-name { font-size: 13px; font-weight: 600; color: var(--brand-text); }
+    .sr-val { font-family: "SF Mono", monospace; font-size: 13px; font-weight: 700; text-align: right; cursor: help; }
+    .sr-tooltip { width: 300px; left: auto; right: 0; transform: none; text-align: left; }
+    .sr-tt-line { margin-bottom: 3px; font-size: 12px; }
+    .sr-tt-sub { margin-left: 10px; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+
+    @media (max-width: 900px) {
+      .yd-results-grid { grid-template-columns: 1fr; }
+      .yd-campaign-row { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="./">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../matching/">Matching</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li><li><a href="../matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Incremental Lift Report</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Incremental Lift Report</h1><p class="mg-question">How do we report overall and segment-level lift after a test?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Test and control exposures, conversions, revenue, and contact costs by segment.</dd></div>
+    <div><dt>Assumptions</dt><dd>Use comparable outcome definitions and windows. The report calculates point estimates.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../incrementality/">Incrementality</a>, <a href="../p-values/">P-Values</a>, <a href="../sample-size-and-power/">Sample Size &amp; Power</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+    
+
+    <p style="text-align:center;max-width:600px;margin:0 auto 20px;color:var(--brand-text-muted);">
+      Enter your Test vs Control results per segment to measure
+      <span class="tooltip-wrap">incremental lift
+        <span class="tooltip-content"><span class="tooltip-title">Incremental Lift</span>The causal effect of your campaign. Test response minus counterfactual (what would have happened without treatment).</span>
+      </span>.
+    </p>
+
+    <div class="sim-card">
+      <span class="sim-card__title">Experiment Data</span>
+      <div class="yd-campaign-row" style="grid-template-columns:1fr 1fr 3fr;">
+        <div class="input-group">
+          <label for="yd-cost-test">Test Cost/Contact ($)</label>
+          <input type="number" id="yd-cost-test" class="sim-input" value="5">
+        </div>
+        <div class="input-group">
+          <label for="yd-cost-ctrl">Control Cost/Contact ($)</label>
+          <input type="number" id="yd-cost-ctrl" class="sim-input" value="0">
+        </div>
+        <div id="yd-campaign-summary" style="display:flex;align-items:center;gap:16px;font-size:13px;color:var(--brand-text-muted);justify-content:flex-end;"></div>
+      </div>
+      <div class="yd-table-wrap">
+        <table class="yd-table">
+          <thead>
+            <tr>
+              <th>Segment</th>
+              <th colspan="3" class="yd-group-header yd-group-test">Test Group</th>
+              <th colspan="3" class="yd-group-header yd-group-ctrl">Control Group</th>
+            </tr>
+            <tr class="yd-subheader">
+              <th></th>
+              <th class="yd-group-test">Conv</th><th class="yd-group-test">Exp</th><th class="yd-group-test">Rev</th>
+              <th class="yd-group-ctrl">Conv</th><th class="yd-group-ctrl">Exp</th><th class="yd-group-ctrl">Rev</th>
+            </tr>
+          </thead>
+          <tbody id="yd-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <span class="sim-card__title">Results</span>
+      <div class="yd-results-grid">
+        <div>
+          <div class="yd-results-section-label">Campaign Totals</div>
+          <p class="mg-context">“Incr. Response” uses a percent sign for an absolute rate lift in percentage points. The campaign total weights segment differences by test exposures. See <a href="../randomized-experiment/#report-decision">Worked experiment decision report</a> for how to report uncertainty and compare an estimate with break-even.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="metric-row"><div class="metric-header"><span class="metric-name">Incr. Response</span><span id="yd-res-conv" class="metric-val tooltip-wrap">0.0%<span id="yd-tt-conv" class="tooltip-content sr-tooltip"></span></span></div></div>
+            <div class="metric-row"><div class="metric-header"><span class="metric-name">Incr. Rev</span><span id="yd-res-incr-rev" class="metric-val tooltip-wrap">$0<span id="yd-tt-rev" class="tooltip-content sr-tooltip"></span></span></div></div>
+            <div class="metric-row"><div class="metric-header"><span class="metric-name">Incr. Gross Margin</span><span id="yd-res-gm" class="metric-val tooltip-wrap">$0<span id="yd-tt-gm" class="tooltip-content sr-tooltip"></span></span></div></div>
+            <div class="metric-row"><div class="metric-header"><span class="metric-name">Campaign Cost</span><span id="yd-res-cost" class="metric-val tooltip-wrap">$0<span id="yd-tt-cost" class="tooltip-content sr-tooltip"></span></span></div></div>
+            <div class="metric-row"><div class="metric-header"><span class="metric-name">Net Incr. Profit</span><span id="yd-res-profit" class="metric-val tooltip-wrap">$0<span id="yd-tt-profit" class="tooltip-content sr-tooltip"></span></span></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="yd-results-section-label">Per-Segment</div>
+          <div id="yd-segment-results"></div>
+        </div>
+      </div>
+    </div>
+  </div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../models/reading-regressions/#reg-panel-ci">Regression confidence intervals</a></li><li><a href="../randomized-experiment/#report-decision">Worked experiment decision report</a></li><li><a href="../../models/marketing-mix/calibration/#geo-test">Calibrating an MMM with a lift test</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function(){'use strict';
+  var SG=[{t:'persuadable',l:'Pers',lf:'Persuadables',c:'#10b981',d:'Buy only if treated'},{t:'mild-responder',l:'Mild Resp',lf:'Mild Responders',c:'#6ee7b7',d:'Small positive lift'},{t:'neutral',l:'Neutral',lf:'Neutral',c:'#64748b',d:'Sure Things and Lost Causes'},{t:'weak-negative',l:'Weak Neg',lf:'Weak Negative',c:'#fbbf24',d:'Small negative lift'},{t:'sleeping-dog',l:'S Dogs',lf:'Sleeping Dogs',c:'#ef4444',d:'Buy only if NOT treated'}];
+  var yd=[{tC:85,tE:200,tRv:16000,cC:20,cE:200,cRv:900},{tC:60,tE:300,tRv:15000,cC:40,cE:300,cRv:12000},{tC:50,tE:300,tRv:10500,cC:48,cE:300,cRv:10080},{tC:25,tE:150,tRv:3750,cC:35,cE:150,cRv:5250},{tC:5,tE:50,tRv:300,cC:15,cE:50,cRv:900}];
+  var $=function(id){return document.getElementById(id);};
+  var yU={coT:$('yd-cost-test'),coC:$('yd-cost-ctrl'),tb:$('yd-table-body'),rC:$('yd-res-conv'),rIR:$('yd-res-incr-rev'),rP:$('yd-res-profit'),rCo:$('yd-res-cost'),rGM:$('yd-res-gm'),sR:$('yd-segment-results'),cs:$('yd-campaign-summary'),ttC:$('yd-tt-conv'),ttR:$('yd-tt-rev'),ttP:$('yd-tt-profit'),ttCo:$('yd-tt-cost'),ttGM:$('yd-tt-gm')};
+  function setValText(el,txt){if(!el)return;var c=el.childNodes;for(var i=0;i<c.length;i++){if(c[i].nodeType===3){c[i].textContent=txt;return;}}el.insertBefore(document.createTextNode(txt),el.firstChild);}
+  function ttH(t,L){var h='<span class="tooltip-title">'+t+'</span>';for(var i=0;i<L.length;i++){var l=L[i];if(l==='---')h+='<hr style="border:0;border-top:1px solid rgba(255,255,255,0.2);margin:6px 0">';else if(l[0]==='_')h+='<div class="sr-tt-sub">'+l.slice(1)+'</div>';else h+='<div class="sr-tt-line">'+l+'</div>';}return h;}
+  function clr(v,pos){return pos?'#10b981':'#f87171';}function bld(t,c){return'<strong'+(c?' style="color:'+c+'"':'')+'>'+t+'</strong>';}
+  function fL(n){return Math.round(n).toLocaleString();}function fP(r){return(r*100).toFixed(1)+'%';}function fD(n){return'$'+fL(n);}
+  function rYT(){if(!yU.tb)return;yU.tb.innerHTML='';for(var i=0;i<yd.length;i++){(function(x){var s=yd[x],info=SG[x],tr=document.createElement('tr'),td=document.createElement('td');td.innerHTML='<div class="seg-name-cell">'+info.l+'</div>';tr.appendChild(td);var fl=[{k:'tC',v:s.tC,m:'0'},{k:'tE',v:s.tE,m:'1'},{k:'tRv',v:s.tRv,m:'0'},{k:'cC',v:s.cC,m:'0'},{k:'cE',v:s.cE,m:'1'},{k:'cRv',v:s.cRv,m:'0'}];for(var f=0;f<fl.length;f++){(function(fd){var td2=document.createElement('td'),inp=document.createElement('input');inp.type='number';inp.className='yd-input';inp.min=fd.m;inp.value=fd.v;inp.addEventListener('input',function(){yd[x][fd.k]=parseFloat(this.value)||0;cYD();});td2.appendChild(inp);tr.appendChild(td2);})(fl[f]);}yU.tb.appendChild(tr);})(i);}}
+  function cYD(){var ccT=parseFloat(yU.coT?yU.coT.value:'5')||0,ccC=parseFloat(yU.coC?yU.coC.value:'0')||0;
+  var sg=[],tp=0,tTr=0,totIncrResp=0,totIncrRev=0,totTCv=0,totIncrGM=0;
+  for(var i=0;i<yd.length;i++){var d=yd[i],tE=d.tE||0,cE=d.cE||0,tC=d.tC||0,cC=d.cC||0,tRv=d.tRv||0,cRv=d.cRv||0;
+  var pop=tE+cE,tRate=tE>0?tC/tE:0,cRate=cE>0?cC/cE:0;
+  var cfResp=cRate*tE,incrResp=tC-cfResp,incrRespPc=tE>0?incrResp/tE:0;
+  var cRvPerExp=cE>0?cRv/cE:0,cfRev=cRvPerExp*tE,incrRev=tRv-cfRev;
+  var tCost=tE*ccT,tGM=tRv-tCost,cCost=cE*ccC,cGM=cRv-cCost,cGMperExp=cE>0?cGM/cE:0,cfGM=cGMperExp*tE,incrGM=tGM-cfGM;
+  sg.push({x:i,tE:tE,cE:cE,tC:tC,cC:cC,tRv:tRv,cRv:cRv,pop:pop,tRate:tRate,cRate:cRate,cfResp:cfResp,incrResp:incrResp,incrRespPc:incrRespPc,cfRev:cfRev,incrRev:incrRev,cRvPerExp:cRvPerExp,tCost:tCost,tGM:tGM,cCost:cCost,cGM:cGM,cGMperExp:cGMperExp,cfGM:cfGM,incrGM:incrGM});
+  tp+=pop;tTr+=tE;totTCv+=tC;totIncrResp+=incrResp;totIncrRev+=incrRev;totIncrGM+=incrGM;}
+  if(tp===0)tp=1;
+  var tCo=tTr*ccT,pr=totIncrRev-tCo;
+  var actualReachPc=(tTr/tp)*100;
+  var totIncrRespPc=tTr>0?totIncrResp/tTr:0;
+  var totTRate=tTr>0?totTCv/tTr:0,totCCv=0,totCE=0;for(i=0;i<sg.length;i++){totCCv+=sg[i].cC;totCE+=sg[i].cE;}var totCRate=totCE>0?totCCv/totCE:0,totTRv=0,totCfRev=0,totTGM=0,totCfGM=0,totCGM=0;for(i=0;i<sg.length;i++){totTRv+=sg[i].tRv;totCfRev+=sg[i].cfRev;totTGM+=sg[i].tGM;totCfGM+=sg[i].cfGM;totCGM+=sg[i].cGM;}
+  var v=totIncrRespPc*100;
+  if(yU.rC){setValText(yU.rC,(v>=0?'+':'')+v.toFixed(1)+'%');yU.rC.style.color=clr(v,v>=0);}
+  if(yU.ttC){yU.ttC.innerHTML=ttH('Incremental Response',['Test Response: '+totTCv+'/'+tTr+' = '+bld(fP(totTRate)),'Control Response: '+totCCv+'/'+totCE+' = '+bld(fP(totCRate)),'---','Test-exposure-weighted segment differences: '+bld((v>=0?'+':'')+v.toFixed(1)+' pp',clr(v,v>=0))]);}
+  if(yU.rIR){setValText(yU.rIR,fD(totIncrRev));yU.rIR.style.color=clr(totIncrRev,totIncrRev>=0);}
+  if(yU.ttR){yU.ttR.innerHTML=ttH('Incremental Revenue',['Test Revenue: '+bld(fD(totTRv)),'Counterfactual Revenue: '+bld(fD(totCfRev)),'_(Control rev/exp grossed to test exposed)','---','Incremental: '+fD(totTRv)+' &minus; '+fD(totCfRev)+' = '+bld(fD(totIncrRev),clr(totIncrRev,totIncrRev>=0))]);}
+  if(yU.rGM){setValText(yU.rGM,fD(totIncrGM));yU.rGM.style.color=clr(totIncrGM,totIncrGM>=0);}
+  if(yU.ttGM){yU.ttGM.innerHTML=ttH('Incremental Gross Margin',['Test GM: '+fD(totTRv)+' rev &minus; '+fD(tCo)+' cost = '+bld(fD(totTGM)),'_('+tTr.toLocaleString()+' exp &times; $'+ccT.toFixed(2)+'/contact)','Control GM: '+fD(totCGM),'_(Rev &minus; '+totCE.toLocaleString()+' exp &times; $'+ccC.toFixed(2)+'/contact)','Counterfactual GM: '+bld(fD(totCfGM)),'_(Control GM/exp grossed to test exposed)','---','Incremental: '+fD(totTGM)+' &minus; '+fD(totCfGM)+' = '+bld(fD(totIncrGM),clr(totIncrGM,totIncrGM>=0))]);}
+  if(yU.rP){setValText(yU.rP,fD(pr));yU.rP.style.color=clr(pr,pr>=0);}
+  if(yU.ttP){yU.ttP.innerHTML=ttH('Net Incremental Profit',['Incremental Revenue: '+bld(fD(totIncrRev)),'Campaign Cost: '+bld(fD(tCo)),'_('+tTr.toLocaleString()+' treated &times; $'+ccT.toFixed(2)+'/contact)','---','Net Profit: '+fD(totIncrRev)+' &minus; '+fD(tCo)+' = '+bld(fD(pr),clr(pr,pr>=0))]);}
+  if(yU.rCo){setValText(yU.rCo,fD(tCo));}
+  if(yU.ttCo){yU.ttCo.innerHTML=ttH('Campaign Cost',['Treated: '+bld(tTr.toLocaleString())+' contacts','Test Cost/Contact: '+bld('$'+ccT.toFixed(2)),'---','Total: '+tTr.toLocaleString()+' &times; $'+ccT.toFixed(2)+' = '+bld(fD(tCo))]);}
+  if(yU.cs){yU.cs.innerHTML='<span>Total Treated: <strong style="color:#fff;">'+tTr.toLocaleString()+' / '+tp.toLocaleString()+'</strong> ('+actualReachPc.toFixed(1)+'%)</span>';}
+  if(yU.sR){rSR(sg,ccT,ccC);}}
+  function rSR(sg,ccT,ccC){if(!yU.sR)return;yU.sR.innerHTML='';
+  var hd=document.createElement('div');hd.className='sr-header';hd.innerHTML='<span class="sr-seg-name"></span><span class="sr-val-hdr">Incr. Resp</span><span class="sr-val-hdr">Incr. Rev</span><span class="sr-val-hdr">Incr. GM</span>';yU.sR.appendChild(hd);
+  for(var i=0;i<sg.length;i++){(function(s,idx){var info=SG[idx],rw=document.createElement('div');rw.className='sr-row';
+  var nm=document.createElement('span');nm.className='sr-seg-name';nm.textContent=info.l;rw.appendChild(nm);
+  var rv1=document.createElement('span');rv1.className='sr-val tooltip-wrap';var irPc=s.incrRespPc*100;rv1.style.color=clr(irPc,irPc>=0);rv1.innerHTML=(irPc>=0?'+':'')+irPc.toFixed(1)+'%';
+  var tt1=document.createElement('span');tt1.className='tooltip-content sr-tooltip';tt1.innerHTML=ttH('Incremental Response',['Test Response: '+s.tC+'/'+s.tE+' = '+bld(fP(s.tRate)),'Counterfactual Response:','_Control rate: '+s.cC+'/'+s.cE+' = '+fP(s.cRate),'_Grossed to test: '+s.tE+' &times; '+fP(s.cRate)+' = '+s.cfResp.toFixed(1),'---','Incremental: '+fP(s.tRate)+' &minus; '+fP(s.cRate)+' = '+bld((irPc>=0?'+':'')+irPc.toFixed(1)+'%',clr(irPc,irPc>=0))]);
+  rv1.appendChild(tt1);rw.appendChild(rv1);
+  var rv2=document.createElement('span');rv2.className='sr-val tooltip-wrap';rv2.style.color=clr(s.incrRev,s.incrRev>=0);rv2.innerHTML=fD(s.incrRev);
+  var tt2=document.createElement('span');tt2.className='tooltip-content sr-tooltip';tt2.innerHTML=ttH('Incremental Rev/Sale',['Test Rev: '+fD(s.tRv),'_($'+s.tRv.toFixed(2)+' / '+s.tE+' exp = $'+(s.tE>0?(s.tRv/s.tE).toFixed(2):'0')+'/exp)','Counterfactual Rev:','_Control: '+fD(s.cRv)+' / '+s.cE+' = $'+s.cRvPerExp.toFixed(2)+'/exp','_Grossed to test: '+s.tE+' &times; $'+s.cRvPerExp.toFixed(2)+' = '+fD(s.cfRev),'---','Incremental: '+fD(s.tRv)+' &minus; '+fD(s.cfRev)+' = '+bld(fD(s.incrRev),clr(s.incrRev,s.incrRev>=0))]);
+  rv2.appendChild(tt2);rw.appendChild(rv2);
+  var rv3=document.createElement('span');rv3.className='sr-val tooltip-wrap';rv3.style.color=clr(s.incrGM,s.incrGM>=0);rv3.innerHTML=fD(s.incrGM);
+  var tt3=document.createElement('span');tt3.className='tooltip-content sr-tooltip';tt3.innerHTML=ttH('Incremental Gross Margin',['Test GM: '+fD(s.tRv)+' rev &minus; '+fD(s.tCost)+' cost = '+bld(fD(s.tGM)),'_Cost: '+s.tE+' exp &times; $'+ccT.toFixed(2)+'/contact','Control GM: '+fD(s.cRv)+' rev &minus; '+fD(s.cCost)+' cost = '+bld(fD(s.cGM)),'_Cost: '+s.cE+' exp &times; $'+ccC.toFixed(2)+'/contact','Counterfactual GM:','_Control GM/exp: $'+s.cGMperExp.toFixed(2)+'/exp','_Grossed to test: '+s.tE+' &times; $'+s.cGMperExp.toFixed(2)+' = '+fD(s.cfGM),'---','Incremental: '+fD(s.tGM)+' &minus; '+fD(s.cfGM)+' = '+bld(fD(s.incrGM),clr(s.incrGM,s.incrGM>=0))]);
+  rv3.appendChild(tt3);rw.appendChild(rv3);
+  yU.sR.appendChild(rw);})(sg[i],i);}}
+  yU.coT.addEventListener('change',function(){cYD();});
+  yU.coC.addEventListener('change',function(){cYD();});
+  rYT();cYD();})();
+  </script><script src="../../assets/guide.js"></script>
+</body>
+</html>

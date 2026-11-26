@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MMM Readiness | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../../assets/legacy/measurement.css"><style>
+    .page { text-align: center; }
+    .hero-section { margin-top: 20px; margin-bottom: 20px; padding: 0 20px; }
+    .hero-tagline { color: rgba(255, 255, 255, 0.85); font-size: 16px; font-weight: 400; letter-spacing: 0.5px; line-height: 1.4; margin-bottom: 8px; }
+    .hero-explainer { color: var(--brand-text-muted); font-size: 14px; line-height: 1.5; max-width: 880px; margin: 0 auto; }
+    .readiness-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; padding: 10px 0 20px; text-align: center; }
+    .readiness-card { padding: 25px 20px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; min-height: 180px; }
+    .readiness-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.12); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.2); }
+    .readiness-card .card-label { color: #00D4FF; font-size: 13px; font-weight: 500; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .readiness-card h3 { color: #fff; font-size: 18px; font-weight: 600; margin: 0 0 10px; line-height: 1.2; }
+    .readiness-card p.card-desc { color: rgba(255, 255, 255, 0.75); font-size: 14px; line-height: 1.4; margin: 0; }
+    @media (max-width: 900px) { .readiness-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .readiness-grid { grid-template-columns: 1fr; } }
+  </style><link rel="stylesheet" href="../../../assets/experiments.css">
+  <link rel="stylesheet" href="../../../assets/guide.css">
+  <link rel="stylesheet" href="../../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../../effects/incrementality/">Incrementality</a></li><li><a href="../../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../../effects/p-values/">P-Values</a></li><li><a href="../../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../../effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../../effects/propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../../../effects/matching/">Matching</a></li><li><a href="../../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../../effects/heckman-selection/">Heckman Selection Correction</a></li><li><a href="../../../effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../reading-regressions/">Reading Regressions</a></li><li><a href="../../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../media-response/">Media response</a><ul class="mg-links"><li><a href="../../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="./">MMM Readiness</a></li><li><a href="../">Marketing Mix Modeling</a></li><li><a href="../calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../churn/">Churn</a></li><li><a href="../../retention/">Retention</a></li><li><a href="../../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../segmentation/">Segmentation</a></li><li><a href="../../segmentation/prizm/">PRIZM</a></li><li><a href="../../market-basket/">Market Basket Analysis</a></li><li><a href="../../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../../">Home</a></li><li><a href="../../">Model Outcomes</a></li><li><a href="../../media-response/">Media response</a></li><li aria-current="page">MMM Readiness</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>MMM Readiness</h1><p class="mg-question">Do we have the data and operating capacity for a marketing mix model?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Weekly media and KPI history, spending variation, budget scope, and capacity to maintain the model.</dd></div>
+    <div><dt>Assumptions</dt><dd>A stable KPI definition and enough spend variation are needed to interpret the model.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../../../plan/measurement-plan/">Measurement Plan</a>, <a href="../../saturation-and-carryover/">Saturation &amp; Carryover</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+    
+
+    <div class="hero-section">
+      <p class="hero-tagline">The more you want to learn, the more data you need.</p>
+      <p class="hero-explainer">
+        MMM works best when you have time on your side, movement in budgets, and a focused set of questions.
+        The tiles below outline the key signals that indicate readiness for a successful MMM project.
+      </p>
+    </div>
+
+    <div class="readiness-grid">
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="historical-data">Historical Data</h3>
+        <p class="card-desc">2+ years of weekly data (or 4-5 years monthly) allows the model to see seasonality and trends.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="budget-movement">Budget Movement</h3>
+        <p class="card-desc">The model needs spend variation left after accounting for demand and other channels. If channels move together, the data may pin down joint response while leaving individual effects uncertain.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="focused-questions">Focused Questions</h3>
+        <p class="card-desc">Every channel, control, and seasonal factor costs data. Start with a focused scope.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="stable-kpi">Stable KPI</h3>
+        <p class="card-desc">Use a consistent metric like revenue or conversions. Noisy or sparse data may need aggregation.</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="ad-budget">Ad Budget</h3>
+        <p class="card-desc">While there's no magic number, MMM becomes more cost-effective as media spend grows ($1M+/yr).</p>
+      </div>
+      <div class="readiness-card">
+        <p class="card-label">Signal</p>
+        <h3 id="model-maintenance">Model Maintenance</h3>
+        <p class="card-desc">Markets change. Plan to retrain your model on a cadence that matches your planning cycles.</p>
+      </div>
+    </div>
+
+    <section class="ex-extension ex-card" id="geo-week-record">
+  <h2 id="what-belongs-in-one-market-week-record">What belongs in one market-week record?</h2>
+  <p>Use consistent market boundaries, week starts and currency. This illustrative source record shows the fields to reconcile before fitting a geo model. A national model aggregates data to one row per week.</p>
+  <div class="ex-table" tabindex="0" aria-label="Example market-week fields">
+    <table>
+      <caption>North market · Week of January 8, 2024</caption>
+      <thead><tr><th scope="col">Field</th><th scope="col">Example value</th><th scope="col">Use</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">KPI and value</th><td>480 orders · $52 revenue per order</td><td>Revenue is $24,960 if both measures cover the same orders.</td></tr>
+        <tr><th scope="row">Population</th><td>250,000 residents</td><td>Align market scaling and specify who receives weight in an overall effect.</td></tr>
+        <tr><th scope="row">Paid media</th><td>Search · 93,000 impressions · $2,180 delivered spend</td><td>Join each channel’s exposure and cost. Reconcile invoice timing, credits and prepayments to delivery.</td></tr>
+        <tr><th scope="row">Organic media</th><td>18,200 unpaid social impressions</td><td>Set a reference level if the policy changes organic activity.</td></tr>
+        <tr><th scope="row">Non-media treatment</th><td>10% storewide promotion</td><td>Record an intervention the plan could change or hold fixed.</td></tr>
+        <tr><th scope="row">Pre-treatment control</th><td>Holiday calendar · pre-campaign category demand index 1.06</td><td>Record potential common causes before exposure. A demand proxy can leave residual confounding.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>When the channel reports deduplicated reach, keep it alongside average frequency for the same market and period. <a href="../../saturation-and-carryover/#reach-and-frequency">Try the reach and frequency exercise</a>.</p>
+</section><p style="text-align:center; color: rgba(255,255,255,0.75); font-size: 14px; margin: 30px 0 10px;">
+      Not sure where you stand? <a href="mailto:goodaaron@causalscience.com" style="color:#2dd4bf; text-decoration:none;">goodaaron@causalscience.com</a>
+    </p>
+  </div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../">Marketing Mix Modeling</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../../">Marketing Measurement Science</a><a href="../../../reference/">Reference &amp; Tools</a></div></footer>
+  <script src="../../../assets/guide.js"></script>
+</body>
+</html>

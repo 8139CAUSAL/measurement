@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>P-Hacking and Replication | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/legacy/math.css"><link rel="stylesheet" href="../../assets/experiments.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson math ph-lab">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="./">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../matching/">Matching</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li><li><a href="../matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">P-Hacking and Replication</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>P-Hacking and Replication</h1><p class="mg-question">What happens when we try many analyses and report a selected result?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Choose a guided or random simulated dataset and a set of analysis decisions.</dd></div>
+    <div><dt>Assumptions</dt><dd>Replication applies a locked specification to independently simulated data.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../p-values/">P-Values</a>, <a href="../sample-size-and-power/">Sample Size &amp; Power</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+
+
+
+<p class="problem-statement">
+Watch yourself get fooled by random noise.
+</p>
+
+</div><div class="shell">
+  <div class="top"><span class="brand">MATH PRIMER / P-HACKING LAB</span><span class="pill">320 simulated people · 96 possible analyses</span></div>
+  <div class="eyebrow" style="margin-top:28px">An experiment in statistical honesty</div>
+  <h2 class="hero-title" id="can-you-manufacture-a-significant-finding">Can you manufacture a <span class="emph">significant finding?</span></h2>
+  <p class="intro">We simulated 320 people and randomly labeled half “treatment” and half “control.” <strong>There is no treatment.</strong> The labels are arbitrary, and everyone’s scores are generated by the same process. The true effect is zero for every outcome. You control the analysis, not the data. Can you still find p &lt; 0.05?</p>
+  <div class="setup">
+    <button class="ghost" id="guidedBtn" type="button">Restart first experiment</button>
+    <button class="ghost" id="randomBtn" type="button">Generate a new random experiment</button>
+    <span class="setup-note" id="seedNote" aria-live="polite">The first experiment was selected to make an apparent discovery possible. New experiments are sampled randomly and may produce no significant finding.</span>
+  </div>
+  <div class="stepbar" aria-label="Lab stages"><div class="step current" id="step1"><b>01 · Explore</b> Try analysis choices</div><div class="step" id="step2"><b>02 · Publish</b> Reveal the search</div><div class="step" id="step3"><b>03 · Replicate</b> Lock the analysis</div></div>
+
+  <section class="act" id="act1" aria-labelledby="title1">
+    <div class="acttop"><div><div class="eyebrow">Act 1 — Manufacture a discovery</div><h2 id="title1">One dataset. Many reasonable-looking analyses.</h2></div><span class="badge good">No actual treatment</span></div>
+    <p class="actlead">Your goal is to make the randomly assigned “treatment” label look beneficial. Choose an outcome, subgroup, exclusion rule, and analysis model. Each choice reuses the <em>same simulated data</em> but can change the estimate and p-value.</p>
+    <div class="grid">
+      <div>
+        <div class="choice-grid">
+          <div class="field"><label for="outcome">Outcome metric</label><select id="outcome"><option value="primary">Primary score</option><option value="engagement">Engagement index</option><option value="satisfaction">Satisfaction index</option><option value="intent">Retention intent index</option></select></div>
+          <div class="field"><label for="segment">Which participants?</label><select id="segment"><option value="all">All participants</option><option value="younger">Ages 18–39</option><option value="older">Ages 40–67</option><option value="high">Higher baseline score</option></select></div>
+          <div class="field"><label for="rule">Inclusion / exclusion rule</label><select id="rule"><option value="keep">Keep everyone</option><option value="trim">Trim bottom/top 5% of outcome</option><option value="quality">Exclude low-effort responses</option></select></div>
+          <div class="field"><label for="model">Statistical model</label><select id="model"><option value="welch">Unadjusted Welch t-test</option><option value="adjusted">Baseline-adjusted OLS</option></select></div>
+        </div>
+        <div class="actions"><button class="secondary" id="scanBtn" type="button">Scan all 96 possible analyses</button><button class="primary" id="publishBtn" type="button">Publish selected analysis</button></div>
+        <div class="hint">The scan checks every combination and picks the positive result with the smallest p-value. You can also explore the choices yourself.</div>
+        <div class="audit"><div class="audit-head"><strong>Analysis trail</strong><span class="tiny" id="visitedCount">1 of 96 examined</span></div><div id="history" class="history" aria-live="polite"></div></div>
+      </div>
+      <div class="card">
+        <div class="readout"><div><div class="stat-label">Two-sided p-value</div><div class="big-p" id="pReadout">—</div></div><span class="badge" id="statusBadge">Calculating</span></div>
+        <div class="stats"><div class="stat"><div class="stat-label">Difference</div><div class="stat-val" id="effectReadout">—</div></div><div class="stat"><div class="stat-label">95% CI</div><div class="stat-val" id="ciReadout" style="font-size:1rem">—</div></div><div class="stat"><div class="stat-label">Included</div><div class="stat-val" id="nReadout">—</div></div></div>
+        <div class="chartBox" id="singlePlot" role="img" aria-label="Selected estimate and its 95 percent confidence interval"></div>
+        <div class="result-line" id="interpretReadout"></div>
+        <div class="hint">A p-value below 0.05 can appear even when no one received a treatment. If you try many analyses and report only the best result, that p-value leaves out the search.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="act" id="act2" hidden aria-labelledby="title2">
+    <div class="acttop"><div><div class="eyebrow">Act 2 — The publication</div><h2 id="title2">What the headline leaves out</h2></div><span class="badge warn" id="selectionBadge">Analysis selected</span></div>
+    <p class="actlead" id="act2Lead">The headline shows one analysis. The chart reveals the many different results obtainable from the same dataset.</p>
+    <div class="card"><div class="stat-label">Your simulated publication headline</div><div class="headline" id="headline">—</div><div class="subtle" id="selectedSpec">—</div></div>
+    <div class="labelgrid"><div class="stat"><div class="stat-label">Specifications possible</div><div class="stat-val">96</div></div><div class="stat"><div class="stat-label">Positive results, p &lt; 0.05</div><div class="stat-val" id="positiveCount">—</div></div><div class="stat"><div class="stat-label">Negative results, p &lt; 0.05</div><div class="stat-val" id="negativeCount">—</div></div></div>
+    <h3 id="the-full-specification-curve">The full specification curve</h3><p class="subtle">All 96 analyses use the <strong>same</strong> experiment. Each dot is an estimated effect; its line shows the 95% confidence interval for that single analysis. The outlined dot is the result you published.</p>
+    <div class="chartBox" id="curvePlot" role="group" aria-label="Interactive specification curve with all 96 treatment estimates and confidence intervals"></div>
+    <div class="curve-detail" id="curveDetail" aria-live="polite">Tap or hover over a dot to see which analysis produced it. Keyboard: focus the chart and use the left and right arrows.</div>
+    <div class="legend"><span><i class="dot" style="background:var(--teal)"></i>Positive p &lt; .05</span><span><i class="dot" style="background:var(--red)"></i>Negative p &lt; .05</span><span><i class="dot" style="background:var(--sky)"></i>Not significant</span></div>
+    <div class="insight" id="interpretCurve">—</div>
+    <details class="methods"><summary>Why these results are not 96 independent experiments</summary><p>The same simulated people appear in many analyses, so the results are related. The four outcomes are different measures on a common index-point scale; choosing a different outcome or subgroup can change the question being answered. The confidence intervals and p-values are calculated one analysis at a time. They do not account for searching across 96 alternatives.</p></details>
+    <div class="actions"><button class="primary" id="replicateBtn" type="button">Run independent, locked-specification replication</button><button class="ghost" id="backBtn" type="button">Change the analysis instead</button></div>
+  </section>
+
+  <section class="act" id="act3" hidden aria-labelledby="title3">
+    <div class="acttop"><div><div class="eyebrow">Act 3 — Lock &amp; replicate</div><h2 id="title3">New simulated people. Same analysis rules.</h2></div><span class="badge good">Specification locked</span></div>
+    <p class="actlead">We generated an independent sample of 320 new simulated people and randomly assigned the same empty group labels. Again, no treatment exists, and both groups’ scores come from the same process. Your chosen outcome, subgroup, exclusions, and statistical model are applied <strong>unchanged</strong>.</p>
+    <div class="card"><div class="readout"><strong id="repSummary">—</strong><span class="badge" id="repBadge">Replication</span></div><div class="chartBox" id="repPlot" role="img" aria-label="Original selected estimate and independent replication confidence intervals"></div><p class="subtle" id="repInterpret"></p></div>
+    <div class="actions"><button class="secondary" id="againBtn" type="button">Run another independent replication</button><button class="ghost" id="returnBtn" type="button">Return to analysis exploration</button></div>
+    <div class="audit"><div class="audit-head"><strong>All replications (none hidden)</strong><span class="tiny" id="repCount">0 run</span></div><div class="repitems" id="repHistory"></div></div>
+    <div class="insight"><strong>What this demonstrates:</strong> an effect picked because it looked impressive can overstate the true effect (sometimes called the “winner’s curse”). Replication estimates fluctuate around the true zero effect, but some can still pass p &lt; .05 by chance. A nonsignificant replication is not proof that the effect is exactly zero.</div>
+  </section>
+  
+<section class="ex-card ex-extension" id="comparison-families">
+  <h2 id="one-experiment-with-three-arms">One experiment with three arms</h2>
+  <p>Each arm enrolls 1,000 accounts. The primary outcome is 30-day conversion. Control converts 200 accounts, Offer A converts 242, and Offer B converts 252. Both planned contrasts use the same control. Choose the family and see which two-sided pooled z tests reject at a family alpha of 5%.</p>
+  <div class="ex-fields">
+    <label>Comparison family
+      <select id="comparison-family"><option value="control">Both offers against control</option><option value="all">All pairs, including B versus A</option></select>
+    </label>
+    <label>Adjustment
+      <select id="comparison-adjustment"><option value="bonferroni">Bonferroni</option><option value="holm">Holm step-down</option></select>
+    </label>
+  </div>
+  <p class="ex-status" id="comparison-summary" role="status"></p>
+  <div id="comparison-results"></div>
+  <p>For <em>k</em> arms, there are <em>k</em> − 1 control contrasts or <em>k</em>(<em>k</em> − 1)/2 pairs. For <em>m</em> independent true nulls, the chance of at least one false positive at unadjusted alpha is 1 − (1 − α)<sup><em>m</em></sup>. Shared controls or metrics generally create dependence. Bonferroni and Holm control family-wise error under arbitrary dependence. Šidák’s exact calculation assumes independence. Benjamini–Hochberg controls the expected false-discovery proportion under its usual independence or positive-dependence conditions.</p>
+  <p>Specify which primary contrasts and outcomes can drive the decision, label supporting metrics and exploratory subgroups, and lock the horizon and analysis before reading outcomes. If multiple metrics can independently trigger the same decision, include them in the family. Use prespecified sequential inference if outcome data can stop the test early. Carry the planned testing level into <a href="../sample-size-and-power/#pw-panel-binary">binary-outcome sizing</a>.</p>
+</section></div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../reference/#math-and-statistics">Reference &amp; Tools</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+(function(){
+'use strict';
+const N=320, GUIDED_SEED=49, ALPHA=.05;
+const FIELDS=['outcome','segment','rule','model'];
+const LEVELS={outcome:['primary','engagement','satisfaction','intent'],segment:['all','younger','older','high'],rule:['keep','trim','quality'],model:['welch','adjusted']};
+const LABELS={outcome:{primary:'Primary score',engagement:'Engagement index',satisfaction:'Satisfaction index',intent:'Retention intent index'},segment:{all:'All participants',younger:'Ages 18–39',older:'Ages 40–67',high:'Higher baseline'},rule:{keep:'Keep everyone',trim:'Trim outcome tails 5%',quality:'Exclude low-effort'},model:{welch:'Welch t-test',adjusted:'Adjusted OLS'}};
+const $=id=>document.getElementById(id);
+const htmlEscape=s=>String(s).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function rngFromSeed(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function gaussian(rng){let spare=null;return function(){if(spare!==null){const z=spare;spare=null;return z;}let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();const radius=Math.sqrt(-2*Math.log(u));const theta=2*Math.PI*v;spare=radius*Math.sin(theta);return radius*Math.cos(theta);};}
+function makeData(seed){const rng=rngFromSeed(seed),normal=gaussian(rng);const tx=Array.from({length:N},(_,i)=>i<N/2?1:0);for(let i=tx.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[tx[i],tx[j]]=[tx[j],tx[i]];}const rows=[];
+  for(let i=0;i<N;i++){
+    const age=18+Math.floor(50*rng()),baseline=50+10*normal(),shared=normal(),effort=rng()<.12;
+    const common=.46*(baseline-50)+.095*(age-43);
+    rows.push({t:tx[i],age,baseline,effort,
+       primary:50+common+6*shared+8.5*normal(),
+       engagement:50+.84*common+3*shared+10.5*normal(),
+       satisfaction:50+.65*common-2*shared+11*normal(),
+       intent:50+.9*common+5*shared+9*normal()});
+  }return rows;
+}
+function mean(values){return values.reduce((s,x)=>s+x,0)/values.length;}
+function variance(values,m){return values.reduce((s,x)=>s+(x-m)*(x-m),0)/(values.length-1);}
+function logGamma(z){const c=[.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];if(z<.5)return Math.log(Math.PI/Math.sin(Math.PI*z))-logGamma(1-z);z-=1;let x=c[0];for(let i=1;i<c.length;i++)x+=c[i]/(z+i);const t=z+7.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x);}
+function betaCF(x,a,b){const qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-25)d=1e-25;d=1/d;let h=d;for(let m=1;m<=200;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-25)d=1e-25;c=1+aa/c;if(Math.abs(c)<1e-25)c=1e-25;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-25)d=1e-25;c=1+aa/c;if(Math.abs(c)<1e-25)c=1e-25;d=1/d;const delta=d*c;h*=delta;if(Math.abs(delta-1)<1e-12)break;}return h;}
+function incompleteBeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1;const t=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?t*betaCF(x,a,b)/a:1-t*betaCF(1-x,b,a)/b;}
+function twoSidedP(t,df){if(!Number.isFinite(t)||!Number.isFinite(df)||df<=0)return NaN;return Math.max(0,Math.min(1,incompleteBeta(df/(df+t*t),df/2,.5)));}
+function crit95(df){let low=0,high=10;for(let i=0;i<45;i++){const mid=(low+high)/2;if(twoSidedP(mid,df)>.05)low=mid;else high=mid;}return (low+high)/2;}
+function inverse3(m){const a=m[0][0],b=m[0][1],c=m[0][2],d=m[1][0],e=m[1][1],f=m[1][2],g=m[2][0],h=m[2][1],i=m[2][2];const A=e*i-f*h,B=c*h-b*i,C=b*f-c*e,D=f*g-d*i,E=a*i-c*g,F=c*d-a*f,G=d*h-e*g,H=b*g-a*h,I=a*e-b*d;const det=a*A+b*D+c*G;if(Math.abs(det)<1e-10)return null;return [[A,B,C],[D,E,F],[G,H,I]].map(row=>row.map(v=>v/det));}
+function specKey(spec){return FIELDS.map(k=>spec[k]).join('|');}
+function specDescription(spec){return FIELDS.map(k=>LABELS[k][spec[k]]).join(' · ');}
+function selectRows(data,spec){let rows=data.filter(r=>spec.segment==='all'||(spec.segment==='younger'&&r.age<40)||(spec.segment==='older'&&r.age>=40)||(spec.segment==='high'&&r.baseline>=50));if(spec.rule==='quality')rows=rows.filter(r=>!r.effort);else if(spec.rule==='trim'){const sorted=rows.map(r=>r[spec.outcome]).sort((a,b)=>a-b);const low=sorted[Math.floor(.05*sorted.length)],high=sorted[Math.ceil(.95*sorted.length)-1];rows=rows.filter(r=>r[spec.outcome]>=low&&r[spec.outcome]<=high);}return rows;}
+function analyze(data,spec){const rows=selectRows(data,spec),nA=rows.filter(r=>r.t===1).length,nB=rows.length-nA;if(nA<4||nB<4)return null;let diff,se,df;
+  if(spec.model==='welch'){const a=rows.filter(r=>r.t===1).map(r=>r[spec.outcome]),b=rows.filter(r=>r.t===0).map(r=>r[spec.outcome]);const ma=mean(a),mb=mean(b),va=variance(a,ma),vb=variance(b,mb),v1=va/a.length,v0=vb/b.length;diff=ma-mb;se=Math.sqrt(v1+v0);df=(v1+v0)**2/(v1*v1/(a.length-1)+v0*v0/(b.length-1));}
+  else{const XtX=[[0,0,0],[0,0,0],[0,0,0]],Xty=[0,0,0];for(const r of rows){const x=[1,r.t,(r.baseline-50)/10],y=r[spec.outcome];for(let i=0;i<3;i++){Xty[i]+=x[i]*y;for(let j=0;j<3;j++)XtX[i][j]+=x[i]*x[j];}}const inv=inverse3(XtX);if(!inv)return null;const coef=inv.map(row=>row.reduce((s,v,j)=>s+v*Xty[j],0));let rss=0;for(const r of rows){const fit=coef[0]+coef[1]*r.t+coef[2]*(r.baseline-50)/10;rss+=(r[spec.outcome]-fit)**2;}df=rows.length-3;diff=coef[1];se=Math.sqrt(rss/df*inv[1][1]);}
+  if(!(se>0&&Number.isFinite(df)))return null;const p=twoSidedP(diff/se,df),margin=crit95(df)*se;return {spec:{...spec},diff,se,df,p,lo:diff-margin,hi:diff+margin,n:rows.length,nA,nB};
+}
+function allSpecs(data){const list=[];for(const outcome of LEVELS.outcome)for(const segment of LEVELS.segment)for(const rule of LEVELS.rule)for(const model of LEVELS.model){const s={outcome,segment,rule,model},result=analyze(data,s);if(result)list.push(result);}return list;}
+const fmtNum=(x,d=2)=>(x>=0?'+':'')+x.toFixed(d);
+const fmtP=p=>p<.0001?'< 0.0001':p.toFixed(4);
+function classification(r){return r.p<ALPHA?(r.diff>0?'positive':'negative'):'none';}
+function resultBadge(result){const c=classification(result);if(c==='positive')return ['Positive & significant','good'];if(c==='negative')return ['Negative & significant','bad'];return ['Not significant','warn'];}
+function svgEl(tag,attrs={},text=''){const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(text)node.textContent=text;return node;}
+function emptySvg(width,height){return svgEl('svg',{viewBox:`0 0 ${width} ${height}`,role:'presentation',xmlns:'http://www.w3.org/2000/svg'});}
+function graphCI(target,items){const svg=emptySvg(760,175+items.length*50),w=760,left=165,right=48,top=42,bottom=40,plotRight=w-right;
+  let valMax=Math.max(6,...items.flatMap(item=>[Math.abs(item.lo),Math.abs(item.hi)]));const spread=Math.ceil(valMax/2)*2;function X(x){return left+(x+spread)/(2*spread)*(plotRight-left);}const baselineY=top-18,stopY=100+items.length*47;
+  svg.appendChild(svgEl('line',{x1:X(0),y1:baselineY,x2:X(0),y2:stopY,stroke:'rgba(255,255,255,0.3)','stroke-dasharray':'5 5','stroke-width':1.6}));
+  for(const v of [-spread,0,spread]){svg.appendChild(svgEl('text',{x:X(v),y:stopY+23,fill:'rgba(255,255,255,0.7)','text-anchor':'middle','font-size':15},String(v)));}
+  for(let i=0;i<items.length;i++){const item=items[i],y=76+i*47,color=i===0&&items.length>1?'#fbbf24':'#2dd4bf';svg.appendChild(svgEl('text',{x:13,y:y+4,fill:'#ffffff','font-size':15},item.name));svg.appendChild(svgEl('line',{x1:X(item.lo),y1:y,x2:X(item.hi),y2:y,stroke:color,'stroke-width':5,'stroke-linecap':'round'}));for(const v of [item.lo,item.hi])svg.appendChild(svgEl('line',{x1:X(v),y1:y-7,x2:X(v),y2:y+7,stroke:color,'stroke-width':2}));svg.appendChild(svgEl('circle',{cx:X(item.diff),cy:y,r:7,fill:color,stroke:'#3b4b77','stroke-width':2}));}
+  svg.appendChild(svgEl('text',{x:(left+plotRight)/2,y:stopY+43,fill:'rgba(255,255,255,0.7)','text-anchor':'middle','font-size':13},'Difference in index points · zero means no effect'));
+  target.replaceChildren(svg);
+}
+function graphCurve(target,results,selected){
+  const sorted=[...results].sort((a,b)=>a.diff-b.diff);
+  const w=1000,h=420,left=70,right=30,top=35,bottom=57;
+  const maxAbs=Math.max(10,...results.flatMap(x=>[Math.abs(x.lo),Math.abs(x.hi)]));
+  const lim=Math.ceil(maxAbs/5)*5;
+  const X=i=>left+i/(sorted.length-1)*(w-left-right);
+  const Y=v=>top+(lim-v)/(2*lim)*(h-top-bottom);
+  const svg=emptySvg(w,h);
+  svg.setAttribute('tabindex','0');
+  svg.setAttribute('role','group');
+  svg.setAttribute('aria-label','Estimated treatment effects. Use arrow keys to inspect different analyses.');
+  for(const yv of [-lim,0,lim]){
+    svg.appendChild(svgEl('line',{x1:left,y1:Y(yv),x2:w-right,y2:Y(yv),stroke:yv===0?'rgba(255,255,255,0.5)':'rgba(255,255,255,0.2)','stroke-dasharray':yv===0?'6 5':'3 8','stroke-width':yv===0?2:1}));
+    svg.appendChild(svgEl('text',{x:left-13,y:Y(yv)+5,fill:'rgba(255,255,255,0.7)','text-anchor':'end','font-size':16},String(yv)));
+  }
+  let selectedIndex=0;
+  sorted.forEach((r,i)=>{
+    const x=X(i),state=classification(r),color=state==='positive'?'#2dd4bf':state==='negative'?'#f87171':'rgba(255,255,255,0.7)';
+    const isPicked=specKey(r.spec)===specKey(selected.spec);
+    if(isPicked)selectedIndex=i;
+    svg.appendChild(svgEl('line',{x1:x,y1:Y(r.lo),x2:x,y2:Y(r.hi),stroke:color,'stroke-opacity':isPicked?.9:.22,'stroke-width':isPicked?3:1.3}));
+    const circle=svgEl('circle',{cx:x,cy:Y(r.diff),r:isPicked?8:3.6,fill:color,stroke:isPicked?'#ffffff':'none','stroke-width':isPicked?3:0});
+    circle.appendChild(svgEl('title',{},`${specDescription(r.spec)}\nEstimate ${fmtNum(r.diff)} · p ${fmtP(r.p)} · 95% CI [${r.lo.toFixed(2)}, ${r.hi.toFixed(2)}]`));
+    svg.appendChild(circle);
+    if(isPicked)svg.appendChild(svgEl('line',{x1:x,y1:top,x2:x,y2:h-bottom,stroke:'#ffffff','stroke-dasharray':'3 8','stroke-opacity':'.8'}));
+  });
+  svg.appendChild(svgEl('text',{x:(left+w-right)/2,y:h-15,fill:'rgba(255,255,255,0.7)','text-anchor':'middle','font-size':15},'96 ways to analyze the data, sorted by estimated effect →'));
+  svg.appendChild(svgEl('text',{x:17,y:15,fill:'rgba(255,255,255,0.7)','font-size':14},'Effect (index points)'));
+  target.replaceChildren(svg);
+  function inspect(index){
+    selectedIndex=Math.max(0,Math.min(sorted.length-1,index));
+    const r=sorted[selectedIndex];
+    const verdict=classification(r)==='positive'?'Positive result, p < 0.05':classification(r)==='negative'?'Negative result, p < 0.05':'Not statistically significant';
+    $('curveDetail').textContent=`Analysis ${selectedIndex+1} of ${sorted.length}: ${specDescription(r.spec)}. Effect ${fmtNum(r.diff)} points; 95% interval [${r.lo.toFixed(2)}, ${r.hi.toFixed(2)}]; p ${fmtP(r.p)}. ${verdict}.`;
+  }
+  function inspectPointer(event){
+    const rect=svg.getBoundingClientRect();
+    if(rect.width<=0||rect.height<=0)return;
+    const pointerX=(event.clientX-rect.left)/rect.width*w;
+    const pointerY=(event.clientY-rect.top)/rect.height*h;
+    let index=0,best=Infinity;
+    sorted.forEach((r,i)=>{
+      const dx=X(i)-pointerX,dy=Y(r.diff)-pointerY;
+      const distance=dx*dx+dy*dy;
+      if(distance<best){index=i;best=distance;}
+    });
+    inspect(index);
+  }
+  svg.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')inspectPointer(event);});
+  svg.addEventListener('click',inspectPointer);
+  svg.addEventListener('keydown',event=>{
+    if(event.key==='ArrowRight'){event.preventDefault();inspect(selectedIndex+1);}
+    if(event.key==='ArrowLeft'){event.preventDefault();inspect(selectedIndex-1);}
+  });
+  inspect(selectedIndex);
+}
+
+let seed=GUIDED_SEED,data=[],results=[],current=null,locked=null,replications=[],history=[],visited=new Set(),mode='guided',randomCounter=0,phase=1;
+function currentSpec(){const result={};for(const k of FIELDS)result[k]=$(k).value;return result;}
+function setSpec(spec){for(const k of FIELDS)$(k).value=spec[k];}
+function defaultSpec(){return {outcome:'primary',segment:'all',rule:'keep',model:'welch'};}
+function record(result,note){const key=specKey(result.spec);visited.add(key);history.push({description:specDescription(result.spec),p:result.p,note:note||'manual'});if(history.length>130)history.shift();}
+function renderHistory(){ $('visitedCount').textContent=visited.size+' of '+results.length+' examined';$('history').innerHTML=history.slice(-5).reverse().map(item=>`<div><strong>p ${fmtP(item.p)}</strong> · ${htmlEscape(item.description)}${item.note==='scan'?' · <em>scan pick</em>':''}</div>`).join('');}
+function renderSelected(){current=analyze(data,currentSpec());if(!current)return;const [label,cl]=resultBadge(current);$('statusBadge').textContent=label;$('statusBadge').className='badge '+cl;$('pReadout').textContent=fmtP(current.p);$('effectReadout').textContent=fmtNum(current.diff);$('ciReadout').textContent=`[${current.lo.toFixed(1)}, ${current.hi.toFixed(1)}]`;$('nReadout').textContent=current.n+' / '+N;
+ const c=classification(current);$('interpretReadout').textContent=c==='positive'?'p < 0.05: The group with the fake “treatment” label scores higher here. What about the other analyses?':c==='negative'?'p < 0.05: The group with the fake “treatment” label scores lower here. This is significant, but not a positive result.':'This analysis does not show a statistically significant difference.';
+ graphCI($('singlePlot'),[{name:'This analysis',...current}]);renderHistory();}
+function changeSpec(note){const next=analyze(data,currentSpec());if(!next){$('interpretReadout').textContent='Too few participants remain for this analysis. Choose a broader group.';return;}record(next,note||'manual');renderSelected();}
+function showStep(n){phase=n;for(let i=1;i<=3;i++)$('step'+i).className='step'+(i===n?' current':i<n?' complete':'');$('act2').hidden=n<2;$('act3').hidden=n<3;}
+function scrollToAct(id){if(document.documentElement.scrollTo&&$(''+id))$(id).scrollIntoView({behavior:'smooth',block:'start'});}
+function reset(newSeed,newMode){seed=newSeed;mode=newMode;data=makeData(seed);results=allSpecs(data);locked=null;replications=[];visited=new Set();history=[];setSpec(defaultSpec());showStep(1);record(analyze(data,defaultSpec()),'initial');renderSelected();$('repHistory').replaceChildren();$('repCount').textContent='0 run';$('seedNote').textContent=mode==='guided'?'The first experiment was selected to make an apparent discovery possible. This is not a typical random draw.':'This experiment was generated at random. A significant finding is not guaranteed.';$('act2').hidden=true;$('act3').hidden=true;}
+function randomSeed(){if(window.crypto&&window.crypto.getRandomValues){const x=new Uint32Array(1);window.crypto.getRandomValues(x);return x[0];}randomCounter++;return (Date.now()+Math.floor(Math.random()*1e9)+randomCounter)>>>0;}
+function scan(){const acceptable=results.filter(r=>r.diff>0&&r.p<ALPHA);const candidates=(acceptable.length?acceptable:results.filter(r=>r.diff>0));if(candidates.length===0){alert('No positive estimates on this dataset.');return;}const best=[...candidates].sort((a,b)=>a.p-b.p)[0];for(const r of results)visited.add(specKey(r.spec));setSpec(best.spec);record(best,'scan');renderSelected();if(phase>1){showStep(1);locked=null;replications=[];}if(!acceptable.length) $('interpretReadout').textContent='The full search found no positive result with p < 0.05. Even after trying many analyses, chance does not guarantee a significant finding.';}
+function publish(){locked=analyze(data,currentSpec());if(!locked)return;const c=classification(locked);const baselineOnly=visited.size===1&&specKey(locked.spec)===specKey(defaultSpec());$('selectionBadge').textContent=baselineOnly?'Starting analysis — no alternatives explored':'Chosen after exploring alternatives';$('selectionBadge').className='badge '+(baselineOnly?'good':'warn');$('act2Lead').textContent=baselineOnly?'You published the starting analysis without exploring other options. Here are the other analyses that could have been run.':'You chose one result after trying different analyses. See how the same dataset supports a much wider range of headlines.';$('selectedSpec').textContent=specDescription(locked.spec)+` · n = ${locked.n} · estimated effect ${fmtNum(locked.diff)} points · 95% interval [${locked.lo.toFixed(2)}, ${locked.hi.toFixed(2)}]`;
+  $('headline').textContent=c==='positive'?`“Treatment improves ${LABELS.outcome[locked.spec.outcome]}” (p ${fmtP(locked.p)})`:c==='negative'?`“Treatment reduces ${LABELS.outcome[locked.spec.outcome]}” (p ${fmtP(locked.p)})`:`“No statistically significant difference in ${LABELS.outcome[locked.spec.outcome]}” (p ${fmtP(locked.p)})`;
+  const pos=results.filter(r=>classification(r)==='positive').length,neg=results.filter(r=>classification(r)==='negative').length;$('positiveCount').textContent=pos;$('negativeCount').textContent=neg;graphCurve($('curvePlot'),results,locked);
+  $('interpretCurve').textContent=`Out of ${results.length} ways to analyze these data, ${pos} yield a positive result with p < 0.05 and ${neg} yield a negative one. But “treatment” is only a random label: neither group received anything different. You examined ${visited.size} analysis choice${visited.size===1?'':'s'} before publishing. These are related analyses of the same simulated people, so this count does not tell us the chance of finding a false positive in a new experiment.`;
+  replications=[];$('repCount').textContent='0 run';$('repHistory').replaceChildren();$('act3').hidden=true;showStep(2);scrollToAct('act2');
+}
+function runReplication(){if(!locked)return;const data2=makeData(randomSeed()),rep=analyze(data2,locked.spec);if(!rep){$('repSummary').textContent='This sample leaves too few participants under the locked rules to calculate a result.';return;}replications.push(rep);const c=classification(rep),[label,cls]=resultBadge(rep);$('repBadge').textContent=label;$('repBadge').className='badge '+cls;$('repSummary').textContent=`Replication ${replications.length}: effect ${fmtNum(rep.diff)} points · p ${fmtP(rep.p)}`;
+ graphCI($('repPlot'),[{name:'Original selected',...locked},{name:'Fresh replication',...rep}]);$('repInterpret').textContent=c==='positive'?'This replication is significantly positive, even though its true effect is zero. A false positive is possible in an independent test; repeating replications until one agrees would create a new selection problem.':c==='negative'?'This independent replication is significant in the negative direction. Under the true null, such tail results remain possible.':'This replication is not statistically significant. That does not establish an exactly zero effect; it illustrates how a selected original estimate need not reappear in a new sample.';
+ $('repCount').textContent=replications.length+' run';$('repHistory').innerHTML=replications.map((r,i)=>({r,i})).reverse().map(({r,i})=>`<div class="repitem"><span>Replication ${i+1} · effect ${fmtNum(r.diff)} · p ${fmtP(r.p)}</span><strong>${classification(r)==='none'?'Not significant':classification(r)==='positive'?'Significant (+)':'Significant (−)'}</strong></div>`).join('');showStep(3);scrollToAct('act3');}
+for(const k of FIELDS)$(k).addEventListener('change',()=>{changeSpec();if(phase>1){$('act2').hidden=true;$('act3').hidden=true;showStep(1);locked=null;replications=[];}});
+$('scanBtn').addEventListener('click',scan);$('publishBtn').addEventListener('click',publish);$('replicateBtn').addEventListener('click',runReplication);$('againBtn').addEventListener('click',runReplication);$('guidedBtn').addEventListener('click',()=>{reset(GUIDED_SEED,'guided');window.scrollTo({top:0,behavior:'smooth'});});$('randomBtn').addEventListener('click',()=>{reset(randomSeed(),'random');window.scrollTo({top:0,behavior:'smooth'});});$('backBtn').addEventListener('click',()=>{showStep(1);locked=null;scrollToAct('act1');});$('returnBtn').addEventListener('click',()=>{showStep(1);locked=null;scrollToAct('act1');});
+reset(GUIDED_SEED,'guided');
+
+})();
+</script><script type="module" src="../../assets/experiment-multiple.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

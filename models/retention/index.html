@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retention | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script><script src="../../assets/vendor/papaparse-5.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../../effects/matching/">Matching</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li><li><a href="../../effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media response</a><ul class="mg-links"><li><a href="../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="./">Retention</a></li><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li><a href="../customer-value/">Customer value</a></li><li aria-current="page">Retention</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Retention</h1><p class="mg-question">When do customer cohorts return, and how does retention vary across periods?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Customer IDs and dated activity in the format described by the CSV analyzer.</dd></div>
+    <div><dt>Assumptions</dt><dd>Use a consistent activity definition and observation window across cohorts.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../churn/">Churn</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+
+  
+
+  <p class="problem-statement">Analyze retention cohorts, calculate rolling retention rates, and upload your own CSV for cohort analysis.</p>
+
+  <!-- Concept Cards -->
+  <div class="content-card">
+    <h2 id="retention-analytics-growth">Retention Analytics &amp; Growth</h2>
+    <p>Understand the retention analysis framework — click any step to learn more.</p>
+    <div class="concept-grid">
+
+      <div class="concept-card" data-toggle="concept">
+        <h3 id="cohort-analysis">1. Cohort Analysis</h3>
+        <div class="summary">Group customers by signup month and track retention rates over time.</div>
+        <div class="expand-hint">Learn more <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg></div>
+        <div class="concept-detail">
+          Cohort analysis is the gold standard for measuring retention because it controls for time. Group customers by their signup month (or week), then measure what percentage are still active at Month 1, Month 2, etc. This reveals whether your product is <strong>getting better or worse</strong> at retaining people over time. Compare cohort curves — if newer cohorts retain better, your product improvements are working. If they’re flattening at a lower point, you have an engagement ceiling problem.
+        </div>
+      </div>
+
+      <div class="concept-card" data-toggle="concept">
+        <h3 id="engagement-scoring">2. Engagement Scoring</h3>
+        <div class="summary">Build composite scores from product usage, feature adoption, and interaction frequency.</div>
+        <div class="expand-hint">Learn more <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg></div>
+        <div class="concept-detail">
+          An engagement score compresses multiple usage signals into a single health metric. Common approach: identify 3–5 “core actions” that correlate with retention (e.g., creating a project, inviting a teammate, running a report). Score each action 0–100 based on frequency relative to your power users, then compute a weighted average. <strong>Weight actions by their correlation with 90-day retention</strong>, not by gut feel. Recalibrate quarterly as your product evolves.
+        </div>
+      </div>
+
+      <div class="concept-card" data-toggle="concept">
+        <h3 id="milestone-tracking">3. Milestone Tracking</h3>
+        <div class="summary">Monitor key activation events that correlate with long-term retention.</div>
+        <div class="expand-hint">Learn more <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg></div>
+        <div class="concept-detail">
+          The “aha moment” concept: users who complete certain actions early are dramatically more likely to stay. Facebook’s was “7 friends in 10 days,” Slack’s was “2,000 messages sent.” Find yours by running a <strong>correlation analysis</strong> between early actions (first 7/14/30 days) and 90-day retention. Look for actions with both high correlation and reasonable completion rates. Build your onboarding around driving users to these milestones.
+        </div>
+      </div>
+
+      <div class="concept-card" data-toggle="concept">
+        <h3 id="attrition-diagnostics">4. Attrition Diagnostics</h3>
+        <div class="summary">Analyze churn reasons, timing, and profiles to find systemic improvement areas.</div>
+        <div class="expand-hint">Learn more <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg></div>
+        <div class="concept-detail">
+          Don’t just measure <em>how much</em> churn — understand <em>why</em> and <em>when</em>. Map your churn timing curve: is attrition front-loaded (onboarding problem) or does it spike after month 6 (value realization problem)? Categorize churn reasons: price, competitor, missing feature, poor support, no longer needed. Cross-reference with segments: are enterprise customers churning for different reasons than SMBs? This diagnostic view turns churn from a single scary number into an <strong>actionable improvement roadmap</strong>.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tool: Rolling Retention Calculator -->
+  <div class="tool-section">
+    <h2 id="rolling-retention-calculator">Rolling Retention Calculator</h2>
+    <p class="tool-desc">Input your monthly customer counts and get month-over-month retention rates, average customer lifespan, and a retention curve.</p>
+
+    <div class="field">
+      <label for="rolling-input">Monthly Customer Counts (comma-separated)</label>
+      <textarea id="rolling-input" placeholder="e.g. 100, 85, 76, 70, 64, 60, 57, 55, 53, 52, 51, 50">100, 85, 76, 70, 64, 60, 57, 55, 53, 52, 51, 50</textarea>
+      <small>Month 0 = starting count. Each subsequent number = customers remaining at that month.</small>
+    </div>
+
+    <div class="btn-row">
+      <button class="calc-btn" id="btn-calc-rolling">Calculate Retention</button>
+    </div>
+
+    <div class="status-msg" id="rolling-error"></div>
+
+    <div class="results-panel" id="rolling-results">
+      <h3 id="retention-analysis">Retention Analysis</h3>
+      <div id="rolling-metrics"></div>
+      <div class="chart-container">
+        <canvas id="rollingChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool: CSV Cohort Analyzer -->
+  <div class="tool-section">
+    <h2 id="csv-cohort-retention-analyzer">CSV Cohort Retention Analyzer</h2>
+    <p class="tool-desc">Upload or paste a CSV with customer_id, signup_date, and churn_date (blank if still active) to compute real cohort retention. A sample dataset is pre-loaded below so you can see the output before bringing your own data.</p>
+
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="calc-btn secondary" id="btn-load-sample">Reload Sample Dataset</button>
+      <small style="align-self:center;color:rgba(255,255,255,0.5);">320 synthetic customers, 8 monthly cohorts — replaced as soon as you load your own CSV.</small>
+    </div>
+
+    <div class="csv-drop-zone" id="csvDropZone">
+      <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt">
+      <strong>Click to upload CSV</strong> or drag &amp; drop<br>
+      <span style="font-size:12px;opacity:0.7;">Expected columns: customer_id, signup_date, churn_date</span>
+    </div>
+
+    <details>
+      <summary>Or paste CSV data directly</summary>
+      <div class="field" style="margin-top:8px;">
+        <textarea id="csvPasteArea" placeholder="customer_id,signup_date,churn_date
+c001,2024-01-15,2024-05-20
+c002,2024-01-22,
+c003,2024-02-03,2024-04-11
+c004,2024-02-14,2024-08-01
+c005,2024-03-01,"></textarea>
+      </div>
+      <button class="calc-btn secondary" id="btn-parse-csv" style="margin-top:8px;">Parse Pasted Data</button>
+    </details>
+
+    <div class="status-msg" id="csv-status"></div>
+
+    <div class="results-panel" id="csv-results">
+      <h3 id="cohort-retention-table">Cohort Retention Table</h3>
+      <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px;">Cohorts grouped by signup month. Percentages show customers still active after N months.</p>
+      <div class="cohort-table-wrapper" id="csv-table-wrapper"></div>
+      <div class="chart-container" style="margin-top:18px;">
+        <canvas id="csvCohortChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../reference/choosing-a-causal-comparison/#duration-did">Duration DiD for cumulative exit</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var chartInstances = {};
+
+  function fmt(n, decimals) {
+    if (typeof decimals === 'undefined') decimals = 2;
+    return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+  function fmtPct(n, decimals) {
+    if (typeof decimals === 'undefined') decimals = 1;
+    return n.toFixed(decimals) + '%';
+  }
+  function showResults(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('visible');
+  }
+  function clearStatus(id) {
+    var el = document.getElementById(id);
+    if (el) { el.className = 'status-msg'; el.textContent = ''; }
+  }
+  function setStatus(id, msg, type) {
+    var el = document.getElementById(id);
+    if (el) { el.className = 'status-msg ' + type; el.textContent = msg; }
+  }
+  function metricsHTML(pairs) {
+    return pairs.map(function(pair) {
+      return '<div class="result-metric"><span class="label">' + pair[0] + '</span><span class="value">' + pair[1] + '</span></div>';
+    }).join('');
+  }
+  function getOrCreateChart(canvasId, config) {
+    if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+    chartInstances[canvasId] = new Chart(canvas.getContext('2d'), config);
+    return chartInstances[canvasId];
+  }
+
+  var chartScaleOpts = {
+    y: {
+      min: 0, max: 105,
+      ticks: { callback: function(v) { return v + '%'; }, color: 'rgba(255,255,255,0.5)' },
+      grid: { color: 'rgba(255,255,255,0.06)' }
+    },
+    x: {
+      ticks: { color: 'rgba(255,255,255,0.5)' },
+      grid: { display: false }
+    }
+  };
+
+  /* Concept card toggle */
+  var conceptCards = document.querySelectorAll('.concept-card[data-toggle="concept"]');
+  for (var i = 0; i < conceptCards.length; i++) {
+    conceptCards[i].addEventListener('click', function() { this.classList.toggle('expanded'); });
+  }
+
+  /* Rolling Retention Calculator */
+  document.getElementById('btn-calc-rolling').addEventListener('click', function() {
+    clearStatus('rolling-error');
+    var raw = document.getElementById('rolling-input').value.trim();
+    var nums = raw.split(/[\s,]+/).map(Number).filter(function(n) { return !isNaN(n) && n >= 0; });
+
+    if (nums.length < 2) {
+      setStatus('rolling-error', 'Please enter at least 2 monthly counts.', 'error');
+      return;
+    }
+    var base = nums[0];
+    if (base <= 0) {
+      setStatus('rolling-error', 'Month 0 count must be greater than 0.', 'error');
+      return;
+    }
+
+    var retentionPcts = nums.map(function(n) { return (n / base) * 100; });
+    var momRetention = [];
+    for (var j = 1; j < nums.length; j++) {
+      momRetention.push(nums[j - 1] > 0 ? (nums[j] / nums[j - 1]) * 100 : 0);
+    }
+    var avgMoM = momRetention.reduce(function(a, b) { return a + b; }, 0) / momRetention.length;
+    var avgChurn = 100 - avgMoM;
+    var impliedLifespan = avgChurn > 0 ? 1 / (avgChurn / 100) : Infinity;
+
+    var metricsTable = '<div class="cohort-table-wrapper"><table class="cohort-table"><tr><th>Month</th>';
+    for (var k = 0; k < nums.length; k++) metricsTable += '<th>M' + k + '</th>';
+    metricsTable += '</tr><tr><td class="label-cell">Customers</td>';
+    for (var k2 = 0; k2 < nums.length; k2++) metricsTable += '<td>' + fmt(nums[k2], 0) + '</td>';
+    metricsTable += '</tr><tr><td class="label-cell">Retention</td>';
+    for (var k3 = 0; k3 < retentionPcts.length; k3++) metricsTable += '<td>' + fmtPct(retentionPcts[k3]) + '</td>';
+    metricsTable += '</tr><tr><td class="label-cell">MoM Retention</td><td>\u2014</td>';
+    for (var k4 = 0; k4 < momRetention.length; k4++) metricsTable += '<td>' + fmtPct(momRetention[k4]) + '</td>';
+    metricsTable += '</tr></table></div>';
+
+    document.getElementById('rolling-metrics').innerHTML = metricsTable + metricsHTML([
+      ['Avg Month-over-Month Retention', fmtPct(avgMoM)],
+      ['Avg Monthly Churn Rate', fmtPct(avgChurn)],
+      ['Implied Avg Customer Lifespan', impliedLifespan === Infinity ? '\u221E' : fmt(impliedLifespan, 1) + ' months'],
+      ['Period-End Retention', fmtPct(retentionPcts[retentionPcts.length - 1])]
+    ]);
+
+    var labels = nums.map(function(_, idx) { return 'Month ' + idx; });
+    getOrCreateChart('rollingChart', {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Retention %',
+          data: retentionPcts,
+          borderColor: '#2dd4bf',
+          backgroundColor: 'rgba(45, 212, 191, 0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#2dd4bf',
+          borderWidth: 2.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y.toFixed(1) + '%'; } } }
+        },
+        scales: chartScaleOpts
+      }
+    });
+
+    showResults('rolling-results');
+  });
+
+  /* Parse dates in local time. new Date('YYYY-MM-DD') is interpreted as UTC
+     midnight, which shifts 1st-of-month signups into the previous month's
+     cohort in western timezones. */
+  function parseLocalDate(value) {
+    if (value instanceof Date) return value;
+    if (typeof value !== 'string') return new Date(NaN);
+    var m = value.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    return new Date(value);
+  }
+
+  /* CSV Cohort Analyzer */
+  function processCSVData(results, isDemo) {
+    clearStatus('csv-status');
+    var data = results.data.filter(function(row) { return row.customer_id && row.signup_date; });
+
+    if (data.length === 0) {
+      setStatus('csv-status', 'No valid rows found. Ensure columns: customer_id, signup_date, churn_date', 'error');
+      return;
+    }
+    setStatus('csv-status', 'Parsed ' + data.length + ' customer records. Processing cohorts...', 'info');
+
+    var maxDate = new Date();
+    data.forEach(function(row) {
+      if (row.churn_date) {
+        var cd = parseLocalDate(row.churn_date);
+        if (cd > maxDate) maxDate = cd;
+      }
+    });
+
+    var cohorts = {};
+    data.forEach(function(row) {
+      var signup = parseLocalDate(row.signup_date);
+      if (isNaN(signup.getTime())) return;
+      var key = signup.getFullYear() + '-' + String(signup.getMonth() + 1).padStart(2, '0');
+      if (!cohorts[key]) cohorts[key] = [];
+
+      var churnDate = row.churn_date ? parseLocalDate(row.churn_date) : null;
+      var churnValid = churnDate && !isNaN(churnDate.getTime());
+      var endDate = churnValid ? churnDate : maxDate;
+      var lifespanMonths = (endDate.getFullYear() - signup.getFullYear()) * 12 + (endDate.getMonth() - signup.getMonth());
+
+      cohorts[key].push({ churned: churnValid, lifespanMonths: Math.max(0, lifespanMonths) });
+    });
+
+    var sortedKeys = Object.keys(cohorts).sort();
+    if (sortedKeys.length === 0) {
+      setStatus('csv-status', 'Could not parse any valid cohort data.', 'error');
+      return;
+    }
+
+    var maxMonths = 0;
+    sortedKeys.forEach(function(k) {
+      cohorts[k].forEach(function(c) { if (c.lifespanMonths > maxMonths) maxMonths = c.lifespanMonths; });
+    });
+    maxMonths = Math.min(maxMonths, 18);
+
+    var html = '<table class="cohort-table"><tr><th>Cohort</th><th>Size</th>';
+    for (var m = 0; m <= maxMonths; m++) html += '<th>M' + m + '</th>';
+    html += '</tr>';
+
+    var cohortRetentionData = {};
+    sortedKeys.forEach(function(key) {
+      var customers = cohorts[key];
+      var size = customers.length;
+      html += '<tr><td class="label-cell">' + key + '</td><td>' + size + '</td>';
+      cohortRetentionData[key] = [];
+      for (var m2 = 0; m2 <= maxMonths; m2++) {
+        var retained = customers.filter(function(c) { return c.lifespanMonths >= m2; }).length;
+        var pct = (retained / size) * 100;
+        cohortRetentionData[key].push(pct);
+        var bg = '';
+        if (pct >= 90) bg = 'rgba(45,212,191,0.3)';
+        else if (pct >= 70) bg = 'rgba(96,165,250,0.3)';
+        else if (pct >= 50) bg = 'rgba(167,139,250,0.3)';
+        else if (pct >= 30) bg = 'rgba(251,191,36,0.25)';
+        else bg = 'rgba(248,113,113,0.25)';
+        html += '<td style="background:' + bg + ';font-size:12px;">' + pct.toFixed(0) + '%</td>';
+      }
+      html += '</tr>';
+    });
+    html += '</table>';
+    document.getElementById('csv-table-wrapper').innerHTML = html;
+
+    var colors = ['#2dd4bf','#60a5fa','#fbbf24','#f87171','#a78bfa','#f472b6','#22d3ee','#a3e635'];
+    var datasets = sortedKeys.slice(0, 8).map(function(key, idx) {
+      return {
+        label: key,
+        data: cohortRetentionData[key],
+        borderColor: colors[idx % colors.length],
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        pointRadius: 3,
+        borderWidth: 2
+      };
+    });
+
+    var monthLabels = [];
+    for (var m3 = 0; m3 <= maxMonths; m3++) monthLabels.push('M' + m3);
+
+    getOrCreateChart('csvCohortChart', {
+      type: 'line',
+      data: { labels: monthLabels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: 'rgba(255,255,255,0.7)' } },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%'; } } }
+        },
+        scales: chartScaleOpts
+      }
+    });
+
+    if (isDemo === true) {
+      setStatus('csv-status', 'Showing a sample dataset (' + data.length + ' synthetic customers, ' + sortedKeys.length + ' cohorts). Upload or paste your own CSV to analyze real data.', 'info');
+    } else {
+      setStatus('csv-status', 'Successfully analyzed ' + data.length + ' customers across ' + sortedKeys.length + ' cohorts.', 'success');
+    }
+    showResults('csv-results');
+  }
+
+  /* Sample dataset: deterministic synthetic cohorts so the tool shows
+     real output before the user uploads anything. */
+  function mulberry32(seed) {
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function generateSampleData() {
+    var rand = mulberry32(8139);
+    var rows = [];
+    var id = 1;
+    // 8 monthly cohorts starting 2024-01; newer cohorts retain slightly better
+    for (var c = 0; c < 8; c++) {
+      var size = 40;
+      for (var i = 0; i < size; i++) {
+        var signupDay = 1 + Math.floor(rand() * 28);
+        var signup = new Date(2024, c, signupDay);
+        // Simulate monthly churn: front-loaded hazard that flattens over time,
+        // improved a little for each newer cohort.
+        var improve = 1 - c * 0.03;
+        var churnMonth = null;
+        for (var m = 1; m <= 24; m++) {
+          var hazard = (m <= 2 ? 0.16 : m <= 5 ? 0.08 : 0.03) * improve;
+          if (rand() < hazard) { churnMonth = m; break; }
+        }
+        var churnStr = '';
+        if (churnMonth !== null) {
+          var churn = new Date(2024, c + churnMonth, 1 + Math.floor(rand() * 28));
+          churnStr = churn.getFullYear() + '-' + String(churn.getMonth() + 1).padStart(2, '0') + '-' + String(churn.getDate()).padStart(2, '0');
+        }
+        rows.push({
+          customer_id: 'c' + String(id++).padStart(3, '0'),
+          signup_date: signup.getFullYear() + '-' + String(signup.getMonth() + 1).padStart(2, '0') + '-' + String(signup.getDate()).padStart(2, '0'),
+          churn_date: churnStr
+        });
+      }
+    }
+    return rows;
+  }
+
+  function loadSampleDataset() {
+    processCSVData({ data: generateSampleData() }, true);
+  }
+
+  document.getElementById('btn-load-sample').addEventListener('click', loadSampleDataset);
+
+  var csvFileInput = document.getElementById('csvFileInput');
+  csvFileInput.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    Papa.parse(file, {
+      header: true, skipEmptyLines: true,
+      complete: processCSVData,
+      error: function(err) { setStatus('csv-status', 'Error parsing file: ' + err.message, 'error'); }
+    });
+  });
+
+  var dropZone = document.getElementById('csvDropZone');
+  dropZone.addEventListener('click', function() { csvFileInput.click(); });
+  dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    var file = e.dataTransfer.files[0];
+    if (file) {
+      Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: processCSVData,
+        error: function(err) { setStatus('csv-status', 'Error parsing file: ' + err.message, 'error'); }
+      });
+    }
+  });
+
+  document.getElementById('btn-parse-csv').addEventListener('click', function() {
+    var text = document.getElementById('csvPasteArea').value.trim();
+    if (!text) { setStatus('csv-status', 'Please paste CSV data first.', 'error'); return; }
+    Papa.parse(text, {
+      header: true, skipEmptyLines: true,
+      complete: processCSVData,
+      error: function(err) { setStatus('csv-status', 'Error parsing data: ' + err.message, 'error'); }
+    });
+  });
+
+  /* Pre-populate both tools on page load so visitors see real output immediately */
+  loadSampleDataset();
+  document.getElementById('btn-calc-rolling').click();
+});
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

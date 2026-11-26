@@ -7,19 +7,18 @@ Author: [causalscience.com](https://causalscience.com) · goodinaaron@causalscie
 
 ## What's here
 
-- **Measurement Plan** — map business outcomes to GA4 events
-- **Attribution Trap** — last-touch vs multi-touch
-- **Advanced Attribution** — Markov removal
-- **MTA Calibration** — calibrate attribution against tested lift
-- **Saturation & Decay** — diminishing returns and adstock
-- **Marketing Mix Modeling** — waterfall and response curves (with a Readiness check)
-- **Incrementality** — confounded vs randomized data
-- **Surveys** — post-purchase attribution
-- **Response Models** — propensity and uplift
-- **Budget Decision** — efficiency-goal-based reallocation
+- Plan measurement and define KPIs.
+- Estimate effects with experiments and observational methods.
+- Reconcile attribution, holdout tests, and survey evidence.
+- Model marketing and customer behavior.
+- Use the evidence to make budget and retention decisions.
 
-## Stack
+## Local preview
 
-Static HTML, CSS, and vanilla JavaScript. No build step. Served from GitHub Pages.
-</content>
-</invoke>
+Serve the repository root and open [the local guide](http://127.0.0.1:8000/).
+
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+GitHub Pages serves the static HTML, CSS, and JavaScript directly.
