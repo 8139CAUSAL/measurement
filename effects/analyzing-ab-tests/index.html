@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analyzing A/B Tests | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="./">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../matching/">Matching</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li><li><a href="../matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Analyzing A/B Tests</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Analyzing A/B Tests</h1><p class="mg-question">Which estimate and interval answer the decision the experiment was designed to inform?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Randomized IDs, eligibility rules, outcome counts or unit-level values, and a fixed observation window.</dd></div>
+    <div><dt>Assumptions</dt><dd>Prespecify the estimand and uncertainty method. Align follow-up and use the randomized unit for inference.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../randomized-assignment/">Randomized Assignment and Blocking</a>, <a href="../p-values/">P-Values</a></dd></div>
+  </dl>
+</header><div class="ex-content">
+  <div class="ex-tabs" data-guide-tablist="A/B analysis views">
+    <button class="active" type="button" data-guide-tab="metric-and-distribution">Metric and distribution</button>
+    <button type="button" data-guide-tab="estimate-and-interval">Estimate and interval</button>
+    <button type="button" data-guide-tab="mix-and-time">Mix and time</button>
+  </div>
+
+  <section class="ex-card" id="metric-and-distribution">
+    <h2>Specify the unit, denominator and window</h2>
+    <p>Enroll eligible accounts and randomize by account. If the endpoint is 30-day conversion, record one measurable yes/no outcome for every assigned account, starting the clock at assignment. Count every eligible assigned account in its assigned arm, including unopened offers. Record missing follow-up separately from observed nonconversion. If exposure can spill across accounts or assignment happens by household, account for the actual randomized unit when estimating uncertainty.</p>
+    <p>Document eligibility, the event and join ID, the window, and the analysis before seeing outcomes. <a href="../../plan/measurement-plan/builder/#primary-kpis">Define the KPI in Plan Builder</a>. For binary conversion, go straight to <a href="#estimate-and-interval">Estimate and interval</a>. The continuous example below uses positive spend per account.</p>
+    <h3>Inspect skew and the sampling distribution</h3>
+    <div class="ex-fields">
+      <label>Accounts to display
+        <select id="distribution-group"><option value="control">Control</option><option value="offer">Offer</option><option value="pooled">Pooled observations</option></select>
+      </label>
+      <label>Quantity to display
+        <select id="distribution-view"><option value="raw">Raw spend</option><option value="means">Means of repeated samples</option></select>
+      </label>
+      <label>Independent units per repeated sample
+        <select id="distribution-size" disabled><option>4</option><option>16</option><option>64</option><option>128</option></select>
+      </label>
+    </div>
+    <label><input type="checkbox" id="distribution-extreme"> Replace the largest spend in each arm with an extreme value</label>
+    <p class="ex-status" id="distribution-summary" role="status"></p>
+    <div class="ex-grid">
+      <div><h3>Kernel density estimate</h3><div class="ex-chart"><canvas id="distribution-kde" role="img" aria-label="Kernel density estimate with mean, median and zero-dollar boundary"></canvas></div></div>
+      <div><h3>Normal Q–Q plot</h3><div class="ex-chart"><canvas id="distribution-qq" role="img" aria-label="Normal quantile–quantile plot with reference line and highlighted upper tail"></canvas></div></div>
+    </div>
+    <div id="distribution-table"></div>
+    <div id="normality-results"></div>
+    <p>The Gaussian kernel can put density below the zero-dollar boundary. The highlighted rightmost point shows the upper tail relative to the Q–Q reference line. A mean answers an average-value decision. A median describes a typical account, and a gap between them alone cannot identify outliers.</p>
+    <p>Check comparable groups or model residuals. Pooling can hide group differences or create a mixture that departs from normality. A pooled mixture can also be normal, as when its component distributions are identical. Look at sample size and tail shape alongside Shapiro–Wilk and Anderson–Darling, which emphasizes the tails. A large <em>W</em>, a nonsignificant test or a close visual fit cannot establish normality. The usual central limit argument for means requires independent units and finite variance. Extreme values and skew can slow convergence. <a href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda35e.htm">NIST guidance on distribution checks</a>.</p>
+    <p>For an observational comparison of activity and spending, see the Pearson example in <a href="../../models/path-analysis/#correlation-matrix">Path Analysis correlation matrix</a>.</p>
+  </section>
+
+  <section class="ex-card" id="estimate-and-interval" hidden>
+    <h2>Choose the method by the question</h2>
+    <div class="ex-fields"><label>Question about the randomized units
+      <select id="ab-method">
+        <option value="binary">Did the conversion probability change?</option>
+        <option value="means">Did average spend per account change?</option>
+        <option value="ranks">How often does an offer account outrank a control?</option>
+        <option value="ratio">Did conversions per visit change?</option>
+      </select>
+    </label></div>
+    <div id="ab-other-method" hidden></div>
+    <div id="ab-binary-method">
+      <p>Enter data for independent arms with complete follow-up. The contrast is offer minus control in percentage points. Relative lift divides the contrast by the control rate and is undefined when that rate is zero.</p>
+      <div class="ex-table"><table>
+        <caption>Assigned accounts and observed outcomes</caption>
+        <thead><tr><th scope="col">Arm</th><th scope="col">Converted</th><th scope="col">Did not convert</th><th scope="col">Assigned</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Control</th><td><input id="control-conversions" type="number" min="0" step="1" aria-label="Control conversions" value="218"></td><td id="control-failures"></td><td><input id="control-assigned" type="number" min="1" step="1" aria-label="Control assigned" value="1092"></td></tr>
+          <tr><th scope="row">Offer</th><td><input id="offer-conversions" type="number" min="0" step="1" aria-label="Offer conversions" value="273"></td><td id="offer-failures"></td><td><input id="offer-assigned" type="number" min="1" step="1" aria-label="Offer assigned" value="1092"></td></tr>
+        </tbody>
+      </table></div>
+      <div class="ex-fields"><label>Interval display
+        <select id="binary-view"><option value="contrast">Rate difference (Newcombe)</option><option value="rates">Arm rates (Wilson)</option><option value="coverage">Repeated-sample coverage</option></select>
+      </label></div>
+      <p id="binary-summary" class="ex-status" role="status"></p>
+      <div id="binary-plot"><div class="ex-chart"><canvas id="binary-chart" role="img" aria-label="Selected binomial confidence intervals"></canvas></div></div>
+      <div id="binary-results"></div>
+      <div id="binary-coverage" hidden>
+        <h3>Repeat samples from known rates</h3>
+        <p>Keep the assigned counts above and specify the rates that generate each binomial sample. View 300 independently simulated 95% Newcombe intervals.</p>
+        <div class="ex-fields">
+          <label>True control rate (%) <input type="number" id="true-control-rate" min="0" max="100" step="any" value="20"></label>
+          <label>True offer rate (%) <input type="number" id="true-offer-rate" min="0" max="100" step="any" value="25"></label>
+        </div>
+        <button class="ex-primary" id="repeat-coverage" type="button">Run 300 samples</button>
+        <p id="coverage-result" class="ex-status" role="status"></p>
+      </div>
+      <p>Wilson gives uncertainty for an individual arm rate. Newcombe’s hybrid-score method combines Wilson limits to estimate uncertainty for the difference. The Wald interval can collapse when observed rates are zero or one. Overlap of the arm intervals cannot decide a test of their difference. Coverage is how often a procedure includes the true difference in repeated samples under stated assumptions, and it can vary with the true rates. <a href="https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.confint_proportions_2indep.html">Independent-proportions interval methods</a>.</p>
+      <p>The pooled z-test is a separate test of a zero difference. Its two-sided p-value equals the uncorrected Pearson chi-square p-value for the same 2×2 outcome table with one degree of freedom. A sample ratio mismatch (SRM) instead checks assignment counts against planned allocation. Sparse expected cells can make the z approximation unreliable.</p>
+      <h3 id="nonsignificant-interval">A nonsignificant result can still include a meaningful lift</h3>
+      <p id="nonsignificant-summary"></p>
+      <button id="load-nonsignificant" type="button">Load this comparison</button>
+    </div>
+    <p id="ab-reference" class="ex-note">For confidence intervals and critical values, see <a href="../../models/reading-regressions/#reg-panel-ci">Regression confidence intervals</a> and the <a href="../../reference/t-distribution/">t-Distribution</a>. For several arms or outcomes, use <a href="../p-hacking-and-replication/#comparison-families">Multiple comparisons across arms</a>.</p>
+  </section>
+
+  <section class="ex-card" id="mix-and-time" hidden>
+    <h2>Check whom and when the estimate represents</h2>
+    <p>Both activity bands have a five-point offer advantage. Change the composition of the two arms and see whether pooling reverses the sign. These segments were defined before assignment. Randomization balances segment mix in expectation.</p>
+    <div class="ex-fields">
+      <label>Higher-activity share in control (%) <input id="mix-control" type="number" min="0" max="100" step="5" value="80"></label>
+      <label>Higher-activity share in offer (%) <input id="mix-offer" type="number" min="0" max="100" step="5" value="20"></label>
+    </div>
+    <label><input type="checkbox" id="mix-standardize"> Apply the enrolled segment weights to both arms</label>
+    <p id="mix-summary" class="ex-status" role="status"></p>
+    <div id="mix-table"></div>
+    <p>If one arm has no observed accounts in a band, the synthetic rates still show what standardization would do. Estimating that rate in a real experiment would require observations or a modeling assumption.</p>
+
+    <h3>Read the same trial by day and cumulatively</h3>
+    <p>The 21-day trial enrolls Monday through Sunday for three weeks. Each daily contrast uses the cohort assigned that day, with a common seven-day outcome window from first exposure opportunity. The last cohort matures seven days after the end of recruitment.</p>
+    <div class="ex-fields"><label>Time view
+      <select id="time-view"><option value="daily">Daily cohort lift</option><option value="cumulative">Cumulative lift through each cohort</option></select>
+    </label></div>
+    <div class="ex-chart"><canvas id="time-chart" role="img" aria-label="Conversion lift over time with the planned enrollment end marked"></canvas></div>
+    <details><summary>Daily cohorts, exposure timing and estimates</summary><div id="time-table"></div></details>
+    <p>Novelty or learning could change the effect as exposure accumulates, and weekday demand and traffic can also move the estimate. Whole weeks include every weekday, while traffic determines their weights. Align calendar periods and exposure windows across arms. A changing daily contrast alone cannot distinguish these explanations from noise. See <a href="../p-hacking-and-replication/">P-Hacking and Replication</a> before choosing a cutoff after looking at a cumulative plot.</p>
+  </section>
+</div>
+<aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../sample-size-and-power/#pw-panel-binary">Binary-outcome sizing</a></li><li><a href="../p-hacking-and-replication/#comparison-families">Multiple comparisons across arms</a></li><li><a href="../../models/reading-regressions/#reg-panel-ci">Regression confidence intervals</a></li><li><a href="../../reference/t-distribution/">t-Distribution</a></li><li><a href="../../models/path-analysis/#correlation-matrix">Path Analysis correlation matrix</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/experiment-analysis.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Worked Example · Loyalty Program Lift | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/legacy/customer.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../matching/">Matching</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li><li><a href="./">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Worked Example · Loyalty Program Lift</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Worked Example · Loyalty Program Lift</h1><p class="mg-question">What lift estimate do we get after matching customers and subtracting the comparison trend?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Pre-join customer characteristics and average group spend before and after enrollment.</dd></div>
+    <div><dt>Assumptions</dt><dd>Assess match quality and the parallel-trends assumption before interpreting lift.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../matching/">Matching</a>, <a href="../difference-in-differences/">Difference-in-Differences</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+
+  
+
+  <p class="problem-statement">Match members to similar non-members on measured characteristics, then compare how their spending changes.</p>
+
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h3 id="pre-join-matching">Pre-Join Matching</h3>
+      <p>Members and non-members are matched based on their behavior <strong>before</strong> the member joined — transactional characteristics, frequency, and order value.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h3 id="nearest-neighbor-matching">Nearest Neighbor Matching</h3>
+      <p>Match individual members to non-members with similar pre-join behavior. Compare changes in spending over the same period.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎛️</div>
+      <h3 id="control-variables">Control Variables</h3>
+      <p>Include relevant pre-join characteristics such as location or household behavior. Check overlap and balance after matching.</p>
+    </div>
+  </div>
+
+  <div class="accordion">
+
+    <div class="accordion-item">
+      <div class="accordion-header" data-guide-accordion="">
+        <h4><span class="num">1</span> Propensity Score Matching</h4>
+        <span class="accordion-icon"></span>
+      </div>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          <p>Calculate a single score representing each customer’s <span class="highlight">probability of joining</span>, then match members to non-members with similar scores.</p>
+          <ul>
+            <li>Reduces dimensionality — one score vs. many variables</li>
+            <li>Creates balanced comparison groups on observable characteristics</li>
+            <li>Assumes no unobserved confounders (unlike Heckman)</li>
+            <li>Works well when you have rich pre-join behavioral data</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <div class="accordion-header" data-guide-accordion="">
+        <h4><span class="num">2</span> Difference-in-Differences</h4>
+        <span class="accordion-icon"></span>
+      </div>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          <p>Compare the <span class="highlight">change in spending</span> for members vs. matched non-members from pre- to post-period.</p>
+          <ul>
+            <li>Controls for time-invariant differences between groups</li>
+            <li>Accounts for external trends affecting everyone equally</li>
+            <li>Estimated program lift = (Member post − Member pre) − (Control post − Control pre)</li>
+            <li>Requires comparable untreated spending changes, no anticipation, unexposed controls, and comparable group composition</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tool-section">
+    <h2 id="difference-in-differences-lift-calculator">Difference-in-Differences Lift Calculator</h2>
+    <p class="tool-desc">Enter average monthly spend for members and matched controls before and after the join date. At the defaults, members rise from $100 to $130 and controls from $98 to $108. The difference in changes gives an estimated program lift of $20 per member per month. An interval also requires information about sampling variation and dependence.</p>
+
+    <p>Review the <a href="../difference-in-differences/#parallel-trends">assumptions for interpreting the estimate</a>.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+      <div class="field">
+        <label for="did-member-pre">Members — pre-join spend ($/mo)</label>
+        <input type="number" id="did-member-pre" value="100" min="0" step="1">
+      </div>
+      <div class="field">
+        <label for="did-member-post">Members — post-join spend ($/mo)</label>
+        <input type="number" id="did-member-post" value="130" min="0" step="1">
+      </div>
+      <div class="field">
+        <label for="did-control-pre">Matched control — pre-period ($/mo)</label>
+        <input type="number" id="did-control-pre" value="98" min="0" step="1">
+      </div>
+      <div class="field">
+        <label for="did-control-post">Matched control — post-period ($/mo)</label>
+        <input type="number" id="did-control-post" value="108" min="0" step="1">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="calc-btn" id="btn-calc-did">Calculate Lift</button>
+    </div>
+
+    <div class="status-msg" id="did-status" role="status"></div>
+
+    <div class="results-panel" id="did-results" aria-live="polite">
+      <h3 id="program-lift-decomposition">Program Lift Decomposition</h3>
+      <div id="did-metrics"></div>
+      <p id="did-interp" style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.6);margin:12px 0 0;"></p>
+    </div>
+  </div>
+
+</div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  /* Accordion */
+  var headers = document.querySelectorAll('.accordion-header');
+  for (var i = 0; i < headers.length; i++) {
+    headers[i].addEventListener('click', function() {
+      this.parentElement.classList.toggle('open');
+    });
+  }
+
+  /* Difference-in-Differences calculator */
+  function money(n) {
+    var sign = n < 0 ? '−$' : '$';
+    return sign + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function calcDiD() {
+    var status = document.getElementById('did-status');
+    var results = document.getElementById('did-results');
+    status.className = 'status-msg';
+    status.textContent = '';
+
+    var mPre = parseFloat(document.getElementById('did-member-pre').value);
+    var mPost = parseFloat(document.getElementById('did-member-post').value);
+    var cPre = parseFloat(document.getElementById('did-control-pre').value);
+    var cPost = parseFloat(document.getElementById('did-control-post').value);
+
+    if ([mPre, mPost, cPre, cPost].some(function(v) { return !Number.isFinite(v) || v < 0; })) {
+      status.className = 'status-msg error';
+      status.textContent = 'Enter four nonnegative spend values.';
+      results.classList.remove('visible');
+      return;
+    }
+
+    var naive = mPost - mPre;
+    var trend = cPost - cPre;
+    var lift = naive - trend;
+    var liftPct = mPre > 0 ? ((lift / mPre) * 100).toFixed(1) + '%' : 'Undefined (zero pre-join spend)';
+
+    document.getElementById('did-metrics').innerHTML = [
+      ['Member change (post − pre)', money(naive)],
+      ['Matched control change (post − pre)', money(trend)],
+      ['Estimated program lift (DiD)', money(lift) + ' / member / mo'],
+      ['Lift as % of pre-join baseline', liftPct]
+    ].map(function(pair) {
+      return '<div class="result-metric"><span class="label">' + pair[0] + '</span><span class="value">' + pair[1] + '</span></div>';
+    }).join('');
+
+    var interp;
+    if (lift > 0) {
+      interp = 'The estimated program lift is positive at ' + money(lift) + ' per member per month.';
+    } else if (lift < 0) {
+      interp = 'The estimated program lift is negative at ' + money(lift) + ' per member per month.';
+    } else {
+      interp = 'Members and matched controls changed by the same amount. The estimated program lift is zero.';
+    }
+    document.getElementById('did-interp').textContent = interp +
+      ' A causal interpretation requires parallel untreated changes, no anticipation, unexposed controls, and comparable composition.';
+    results.classList.add('visible');
+  }
+
+  document.getElementById('btn-calc-did').addEventListener('click', calcDiD);
+  calcDiD();
+});
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

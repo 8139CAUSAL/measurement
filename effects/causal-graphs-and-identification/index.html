@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Causal Graphs and Identification | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/experiments.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="./">Causal Graphs and Identification</a></li><li><a href="../propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../matching/">Matching</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li><li><a href="../matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Causal Graphs and Identification</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Causal Graphs and Identification</h1><p class="mg-question">Which comparisons can identify an intervention’s effect from observational data?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>A unit, a well-defined intervention, a target population, a follow-up window, and a plausible causal graph.</dd></div>
+    <div><dt>Assumptions</dt><dd>Identification depends on the graph, consistency, and support for the comparisons the graph requires.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../incrementality/">Incrementality</a></dd></div>
+  </dl>
+</header><div class="ex-content">
+  <div class="ex-tabs" data-guide-tablist="Identification lesson views">
+    <button class="active" type="button" data-guide-tab="graph-and-adjustment">Graph and adjustment</button>
+    <button type="button" data-guide-tab="front-door-identification">Identification through a mediator</button>
+  </div>
+  <section class="ex-card" id="graph-and-adjustment">
+    <h2>Graph and adjustment</h2>
+    <p>Define the unit, intervention, outcome, follow-up and target before choosing a comparison. In the synthetic example below, each unit can receive a one-time intervention at enrollment. The outcome is an event within 30 days. The target can be all eligible units or those who actually received treatment.</p>
+    <p>Each unit has potential outcomes <em>Y</em>(1) under treatment and <em>Y</em>(0) under control. The average treatment effect (ATE) averages their difference across the eligible population. The average treatment effect on the treated (ATT) averages it over the population that received treatment. Identification asks whether the assumptions express that target using observable quantities. Estimation uses data to approximate those quantities.</p>
+    <div class="ex-fields causal-fields">
+      <label>Proposed causal graph
+        <select id="graph-scenario">
+          <option value="confounder">Measured common cause</option>
+          <option value="mediator">Post-treatment mediator</option>
+          <option value="collider">Baseline collider</option>
+          <option value="hidden">Unmeasured common cause</option>
+        </select>
+      </label>
+      <label>Target population
+        <select id="graph-target"><option value="ate">All eligible units (ATE)</option><option value="att">Treated units (ATT)</option></select>
+      </label>
+      <label>Adjustment set
+        <select id="graph-adjustment"><option value="none">Empty set</option><option value="covariate">Baseline context (X)</option></select>
+      </label>
+      <label id="graph-strength-field" hidden>Hidden cause contribution to outcome risk <output id="graph-strength-value" for="graph-strength"></output>
+        <input id="graph-strength" type="range" min="0" max="60" step="5" value="30">
+      </label>
+    </div>
+    <figure class="causal-figure">
+      <canvas class="causal-diagram" id="graph-diagram" width="560" height="228" role="img" aria-label="Causal diagram. Its arrows and paths are listed below."></canvas>
+      <figcaption id="graph-arrows"></figcaption>
+    </figure>
+    <p id="graph-status" class="ex-status" role="status"></p>
+    <div id="graph-cells"></div>
+    <div id="graph-contrasts"></div>
+    <details>
+      <summary>When does adjustment identify a total effect?</summary>
+      <p>A directed causal path points forward along every edge. A path such as T → C ← U → Y starts outward and can still carry a noncausal association after conditioning on C. A collider blocks a path until you condition on it or on one of its descendants.</p>
+      <p>The back-door criterion is a sufficient adjustment rule. Choose a set with no descendants of treatment that blocks every path entering treatment through an incoming arrow. Use consistency between the specified intervention and observed outcomes, conditional exchangeability given the set, and treatment support for the target covariate values. Standardize the conditional arm means to the same target distribution.</p>
+      <p>Conditioning on a mediator can remove part of the total effect and can introduce bias through shared causes of the mediator and outcome. A controlled direct effect requires a specified intervention on the mediator and additional identification assumptions.</p>
+      <p>Specify the graph and estimand, identify the comparison, estimate it, then stress-test the assumptions. A placebo outcome or shuffled-label check can uncover a problem if the outcome or reference distribution respects the design. An unmeasured common cause can remain even after the check passes. <a href="https://ftp.cs.ucla.edu/pub/stat_ser/r350.pdf">Pearl’s causal inference overview</a></p>
+    </details>
+    <p>Use <a href="../propensity-scores/#tab-weighting">Propensity weighting</a> or <a href="../matching/">Matching</a> when baseline adjustment is credible. Compare changes over time with <a href="../difference-in-differences/">Difference-in-Differences</a>, or compare scores near an eligibility threshold with <a href="../regression-discontinuity/">Regression Discontinuity</a>. Use <a href="../../reference/choosing-a-causal-comparison/#design-chooser">Causal comparison design chooser</a> to check which design fits your data.</p>
+  </section>
+
+  <section class="ex-card" id="front-door-identification" hidden>
+    <h2>Identification through a mediator</h2>
+    <p>Suppose hidden U affects treatment T and outcome Y, but its influence on the mediator M runs through treatment. At each measured baseline context X, M must intercept every directed T-to-Y path. X must block any back-door path from T to M, and T with X must block every back-door path from M to Y. Check support for each comparison.</p>
+    <div class="ex-fields">
+      <label>Mediator support in the synthetic data
+        <select id="front-support">
+          <option value="full">Both mediator values in every arm</option>
+          <option value="empty">Empty control/M = 1 cell in one context</option>
+          <option value="one-sided">Controls always have M = 0</option>
+          <option value="unsupported-att">Controls always have M = 0 and a treated M = 0 cell is empty</option>
+        </select>
+      </label>
+      <label>Treatment-to-outcome paths
+        <select id="front-path"><option value="mediated">All through M</option><option value="direct">Also allow a direct T → Y path</option></select>
+      </label>
+    </div>
+    <figure class="causal-figure">
+      <canvas class="causal-diagram" id="front-diagram" width="560" height="228" role="img" aria-label="Front-door diagram within a baseline context. The arrows are listed below."></canvas>
+      <figcaption id="front-arrows"></figcaption>
+    </figure>
+    <div id="front-cells"></div>
+    <p id="front-status" class="ex-status" role="status"></p>
+    <div id="front-means"></div>
+    <details>
+      <summary>Compute the front-door contrast and examine one-sided support</summary>
+      <p>Within X, average each observed outcome mean at mediator value <em>m</em> over the observed treatment distribution. Then average these quantities using P(M = <em>m</em> | T = <em>a</em>, X) to get the interventional mean for arm <em>a</em>. Average those means across the eligible context distribution for the ATE.</p>
+      <p>With known M(0) = 0 for every unit and the stated causal assumptions, the ATT can use the observed outcome mean among all treated units minus the mean of treated units with M = 0 in each context, weighted by the treated context distribution. Any treated context with no M = 0 comparison prevents this calculation.</p>
+      <p>Opt-in can leave hidden traits varying within the observed uptake group. A product of slopes requires compatible linear additive models. Varying an ambiguously timed control is a sensitivity analysis without a guaranteed ordering or causal bounds. When estimating uncertainty, resample units or clusters at the level of independent variation. <a href="https://ftp.cs.ucla.edu/pub/stat_ser/r350.pdf">Pearl’s front-door identification formula</a></p>
+    </details>
+    <p>The worked offer trial’s <a href="../randomized-experiment/#challenge-conclusion">Worked experiment challenges</a> asks which extra assumptions uptake would require.</p>
+  </section>
+</div>
+<aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../propensity-scores/#tab-weighting">Propensity weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../reference/choosing-a-causal-comparison/#design-chooser">Causal comparison design chooser</a></li><li><a href="../matching/">Matching</a></li><li><a href="../../models/path-analysis/#orient-arrows">Which arrows can the data orient?</a></li><li><a href="../randomized-experiment/#define-comparison">Define the worked trial comparison</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/causal-graphs.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

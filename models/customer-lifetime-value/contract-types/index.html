@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contractual and Non-Contractual CLV | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../../assets/legacy/customer.css"><style>
+  /* CLV Contracts — page-specific UI scoped to .clv-model wrapper */
+  .clv-model { --brand-orange: #fb923c; }
+
+  .clv-model .tab-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .clv-model .tab-btn {
+    padding: 0.8rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    min-width: 200px;
+    font-family: inherit;
+  }
+  .clv-model .tab-btn small {
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+  .clv-model .tab-btn:hover { border-color: var(--text); color: var(--text); }
+  .clv-model .tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  .clv-model .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .clv-model .layout-grid > * { min-width: 0; }
+  @media (min-width: 900px) {
+    .clv-model .layout-grid { grid-template-columns: 300px 1fr; align-items: start; }
+  }
+
+  .clv-model .content-card { margin-bottom: 16px; }
+  .clv-model .content-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .clv-model .content-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 12px 0;
+  }
+
+  .clv-model .control-group { margin-bottom: 24px; }
+  .clv-model .control-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .clv-model .control-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .clv-model input[type=range] {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+  .clv-model input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .clv-model input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+  }
+  .clv-model .val-display {
+    text-align: right;
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .clv-model .warning-text {
+    color: var(--danger);
+    font-size: 12px;
+    text-align: right;
+    margin-top: 2px;
+    display: none;
+  }
+  .clv-model .warning-text.visible { display: block; }
+
+  .clv-model .key-definition {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 20px;
+  }
+  .clv-model .key-definition h4 {
+    margin: 0 0 6px 0;
+    color: var(--accent);
+    font-size: 13px;
+  }
+  .clv-model .key-definition p { margin: 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.9); }
+  .clv-model .key-definition strong { color: var(--accent); }
+
+  .clv-model .formula-box {
+    background: var(--surface-soft);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
+  .clv-model .formula-box strong { color: var(--accent); display: block; margin-bottom: 4px; }
+  .clv-model .formula-var { color: #fff; font-weight: bold; }
+
+  .clv-model .chart-container {
+    width: 100%;
+    height: 280px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    max-height: none;
+  }
+  .clv-model #timeline_viz {
+    width: 100%;
+    height: 140px;
+  }
+
+  .clv-model .metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .clv-model .metric-card {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .clv-model .metric-val {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .clv-model .metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .clv-model .gauge-container {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .clv-model .tab-container { flex-direction: column; gap: 8px; }
+    .clv-model .tab-btn { width: 100%; min-width: 0; }
+    .clv-model .metric-grid { grid-template-columns: 1fr; }
+  }
+</style><script src="../../../assets/vendor/plotly-2.35.2.min.js"></script>
+  <link rel="stylesheet" href="../../../assets/guide.css">
+  <link rel="stylesheet" href="../../../assets/legacy-theme.css">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../../effects/incrementality/">Incrementality</a></li><li><a href="../../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../../effects/p-values/">P-Values</a></li><li><a href="../../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../../effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../../effects/propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../../../effects/matching/">Matching</a></li><li><a href="../../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../../effects/heckman-selection/">Heckman Selection Correction</a></li><li><a href="../../../effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../reading-regressions/">Reading Regressions</a></li><li><a href="../../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../media-response/">Media response</a><ul class="mg-links"><li><a href="../../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../churn/">Churn</a></li><li><a href="../../retention/">Retention</a></li><li><a href="../">Customer Lifetime Value</a></li><li><a href="./">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../segmentation/">Segmentation</a></li><li><a href="../../segmentation/prizm/">PRIZM</a></li><li><a href="../../market-basket/">Market Basket Analysis</a></li><li><a href="../../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../../reference/">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../../">Home</a></li><li><a href="../../">Model Outcomes</a></li><li><a href="../../customer-value/">Customer value</a></li><li aria-current="page">Contractual and Non-Contractual CLV</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Contractual and Non-Contractual CLV</h1><p class="mg-question">How does the value calculation change when churn is observable?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>Tenure, revenue, and churn hazard for subscriptions, or recency, frequency, and spend for retail.</dd></div>
+    <div><dt>Assumptions</dt><dd>The contractual panel conditions on current tenure. The retail panel uses BG/NBD assumptions.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../">Customer Lifetime Value</a></dd></div>
+  </dl>
+</header><div class="mg-source"><div class="page">
+
+  
+
+  <p class="problem-statement">
+    Contrasting the two fundamental approaches to valuing customers: Contractual (Subscription) vs. Non-Contractual (Retail).
+  </p>
+
+  <div class="clv-model">
+
+    <!-- Tabs -->
+    <div class="tab-container" data-guide-tablist="Lesson views">
+      <button class="tab-btn active" id="btn-tab-contractual" data-guide-tab="view-contractual">
+        1. Contractual
+        <small>Observable Churn (The Breakup)</small>
+      </button>
+      <button class="tab-btn" id="btn-tab-noncontractual" data-guide-tab="view-noncontractual">
+        2. Non-Contractual
+        <small>Unobserved Churn (The Ghost)</small>
+      </button>
+    </div>
+
+    <!-- TAB 1: CONTRACTUAL CONTENT -->
+    <div id="view-contractual" class="layout-grid">
+
+      <!-- Left: Controls -->
+      <div class="content-card">
+        <h3 id="customer-profile">Customer Profile</h3>
+
+        <div class="control-group">
+          <label for="inp-con-tenure">Current Tenure (Months)</label>
+          <div class="control-meta"><span>New Customer</span><span>Loyal</span></div>
+          <input type="range" min="0" max="48" step="1" value="12" id="inp-con-tenure">
+          <div class="val-display" id="val-con-tenure">12 months</div>
+          <div class="control-meta" style="margin-top:4px;"><em>This is "s" in P(T &gt; t+s | T &gt; s)</em></div>
+        </div>
+
+        <div class="control-group">
+          <label for="inp-con-revenue">Monthly Revenue ($)</label>
+          <input type="range" min="10" max="200" step="5" value="50" id="inp-con-revenue">
+          <div class="val-display" id="val-con-revenue">$50</div>
+        </div>
+
+        <div class="control-group">
+          <label for="inp-con-hazard">Baseline Churn Risk</label>
+          <div class="control-meta"><span>Sticky</span><span>High Risk</span></div>
+          <input type="range" min="0.01" max="0.10" step="0.005" value="0.03" id="inp-con-hazard">
+          <div class="val-display" id="val-con-hazard">3.0% / mo</div>
+        </div>
+
+        <div class="key-definition">
+          <h4>The "Reset" Logic</h4>
+          <p>In the Telco model, if a customer has already survived <span id="txt-con-tenure-inline" class="formula-var">12</span> months, we <strong>reset the clock</strong>. We only care about the probability of them surviving <em>future</em> months given they are here today.</p>
+        </div>
+      </div>
+
+      <!-- Right: Visuals -->
+      <div>
+        <div class="content-card">
+          <h4>Survival Probabilities (Exponential)</h4>
+          <div id="con_survival_chart" class="chart-container"></div>
+        </div>
+
+        <div class="content-card">
+          <h4>Discounted Expected Value (Accumulated)</h4>
+          <div id="con_clv_chart" class="chart-container" style="height: 250px;"></div>
+        </div>
+
+        <div class="formula-box">
+          <strong>Formula:</strong>
+          CLV = ∑ [ S(t + <span id="f-con-s" class="formula-var">s</span> | T &gt; <span id="f-con-s2" class="formula-var">s</span>) × $<span id="f-con-rev" class="formula-var">M</span> × (1+d)<sup>-t</sup> ]
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: NON-CONTRACTUAL CONTENT -->
+    <div id="view-noncontractual" class="layout-grid" style="display: none;">
+
+      <div style="grid-column: 1 / -1; background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;">
+        <strong style="color:#2dd4bf;">BG/NBD Model</strong> <span style="color: var(--text-muted); font-size: 14px;">— P(Alive) and E[Tx] use the closed-form BG/NBD equations from Fader, Hardie &amp; Lee (2005). Hyperparameters (r, α, a, b) are assumed known; in production these would be estimated via maximum likelihood on your transaction log.</span>
+      </div>
+
+      <!-- Left: Controls -->
+      <div class="content-card">
+        <h3 style="color: var(--brand-orange); border-bottom-color: var(--brand-orange);" id="rfm-inputs">RFM Inputs</h3>
+
+        <div class="control-group">
+          <label for="inp-non-t">Customer Age (T)</label>
+          <div class="control-meta">Weeks since first purchase</div>
+          <input type="range" min="10" max="100" step="1" value="52" id="inp-non-t">
+          <div class="val-display" id="val-non-t" style="color: var(--brand-orange);">52 weeks</div>
+        </div>
+
+        <div class="control-group">
+          <label for="inp-non-recency">Recency (Last Purchase)</label>
+          <div class="control-meta">Weeks since first purchase</div>
+          <input type="range" min="0" max="52" step="1" value="40" id="inp-non-recency">
+          <div class="val-display" id="val-non-recency" style="color: var(--brand-orange);">40 weeks</div>
+          <div class="warning-text" id="warn-gap">Warning: High gap!</div>
+        </div>
+
+        <div class="control-group">
+          <label for="inp-non-freq">Frequency</label>
+          <div class="control-meta">Total repeat purchases</div>
+          <input type="range" min="1" max="20" step="1" value="5" id="inp-non-freq">
+          <div class="val-display" id="val-non-freq" style="color: var(--brand-orange);">5 purchases</div>
+        </div>
+
+        <div class="key-definition" style="border-left-color: var(--brand-orange); background: rgba(251, 146, 60, 0.08);">
+          <h4 style="color: var(--brand-orange);">The "Ghost" Logic</h4>
+          <p>We don't know if they left. The BG/NBD model combines <strong>Recency</strong>, <strong>Frequency</strong>, and <strong>T</strong> with population-level hyperparameters to compute the posterior probability that a customer is still active.</p>
+        </div>
+
+        <details id="bgnbd-params" style="margin-top: 12px;">
+          <summary style="cursor: pointer; color: var(--brand-orange); font-weight: 600; font-size: 14px; padding: 8px 0;">Advanced: BG/NBD Hyperparameters</summary>
+          <div style="padding: 8px 0;">
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">In production, these are estimated via MLE on your full transaction log. Here you can set them manually to explore model behavior.</p>
+
+            <div class="control-group">
+              <label for="inp-bgnbd-r">r (purchase rate shape)</label>
+              <input type="range" min="0.05" max="2.0" step="0.05" value="0.25" id="inp-bgnbd-r">
+              <div class="val-display" id="val-bgnbd-r" style="color: var(--brand-orange);">0.25</div>
+            </div>
+
+            <div class="control-group">
+              <label for="inp-bgnbd-alpha">α (purchase rate scale)</label>
+              <input type="range" min="0.5" max="20.0" step="0.5" value="4.0" id="inp-bgnbd-alpha">
+              <div class="val-display" id="val-bgnbd-alpha" style="color: var(--brand-orange);">4.00</div>
+            </div>
+
+            <div class="control-group">
+              <label for="inp-bgnbd-a">a (dropout shape 1)</label>
+              <input type="range" min="0.1" max="3.0" step="0.1" value="0.8" id="inp-bgnbd-a">
+              <div class="val-display" id="val-bgnbd-a" style="color: var(--brand-orange);">0.80</div>
+            </div>
+
+            <div class="control-group">
+              <label for="inp-bgnbd-b">b (dropout shape 2)</label>
+              <input type="range" min="0.5" max="10.0" step="0.5" value="2.5" id="inp-bgnbd-b">
+              <div class="val-display" id="val-bgnbd-b" style="color: var(--brand-orange);">2.50</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Right: Visuals -->
+      <div>
+        <div class="content-card">
+          <h4>Customer Timeline (Buy 'Til You Die)</h4>
+          <div id="timeline_viz"></div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <h4>P(Alive)</h4>
+            <div class="gauge-container">
+              <svg style="width:100%;height:100%;" viewbox="0 0 36 36" preserveaspectratio="xMidYMid meet">
+                <path style="color: rgba(255,255,255,0.1);" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" transform="rotate(-90 18 18)"></path>
+                <path id="p_alive_circle" style="color: var(--brand-orange); transition: stroke-dashoffset 0.5s ease;" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" transform="rotate(-90 18 18)"></path>
+              </svg>
+              <div id="val-p-alive" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:18px; color: var(--brand-orange);">0%</div>
+            </div>
+            <div class="metric-sub">Prob. active right now<br><small style="color: var(--text-muted);">(BG/NBD closed-form)</small></div>
+          </div>
+
+          <div class="metric-card">
+            <h4>Est. Future Tx</h4>
+            <div class="metric-val" id="val-expected-tx">0.00</div>
+            <div class="metric-sub">over next 12 weeks<br><small style="color: var(--text-muted);">(BG/NBD conditional expectation)</small></div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); width: 100%;">
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;" for="inp-non-avg-spend">Avg Spend ($)</label>
+              <input type="number" id="inp-non-avg-spend" value="100" min="1" max="1000" step="1" style="width: 80px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 4px; color: #4ade80; font-size: 18px; font-weight: 700; padding: 4px 8px;">
+              <div class="metric-sub">User-defined input</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card" style="margin-top: 16px;">
+          <h4>Est. 12-Week Customer Value</h4>
+          <div class="metric-val" id="val-non-clv" style="color: #4ade80;">$0.00</div>
+          <div class="metric-sub" id="val-non-clv-detail">E[Tx] × Avg Spend</div>
+        </div>
+
+        <div class="content-card" style="margin-top: 16px;">
+          <h4>P(Alive) Decay If The Silence Continues</h4>
+          <div id="non_decay_chart" class="chart-container" style="height: 220px;"></div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 8px 0 0;">Holding the purchase history fixed, this shows how the model's belief that the customer is still active erodes with each additional week of silence.</p>
+        </div>
+
+        <div class="formula-box" style="margin-top: 16px;">
+          <strong>BG/NBD Formulas (Fader, Hardie &amp; Lee 2005):</strong><br>
+          <small style="color: var(--text-muted);">
+            P(Alive | x, t<sub>x</sub>, T) = 1 / (1 + δ) where δ = (a / (b + x − 1)) × (α + T)<sup>r+x</sup> / (α + t<sub>x</sub>)<sup>r+x</sup><br>
+            E[Y(t) | x, t<sub>x</sub>, T] = ((a+b+x−1)/(a−1)) × [1 − ((α+T)/(α+T+t))<sup>r+x</sup> · <sub>2</sub>F<sub>1</sub>(r+x, b+x; a+b+x−1; t/(α+T+t))] × P(Alive)   (Eq. 10, exact)<br>
+            Value = E[Y(t)] × AvgSpend
+          </small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div></div><aside class="mg-lesson-next"><div><h2>Next step</h2><ul class="mg-links"><li><a href="../../../decisions/retention-interventions/">Retention Interventions</a></li></ul></div><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../market-basket/#mba-panel-math">Conditional probability with basket counts</a></li><li><a href="../../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../../">Marketing Measurement Science</a><a href="../../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var state = {
+    con_tenure: 12, con_revenue: 50, con_hazard: 0.03,
+    non_T: 52, non_recency: 40, non_freq: 5, non_avg_spend: 100,
+    bgnbd_r: 0.25, bgnbd_alpha: 4.0, bgnbd_a: 0.8, bgnbd_b: 2.5
+  };
+
+  var btnCon = document.getElementById('btn-tab-contractual');
+  var btnNon = document.getElementById('btn-tab-noncontractual');
+  var viewCon = document.getElementById('view-contractual');
+  var viewNon = document.getElementById('view-noncontractual');
+
+  var inpConTenure = document.getElementById('inp-con-tenure');
+  var inpConRev = document.getElementById('inp-con-revenue');
+  var inpConHaz = document.getElementById('inp-con-hazard');
+
+  var dConTenure = document.getElementById('val-con-tenure');
+  var dConRev = document.getElementById('val-con-revenue');
+  var dConHaz = document.getElementById('val-con-hazard');
+  var dConTenureInline = document.getElementById('txt-con-tenure-inline');
+  var fConS = document.getElementById('f-con-s');
+  var fConS2 = document.getElementById('f-con-s2');
+  var fConRev = document.getElementById('f-con-rev');
+
+  var inpNonT = document.getElementById('inp-non-t');
+  var inpNonRec = document.getElementById('inp-non-recency');
+  var inpNonFreq = document.getElementById('inp-non-freq');
+
+  var dNonT = document.getElementById('val-non-t');
+  var dNonRec = document.getElementById('val-non-recency');
+  var dNonFreq = document.getElementById('val-non-freq');
+  var warnGap = document.getElementById('warn-gap');
+  var dPAlive = document.getElementById('val-p-alive');
+  var svgCircle = document.getElementById('p_alive_circle');
+  var dExpTx = document.getElementById('val-expected-tx');
+  var dNonClv = document.getElementById('val-non-clv');
+  var dNonClvDetail = document.getElementById('val-non-clv-detail');
+
+  function updateContractual() {
+    var months = 36;
+    var discountRate = 0.01;
+
+    dConTenure.textContent = state.con_tenure + " months";
+    dConRev.textContent = "$" + state.con_revenue;
+    dConHaz.textContent = (state.con_hazard * 100).toFixed(1) + "% / mo";
+    dConTenureInline.textContent = state.con_tenure;
+    fConS.textContent = state.con_tenure;
+    fConS2.textContent = state.con_tenure;
+    fConRev.textContent = state.con_revenue;
+
+    var x_past = [], y_past = [];
+    var x_future = [], y_future_cond = [];
+    var x_clv = [], y_clv = [];
+    var cum_clv = 0;
+
+    var prob_survive_until_now = Math.exp(-state.con_hazard * state.con_tenure);
+
+    for (var t1 = 0; t1 <= state.con_tenure; t1++) {
+      x_past.push(t1);
+      y_past.push(Math.exp(-state.con_hazard * t1));
+    }
+    for (var t2 = 1; t2 <= months; t2++) {
+      var prob_unconditional = Math.exp(-state.con_hazard * (state.con_tenure + t2));
+      var prob_conditional = prob_unconditional / prob_survive_until_now;
+      x_future.push(state.con_tenure + t2);
+      y_future_cond.push(prob_conditional);
+      var discount_factor = Math.pow(1 + discountRate, -t2);
+      cum_clv += prob_conditional * state.con_revenue * discount_factor;
+      x_clv.push("+" + t2 + "m");
+      y_clv.push(cum_clv);
+    }
+
+    var tracePast = { x: x_past, y: y_past, mode: 'lines', name: 'Past', line: { color: 'rgba(255,255,255,0.3)', width: 2 }, hoverinfo: 'none' };
+    var traceFuture = { x: x_future, y: y_future_cond, mode: 'lines', name: 'Future (Cond)', line: { color: '#2dd4bf', width: 4 }, fill: 'tozeroy' };
+
+    var layoutCommon = {
+      paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+      font: { color: 'rgba(255,255,255,0.7)', family: 'sans-serif' },
+      margin: { t: 20, b: 30, l: 40, r: 10 },
+      xaxis: { showgrid: false },
+      yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
+    };
+
+    var layoutSurv = JSON.parse(JSON.stringify(layoutCommon));
+    layoutSurv.yaxis.range = [0, 1.05];
+    layoutSurv.xaxis.title = "Total Tenure";
+    layoutSurv.shapes = [{ type: 'line', x0: state.con_tenure, x1: state.con_tenure, y0: 0, y1: 1, line: { color: '#f87171', width: 1, dash: 'dot' } }];
+
+    Plotly.newPlot('con_survival_chart', [tracePast, traceFuture], layoutSurv, { displayModeBar: false, responsive: true });
+
+    var traceCLV = { x: x_clv, y: y_clv, type: 'bar', marker: { color: '#2dd4bf' } };
+    var layoutCLV = JSON.parse(JSON.stringify(layoutCommon));
+    layoutCLV.title = { text: 'Est. Residual Value: $' + cum_clv.toFixed(2), font: { size: 14, color: '#fff' } };
+    Plotly.newPlot('con_clv_chart', [traceCLV], layoutCLV, { displayModeBar: false, responsive: true });
+  }
+
+  function bgnbd_pAlive(x, tx, T, r, alpha, a, b) {
+    if (x === 0) {
+      var d0 = (a / b) * Math.pow((alpha + T) / alpha, r);
+      return 1 / (1 + d0);
+    }
+    var d = (a / (b + x - 1)) * Math.pow((alpha + T) / (alpha + tx), r + x);
+    return 1 / (1 + d);
+  }
+
+  // Gaussian hypergeometric 2F1(a,b;c;z) via power series (converges for |z| < 1)
+  function hyp2f1(ha, hb, hc, z) {
+    var term = 1, sum = 1;
+    for (var n = 0; n < 500; n++) {
+      term *= ((ha + n) * (hb + n)) / ((hc + n) * (n + 1)) * z;
+      sum += term;
+      if (Math.abs(term) < 1e-12 * Math.abs(sum)) break;
+    }
+    return sum;
+  }
+
+  // Exact conditional expected transactions over the next t periods,
+  // Fader, Hardie & Lee (2005) Eq. 10. pAlive is 1/(1 + delta), so we
+  // multiply by it instead of dividing by (1 + delta).
+  function bgnbd_expectedTx(pAlive, x, T, r, alpha, a, b, t) {
+    if (Math.abs(a - 1) < 1e-6) a = 1 + 1e-6; // removable singularity at a = 1
+    var z = t / (alpha + T + t);
+    var lead = (a + b + x - 1) / (a - 1);
+    var bracket = 1 - Math.pow((alpha + T) / (alpha + T + t), r + x) * hyp2f1(r + x, b + x, a + b + x - 1, z);
+    return Math.max(0, lead * bracket * pAlive);
+  }
+
+  function updateNonContractual() {
+    if (state.non_recency > state.non_T) {
+      state.non_recency = state.non_T;
+      inpNonRec.value = state.non_recency;
+    }
+    inpNonRec.max = state.non_T;
+
+    var x = state.non_freq;
+    var tx = state.non_recency;
+    var T = state.non_T;
+    var r = state.bgnbd_r, alpha = state.bgnbd_alpha, a = state.bgnbd_a, b = state.bgnbd_b;
+
+    var time_since_last = T - tx;
+    var avg_inter_tx = tx / Math.max(1, x);
+
+    var p_alive = Math.max(0, Math.min(1, bgnbd_pAlive(x, tx, T, r, alpha, a, b)));
+    var expected = bgnbd_expectedTx(p_alive, x, T, r, alpha, a, b, 12);
+
+    dNonT.textContent = state.non_T + " weeks";
+    dNonRec.textContent = state.non_recency + " weeks";
+    dNonFreq.textContent = state.non_freq + " purchases";
+    warnGap.style.display = (time_since_last > 20) ? 'block' : 'none';
+
+    dPAlive.textContent = (p_alive * 100).toFixed(1) + "%";
+    var circumference = 100;
+    svgCircle.style.strokeDashoffset = circumference - (p_alive * circumference);
+
+    dExpTx.textContent = expected.toFixed(2);
+
+    var clv = expected * state.non_avg_spend;
+    dNonClv.textContent = "$" + clv.toFixed(2);
+    dNonClvDetail.textContent = expected.toFixed(2) + " expected tx × $" + state.non_avg_spend + " avg spend";
+
+    drawTimeline(avg_inter_tx);
+    drawDecayChart(x, tx, T, r, alpha, a, b, p_alive);
+  }
+
+  function drawDecayChart(x, tx, T, r, alpha, a, b, p_now) {
+    var weeksAhead = 26;
+    var xs = [], ys = [];
+    for (var w = 0; w <= weeksAhead; w++) {
+      xs.push(w);
+      ys.push(bgnbd_pAlive(x, tx, T + w, r, alpha, a, b));
+    }
+    var traceDecay = {
+      x: xs, y: ys, mode: 'lines', name: 'P(Alive)',
+      line: { color: '#fb923c', width: 3 }, fill: 'tozeroy',
+      fillcolor: 'rgba(251,146,60,0.15)',
+      hovertemplate: '+%{x} wk silent: %{y:.1%}<extra></extra>'
+    };
+    var traceNow = {
+      x: [0], y: [p_now], mode: 'markers', name: 'Today',
+      marker: { color: '#f87171', size: 10 }, hoverinfo: 'none'
+    };
+    var layoutDecay = {
+      paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+      font: { color: 'rgba(255,255,255,0.7)', family: 'sans-serif' },
+      margin: { t: 10, b: 40, l: 40, r: 10 },
+      showlegend: false,
+      xaxis: { showgrid: false, title: { text: 'Additional weeks with no purchase', font: { size: 12 } } },
+      yaxis: { gridcolor: 'rgba(255,255,255,0.1)', range: [0, 1.05], tickformat: '.0%' }
+    };
+    Plotly.newPlot('non_decay_chart', [traceDecay, traceNow], layoutDecay, { displayModeBar: false, responsive: true });
+  }
+
+  function drawTimeline(avg_inter_tx) {
+    var container = document.getElementById('timeline_viz');
+    container.innerHTML = '';
+    var w = container.clientWidth;
+    var h = 140, pad = 20, lineY = h / 2;
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    container.appendChild(svg);
+
+    function scaleX(val) { return pad + (val / (state.non_T * 1.1)) * (w - 2 * pad); }
+
+    var line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", scaleX(0)); line.setAttribute("y1", lineY);
+    line.setAttribute("x2", scaleX(state.non_T)); line.setAttribute("y2", lineY);
+    line.setAttribute("stroke", "rgba(255,255,255,0.3)");
+    line.setAttribute("stroke-width", "2");
+    svg.appendChild(line);
+
+    var nowLine = document.createElementNS(ns, "line");
+    nowLine.setAttribute("x1", scaleX(state.non_T)); nowLine.setAttribute("y1", lineY - 20);
+    nowLine.setAttribute("x2", scaleX(state.non_T)); nowLine.setAttribute("y2", lineY + 20);
+    nowLine.setAttribute("stroke", "#f87171");
+    nowLine.setAttribute("stroke-width", "2");
+    nowLine.setAttribute("stroke-dasharray", "4");
+    svg.appendChild(nowLine);
+
+    var nowText = document.createElementNS(ns, "text");
+    nowText.setAttribute("x", scaleX(state.non_T)); nowText.setAttribute("y", lineY - 25);
+    nowText.setAttribute("text-anchor", "middle");
+    nowText.setAttribute("fill", "#f87171");
+    nowText.setAttribute("font-size", "11");
+    nowText.textContent = "NOW (T)";
+    svg.appendChild(nowText);
+
+    var purchaseTimes = [0];
+    if (state.non_freq >= 1) {
+      if (state.non_freq === 1) purchaseTimes.push(state.non_recency);
+      else {
+        var interval = state.non_recency / state.non_freq;
+        for (var i = 1; i <= state.non_freq; i++) purchaseTimes.push(i * interval);
+      }
+    }
+    purchaseTimes.forEach(function(t) {
+      var dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", scaleX(t)); dot.setAttribute("cy", lineY); dot.setAttribute("r", "5");
+      dot.setAttribute("fill", "#fb923c");
+      svg.appendChild(dot);
+    });
+
+    var gapStart = scaleX(state.non_recency);
+    var gapEnd = scaleX(state.non_T);
+    if (gapEnd > gapStart) {
+      var rect = document.createElementNS(ns, "rect");
+      rect.setAttribute("x", gapStart); rect.setAttribute("y", lineY - 10);
+      rect.setAttribute("width", gapEnd - gapStart); rect.setAttribute("height", 20);
+      rect.setAttribute("fill", "#fb923c"); rect.setAttribute("opacity", "0.2");
+      svg.appendChild(rect);
+    }
+  }
+
+  btnCon.addEventListener('click', function() {
+    btnCon.classList.add('active'); btnNon.classList.remove('active');
+    viewCon.style.display = 'grid'; viewNon.style.display = 'none';
+    if (window.Plotly) {
+      Plotly.Plots.resize('con_survival_chart');
+      Plotly.Plots.resize('con_clv_chart');
+    }
+  });
+
+  btnNon.addEventListener('click', function() {
+    btnNon.classList.add('active'); btnCon.classList.remove('active');
+    viewNon.style.display = 'grid'; viewCon.style.display = 'none';
+    updateNonContractual();
+  });
+
+  inpConTenure.addEventListener('input', function(e) { state.con_tenure = +e.target.value; updateContractual(); });
+  inpConRev.addEventListener('input', function(e) { state.con_revenue = +e.target.value; updateContractual(); });
+  inpConHaz.addEventListener('input', function(e) { state.con_hazard = +e.target.value; updateContractual(); });
+
+  var inpNonAvgSpend = document.getElementById('inp-non-avg-spend');
+  inpNonT.addEventListener('input', function(e) { state.non_T = +e.target.value; updateNonContractual(); });
+  inpNonRec.addEventListener('input', function(e) { state.non_recency = +e.target.value; updateNonContractual(); });
+  inpNonFreq.addEventListener('input', function(e) { state.non_freq = +e.target.value; updateNonContractual(); });
+  inpNonAvgSpend.addEventListener('input', function(e) { state.non_avg_spend = +e.target.value || 0; updateNonContractual(); });
+
+  var inpR = document.getElementById('inp-bgnbd-r');
+  var inpAlpha = document.getElementById('inp-bgnbd-alpha');
+  var inpA = document.getElementById('inp-bgnbd-a');
+  var inpB = document.getElementById('inp-bgnbd-b');
+  var dR = document.getElementById('val-bgnbd-r');
+  var dAlpha = document.getElementById('val-bgnbd-alpha');
+  var dA = document.getElementById('val-bgnbd-a');
+  var dB = document.getElementById('val-bgnbd-b');
+
+  function updateHyperparamDisplays() {
+    dR.textContent = state.bgnbd_r.toFixed(2);
+    dAlpha.textContent = state.bgnbd_alpha.toFixed(2);
+    dA.textContent = state.bgnbd_a.toFixed(2);
+    dB.textContent = state.bgnbd_b.toFixed(2);
+  }
+
+  inpR.addEventListener('input', function(e) { state.bgnbd_r = +e.target.value; updateHyperparamDisplays(); updateNonContractual(); });
+  inpAlpha.addEventListener('input', function(e) { state.bgnbd_alpha = +e.target.value; updateHyperparamDisplays(); updateNonContractual(); });
+  inpA.addEventListener('input', function(e) { state.bgnbd_a = +e.target.value; updateHyperparamDisplays(); updateNonContractual(); });
+  inpB.addEventListener('input', function(e) { state.bgnbd_b = +e.target.value; updateHyperparamDisplays(); updateNonContractual(); });
+
+  updateHyperparamDisplays();
+  updateContractual();
+  updateNonContractual();
+});
+</script><script src="../../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,172 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marketing Measurement — Causal Science</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* === Home Hub Styles === */
-    .hero-section {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 20px;
-      padding: 0 20px;
-    }
-    .hero-brand {
-      color: #fff;
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-    }
-    .hero-tagline {
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 16px;
-      font-weight: 400;
-      letter-spacing: 0.5px;
-      line-height: 1.4;
-      margin-bottom: 8px;
-    }
-    .hero-explainer {
-      color: rgba(255, 255, 255, 0.75);
-      font-size: 14px;
-      line-height: 1.5;
-      max-width: 880px;
-      margin: 0 auto;
-    }
-
-    /* === Measurement Grid === */
-    .measurement-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      width: 100%;
-      padding: 10px 0 20px;
-    }
-    .measurement-card {
-      display: block;
-      text-decoration: none;
-      padding: 25px 20px;
-      border-radius: 12px;
-      background: var(--bg-card);
-      border: 1px solid var(--brand-border-dim);
-      transition: all 0.3s ease;
-      min-height: 180px;
-      position: relative;
-      overflow: hidden;
-    }
-    .measurement-card:hover {
-      transform: translateY(-5px);
-      background: var(--bg-card-raised);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    .measurement-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #00D4FF, #0099CC);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-    .measurement-card:hover::before { transform: scaleX(1); }
-
-    .card-icon { font-size: 32px; margin-bottom: 12px; display: block; text-align: center; }
-    .card-title { color: #fff; font-size: 18px; font-weight: 600; margin: 0 0 10px; text-align: center; line-height: 1.2; }
-    .card-problem { color: #00D4FF; font-size: 13px; font-weight: 500; margin: 0 0 8px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
-    .card-description { color: rgba(255, 255, 255, 0.75); font-size: 14px; line-height: 1.4; margin: 0; text-align: center; }
-
-    @media (max-width: 900px) {
-      .measurement-grid { grid-template-columns: repeat(2, 1fr); }
-      .hero-brand { font-size: 28px; }
-    }
-    @media (max-width: 600px) {
-      .measurement-grid { grid-template-columns: 1fr; padding: 10px 0 15px; }
-      .measurement-card { min-height: 150px; }
-      .hero-brand { font-size: 24px; }
-      .hero-tagline { font-size: 14px; }
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marketing Measurement Science</title>
+  
+  <link rel="stylesheet" href="assets/guide.css">
 </head>
-<body>
-  <div class="page">
-    <div class="hero-section">
-      <h1 class="hero-brand">Marketing Measurement</h1>
-      <p class="hero-tagline">From measurement plan to causal proof</p>
-      <p class="hero-explainer">
-        Align on what to measure, diagnose where credit and causality break down, then optimize spend.
-      </p>
-    </div>
-
-    <div class="measurement-grid">
-      <!-- Row 1 -->
-      <a href="measurement-plan/" class="measurement-card">
-        <span class="card-icon">&#x1F4CB;</span>
-        <p class="card-problem">START HERE</p>
-        <h3 class="card-title">Measurement Plan</h3>
-        <p class="card-description">You have tracking but no shared plan. Map business outcomes to GA4 events and align your team on what to measure.</p>
-      </a>
-
-      <a href="attribution/" class="measurement-card">
-        <span class="card-icon">&#x1F4CA;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Attribution Trap</h3>
-        <p class="card-description">Your marketing team is fighting over credit. See how last-touch vs multi-touch changes everything.</p>
-      </a>
-
-      <a href="markov/" class="measurement-card">
-        <span class="card-icon">&#x1F517;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Advanced Attribution</h3>
-        <p class="card-description">See how first-order Markov with removal calculates true credit by simulating what happens when you remove each channel.</p>
-      </a>
-
-      <!-- Row 2 -->
-      <a href="calibrate/" class="measurement-card">
-        <span class="card-icon">&#x1F3AF;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">MTA Calibration</h3>
-        <p class="card-description">MTA shows 1,600 conversions. Past tests suggest 50% incrementality. Calculate true impact.</p>
-      </a>
-
-      <a href="saturation/" class="measurement-card">
-        <span class="card-icon">&#x1F4C9;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Saturation &amp; Decay</h3>
-        <p class="card-description">When does more spend stop working? How long do effects last? Explore diminishing returns.</p>
-      </a>
-
-      <a href="incrementality/" class="measurement-card">
-        <span class="card-icon">&#x1F4C8;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Incrementality</h3>
-        <p class="card-description">Is your growth real or just correlation? Interactive demonstration of confounded vs randomized data.</p>
-      </a>
-
-      <!-- Row 3 -->
-      <a href="surveys/" class="measurement-card">
-        <span class="card-icon">&#x1F4DD;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Surveys</h3>
-        <p class="card-description">Post-purchase surveys cut through walled garden opacity and memory gap.</p>
-      </a>
-
-      <a href="response-modeling/" class="measurement-card">
-        <span class="card-icon">&#x1F4D0;</span>
-        <p class="card-problem">PROBLEM</p>
-        <h3 class="card-title">Response Models</h3>
-        <p class="card-description">Backwards and forwards views of incremental lift.</p>
-      </a>
-
-      <a href="budget-engine/" class="measurement-card">
-        <span class="card-icon">&#x1F4B0;</span>
-        <p class="card-problem">OPTIMIZE</p>
-        <h3 class="card-title">Budget Decision</h3>
-        <p class="card-description">Set your efficiency goal, add your channels, and instantly see which to scale, hold, reduce, or cut.</p>
-      </a>
-    </div>
+<body class="mg-index">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="./">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="plan/measurement-plan/">Measurement Plan</a></li><li><a href="plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="effects/incrementality/">Incrementality</a></li><li><a href="effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="effects/p-values/">P-Values</a></li><li><a href="effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="effects/propensity-scores/">Propensity Scores and Balance</a></li><li><a href="effects/matching/">Matching</a></li><li><a href="effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="effects/heckman-selection/">Heckman Selection Correction</a></li><li><a href="effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="credit/attribution-rules/">Attribution Rules</a></li><li><a href="credit/markov-attribution/">Markov Attribution</a></li><li><a href="credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="models/reading-regressions/">Reading Regressions</a></li><li><a href="models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="models/media-response/">Media response</a><ul class="mg-links"><li><a href="models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="models/churn/">Churn</a></li><li><a href="models/retention/">Retention</a></li><li><a href="models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="models/segmentation/">Segmentation</a></li><li><a href="models/segmentation/prizm/">PRIZM</a></li><li><a href="models/market-basket/">Market Basket Analysis</a></li><li><a href="models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="decisions/budget/">Budget Decision Engine</a></li><li><a href="decisions/retention-interventions/">Retention Interventions</a></li><li><a href="decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="reference/">Reference &amp; Tools</a>
+    </nav>
   </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    
+    <div class="mg-home-hero">
+  <div><h1>Marketing Measurement Science</h1><p class="mg-hero-line">From a business question to an evidence-based decision.</p>
+  <p class="mg-description">Work through measurement, experiments, credit, and modeling with examples and interactive tools.</p></div>
+  <nav class="mg-start" aria-label="Guided routes"><h2>Guided routes</h2><ul><li><a href="#experiment-design">Plan and evaluate an experiment</a></li><li><a href="#media-spend">Decide where to spend</a></li><li><a href="#customer-and-retail">Improve retention or answer a retail question</a></li></ul></nav>
+</div>
+<div class="mg-index-content">
+  <section id="questions"><h2>Browse by question</h2><ol class="mg-cards mg-question-cards"><li><a href="plan/"><strong>Plan Measurement</strong><span>What should we measure?</span></a></li><li><a href="effects/"><strong>Estimate Effects</strong><span>What changed because of an intervention?</span></a></li><li><a href="credit/"><strong>Reconcile Credit</strong><span>How is credit assigned?</span></a></li><li><a href="models/"><strong>Model Outcomes</strong><span>What patterns and outcomes can we model?</span></a></li><li><a href="decisions/"><strong>Make Decisions</strong><span>What should we do next?</span></a></li></ol></section>
+  <section class="mg-guided" id="guided-routes"><h2>Guided routes</h2><article class="mg-route" id="experiment-design">
+  <div><h3>Plan and evaluate an experiment</h3><p>Document a hypothesis and meaningful effect size before launch. Report lift and uncertainty after the test.</p></div>
+  <div class="mg-route-steps"><div><h3>Experiment design and analysis</h3><ol class="mg-links"><li><a href="plan/measurement-plan/builder/">Plan Builder</a></li><li><a href="effects/incrementality/">Incrementality</a></li><li><a href="effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="effects/p-values/">P-Values</a></li><li><a href="effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li></ol></div><div><h3>Reporting</h3><ol class="mg-links"><li><a href="effects/randomized-experiment/#report-decision">Worked experiment decision report</a></li><li><a href="effects/randomized-experiment/#media-transfer">Apply the offer trial design to a Search study</a></li><li><a href="models/marketing-mix/calibration/#geo-test">Calibrating an MMM with a lift test</a></li><li><a href="effects/incremental-lift-report/">Incremental Lift Report</a></li></ol></div><div><h3>Critical values and confidence intervals</h3><ol class="mg-links"><li><a href="reference/t-distribution/">t-Distribution</a></li><li><a href="models/reading-regressions/#reg-panel-ci">Regression confidence intervals</a></li></ol></div></div>
+</article><article class="mg-route" id="media-spend">
+  <div><h3>Decide where to spend</h3><p>Use evidence about credit, incrementality, and marginal return to discuss which channels to scale, hold, reduce, or cut. Try calibration when you have a comparable lift study.</p></div>
+  <div class="mg-route-steps"><div><h3>Measure journeys and credit</h3><ol class="mg-links"><li><a href="plan/measurement-plan/">Measurement Plan</a></li><li><a href="credit/attribution-rules/">Attribution Rules</a></li><li><a href="credit/markov-attribution/">Markov Attribution</a></li><li><a href="credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li></ol></div><div><h3>Check credit against other evidence</h3><ol class="mg-links"><li><a href="credit/survey-attribution/">Survey Attribution</a></li><li><a href="effects/incrementality/">Incrementality</a></li><li><a href="credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="models/marketing-mix/calibration/#displaced-credit">Follow the displaced credit</a></li></ol></div><div><h3>Review response and decide</h3><ol class="mg-links"><li><a href="models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="models/marketing-mix/#mmm-panel-waterfall">MMM waterfall</a></li><li><a href="models/marketing-mix/#mmm-panel-response">MMM response curves</a></li><li><a href="models/marketing-mix/#mmm-panel-schedules">Compare media schedules</a></li><li><a href="models/marketing-mix/calibration/#geo-test">Calibrating an MMM with a lift test</a></li><li><a href="models/marketing-mix/calibration/#allocate-budget">Allocate a fixed media budget</a></li><li><a href="decisions/budget/">Budget Decision Engine</a></li></ol></div></div>
+</article><article class="mg-route" id="customer-and-retail">
+  <div><h3>Improve retention or answer a retail question</h3><p>Choose the analysis that fits your retention, targeting, merchandising, or store location decision.</p></div>
+  <div class="mg-route-steps"><div><h3>Retention and targeting</h3><ol class="mg-links"><li><a href="models/churn/">Churn</a></li><li><a href="models/retention/">Retention</a></li><li><a href="models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li><li><a href="effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="decisions/retention-interventions/">Retention Interventions</a></li></ol></div><div><h3>Household profiles</h3><ol class="mg-links"><li><a href="models/segmentation/">Segmentation</a></li><li><a href="models/segmentation/prizm/">PRIZM</a></li></ol></div><div><h3>Assortment, cross-sell, and store choice</h3><ol class="mg-links"><li><a href="models/market-basket/">Market Basket Analysis</a></li><li><a href="models/huff-model/">Huff Model</a></li></ol></div><div><h3>Program evaluation</h3><ul class="mg-links"><li><a href="decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></div>
+</article></section>
+</div>
+  </main>
+  <footer class="mg-footer"><div><a href="./">Marketing Measurement Science</a><a href="reference/">Reference &amp; Tools</a></div></footer>
+  <script src="assets/guide.js"></script>
 </body>
 </html>

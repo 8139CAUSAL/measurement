@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Choosing a Causal Comparison | Marketing Measurement Science</title>
+  <link rel="stylesheet" href="../../assets/experiments.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Worked Experiment · Does the Offer Increase Conversion?</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/propensity-scores/">Propensity Scores and Balance</a></li><li><a href="../../effects/matching/">Matching</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li><li><a href="../../effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration Exercise</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a lift test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../">Reference &amp; Tools</a>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Reference &amp; Tools</a></li><li aria-current="page">Choosing a Causal Comparison</li></ol></nav>
+    <header class="mg-lesson-intro">
+  <h1>Choosing a Causal Comparison</h1><p class="mg-question">Which observations can support the causal effect you want to estimate?</p>
+  <dl class="mg-lesson-facts">
+    <div><dt>Inputs</dt><dd>An outcome, target population, treatment history, observation dates, and a candidate comparison pool.</dd></div>
+    <div><dt>Assumptions</dt><dd>Every recommendation depends on assignment, support, and restrictions on unobserved outcomes.</dd></div>
+    <div><dt>Prerequisites</dt><dd><a href="../../effects/incrementality/">Incrementality</a>, <a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></dd></div>
+  </dl>
+</header><div class="ex-content">
+  <section class="ex-card" id="design-chooser">
+    <h2>Choose a design</h2>
+    <p>Name whose outcome would change, under which intervention and over what window. The questions below narrow the candidate comparisons. Eligibility records, treatment dates and observed outcomes establish support. The counterfactual restrictions require a design argument.</p>
+    <form id="causal-chooser-form">
+      <div class="ex-fields causal-fields">
+        <label>Target effect
+          <select name="target"><option value="mean">Mean outcome</option><option value="quantile">Outcome quantile</option><option value="exit">Cumulative exit probability</option><option value="cutoff">Local effect at an eligibility cutoff</option></select>
+        </label>
+        <label>Outcome observations
+          <select name="waves"><option value="panel">Panel · same units over time</option><option value="repeated">Comparable repeated cross-sections</option><option value="post">Post-treatment outcomes only</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="timing">Treatment timing and history
+          <select name="timing"><option value="common">One shared start, treatment stays on</option><option value="staggered" selected>Different starts, treatment stays on</option><option value="dose">Dose varies</option><option value="switching">Treatment switches on or off</option><option value="mixed">Dose and repeated switches both vary</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="pool">Available comparisons
+          <select name="pool"><option value="never">Unexposed, never-treated units</option><option value="later">Later-treated, still unexposed</option><option value="donors">Unexposed donors with long histories</option><option value="none">No credible unexposed comparisons</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="cutoff">Documented eligibility cutoff and outcomes on both sides?
+          <select name="cutoff"><option value="unknown">Unknown</option><option value="no">No</option><option value="sharp">Yes · receipt follows the rule</option><option value="fuzzy">Yes · receipt varies around it</option></select>
+        </label>
+        <label data-choose="exposure">Neighbor exposure
+          <select name="exposure"><option value="none">No suspected spillovers</option><option value="known">Exposure varies and is mapped</option><option value="all">Every candidate is exposed</option><option value="unknown">Exposure is unknown</option></select>
+        </label>
+        <label data-choose="independent">Can own treatment and neighbor exposure vary separately?
+          <select name="independent"><option value="unknown">Unknown</option><option value="yes">Yes · observed combinations overlap</option><option value="no">No · they move together</option></select>
+        </label>
+        <label data-choose="eligibility">Unaffected ineligible subgroup in both groups?
+          <select name="eligibility"><option value="no">No subgroup needed for this comparison</option><option value="yes">Yes · compare eligibility gaps</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="dose">Dose support near adoption
+          <select name="dose"><option value="zero">Observed untreated units</option><option value="near-zero">No untreated units, changes approach zero</option><option value="far">All positive changes bounded away from zero</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="stayers">Stayers with the same initial treatment?
+          <select name="stayers"><option value="yes">Yes · stay at baseline through follow-up</option><option value="no">No same-baseline stayers</option><option value="unknown">Unknown</option></select>
+        </label>
+      </div>
+    </form>
+    <div class="ex-status" id="causal-chooser-result" role="status" aria-atomic="true">
+      <p><strong>Staggered DiD.</strong> Compare each adoption cohort with unexposed, untreated observations at the same dates. Verify parallel untreated changes, no anticipation, and stable composition. See <a href="#staggered-adoption">staggered-adoption methods</a>.</p>
+    </div>
+    <nav aria-label="Method comparisons">
+      <ul class="ex-steps">
+        <li><a href="#staggered-adoption">Adoption by cohort</a></li><li><a href="#untreated-outcomes">Untreated-outcome models</a></li>
+        <li><a href="#donor-methods">Donor designs</a></li><li><a href="#eligibility-and-exposure">Eligibility and spillovers</a></li>
+        <li><a href="#dose-and-switching">Dose and switching</a></li><li><a href="#quantile-did">Quantiles and exit</a></li><li><a href="#cutoff-designs">Cutoff designs</a></li>
+      </ul>
+    </nav>
+    <p>Before fitting, tabulate observations and missing waves by group and date, audit treatment paths and measurement windows, and check which units remain untreated and unexposed at each horizon. For repeated cross-sections, check changes in group composition. For survey outcomes, use design weights, strata and primary sampling units for the stated target and variance. Kish’s effective sample size, (Σ<i>w</i>)²/Σ<i>w</i>², summarizes weight concentration.</p>
+  </section>
+  <section class="ex-card" id="staggered-adoption">
+    <h2>One start date or several adoption cohorts</h2>
+    <p id="common-adoption">One shared start with outcomes before and after? Start with <a href="../../effects/difference-in-differences/">the 2×2 contrast and common-adoption fixed effects</a>. With multiple starts, keep calendar dates and event time separate. The <a href="../../effects/difference-in-differences/#cohort-comparisons">cohort grid</a> shows an unadjusted effect for one cohort and date.</p>
+    <article id="callaway-santanna">
+      <h3>Callaway–Sant’Anna</h3>
+      <p>Estimate ATT(<i>g</i>, <i>t</i>) for cohort <i>g</i> at date <i>t</i> from panel changes or compatible repeated cross-sections. Compare with never-treated or units still untreated and outside their anticipation window through <i>t</i>. Under conditional parallel trends, use outcome regression, propensity weighting or a doubly robust score for the data structure. Display overlap and cohort-date counts before aggregating. Changing support can change the event-time population. <a href="https://bcallaway11.github.io/did/reference/att_gt.html">Callaway &amp; Sant’Anna</a></p>
+    </article>
+    <article id="sun-abraham">
+      <h3>Sun–Abraham</h3>
+      <p>Estimate cohort-by-event-time effects in a panel, relative to a specified untreated reference. Use never-treated or a last-treated cohort in dates when it is untreated. Aggregate with cohort shares among supported cohorts at each horizon. Inspect cohort-by-horizon support. A shrinking cohort mix can mimic changing dynamics even with parallel untreated trends. <a href="https://arxiv.org/abs/1804.05785">Sun &amp; Abraham</a></p>
+    </article>
+    <article id="stacked-did">
+      <h3>Stacked DiD</h3>
+      <p>Build a subexperiment around each adoption date with controls untreated through its window. Use a common relative window with enough support to keep the treated cohort mix fixed. The window can have different pre and post lengths. Corrective weights align treated and control trends across stacks with the target aggregation. Audit repeated controls and weight totals. Unweighted pooling can compare different cohort mixes. Cluster across stacks at the original assignment or dependence unit. <a href="https://www.nber.org/papers/w32054">Wing, Freedman &amp; Hollingsworth</a></p>
+    </article>
+    <article id="local-projection-did">
+      <h3>Local-projection DiD</h3>
+      <p>Regress each horizon’s change from the last untreated date on adoption using clean comparisons with usable follow-up. Parallel untreated changes are horizon-specific. Reweight for the estimand, for example equal weight per treated unit, which gives cohort-size weights. Inspect the sample and weights separately by horizon. A unit that starts treatment within the horizon can contaminate the controls. Equivalence with other cohort estimators requires matching samples, baselines, controls, specifications and weights. <a href="https://doi.org/10.1002/jae.70000">Dube, Girardi, Jordà &amp; Taylor</a></p>
+    </article>
+    <article id="dml-did">
+      <h3>Double/debiased machine learning (DML)</h3>
+      <p>Use an orthogonal ATT score for a given DiD contrast when conditional parallel trends and overlap are plausible. In a panel the nuisance models can be the untreated outcome change given baseline covariates and the propensity for joining the treated cohort among its eligible comparison set. Repeated cross-sections require the corresponding group-date outcome regressions and sampling conditions. For the panel doubly robust score the product of the two prediction errors in L² must be <i>o</i>(<i>n</i><sup>−1/2</sup>) for regular root-<i>n</i> inference, with <i>n</i> counting independent units under the usual other conditions. The two rates may differ. Split folds by independent unit or cluster and check overlap, prediction and effective sample size by fold. A treatment-affected covariate requires a separate untreated-evolution model and additional assumptions. See <a href="../../effects/propensity-scores/#tab-weighting">propensity weighting</a> and <a href="../../effects/uplift-modeling/#panel-observational-targeting">cross-fitting</a>. <a href="https://doi.org/10.1016/j.jeconom.2020.06.003">Sant’Anna &amp; Zhao</a> · <a href="https://arxiv.org/abs/2608.03881">Caetano et al. on treatment-affected covariates</a></p>
+    </article>
+    <p><strong>Weight diagnostics.</strong> Tabulate the canonical static regression’s two-by-two comparisons and their nonnegative Goodman–Bacon weights, including already-treated comparisons. Separately inspect the signed weights on treated group-time effects. For the canonical sign-fragility calculation, measure effect dispersion across treated group-time cells with the specified treated-population weights. A switcher estimand requires its own target weights. <a href="https://www.nber.org/papers/w25018">Goodman–Bacon</a> · <a href="https://github.com/Credible-Answers/twowayfeweights">de Chaisemartin &amp; D’Haultfœuille’s weight diagnostics</a></p>
+  </section>
+  <section class="ex-card" id="untreated-outcomes">
+    <h2>Estimate an untreated outcome model</h2>
+    <p>Decide which untreated dates are informative for the specific target. A last-pre-period contrast can need only the relevant untreated change. Pooling earlier dates can add precision under the restrictions that make those dates valid for the model.</p>
+    <article id="imputation-did"><h3>Borusyak–Jaravel–Spiess imputation</h3>
+      <p>Fit the untreated outcome model on untreated unit-date observations, often with additive unit and date effects. Predict untreated outcomes for supported treated cells, subtract from observed outcomes, then average with target weights. Check untreated fit and whether unit and date effects can be estimated for the required cells. Untreated-model misspecification or unsupported dates directly distort the imputations. <a href="https://doi.org/10.1093/restud/rdae007">Borusyak, Jaravel &amp; Spiess</a></p></article>
+    <article id="two-stage-did"><h3>Gardner two-stage DiD</h3>
+      <p>Fit group or unit and date effects on untreated observations. In the second stage, regress residualized outcomes on treatment or event-time indicators to target weighted treated effects. Align the untreated sample, first-stage model and second-stage weights when comparing with imputation. Check residualized trends and support. Second-stage uncertainty alone omits estimation of the first stage. <a href="https://arxiv.org/abs/2207.05943">Gardner</a></p></article>
+    <article id="efficient-did"><h3>Chen–Sant’Anna–Xie efficient DiD</h3>
+      <p>Use multiple valid untreated-period moment restrictions, with covariates when justified, for cohort-time effects in short panels. The restrictions can support an efficient combination of alternative pre-period contrasts. Inspect how those moments fit and how precise they are jointly. The efficiency comparison assumes valid restrictions and suitable regularity and support. An older period may add no precision, or bias the estimate if its restriction fails. <a href="https://psantanna.com/files/Efficient_DiD.pdf">Chen, Sant’Anna &amp; Xie</a></p></article>
+    <article id="extended-twfe"><h3>Wooldridge extended TWFE</h3>
+      <p>Model the untreated outcome and include a separate cohort × calendar-period indicator for each estimable treated cell. Omit reference cells consistent with the chosen untreated model. A cohort × post indicator alone constrains all its post-period effects to be equal. Compare last-pre or pooled-history versions on their specific restrictions and inspect the untreated fit. With a nonlinear link, average predicted treated-minus-untreated outcomes for the target cohort-date on the outcome scale. A link-scale coefficient alone can give the wrong policy contrast. <a href="https://academic.oup.com/ectj/article/26/3/C31/7250479">Wooldridge</a></p></article>
+    <article id="rolling-did"><h3>Lee–Wooldridge rolling DiD</h3>
+      <p>Evaluate an adoption cohort and follow-up using a comparison set still unexposed through that date. Specify the rolling sample, the baseline or pre-period average, and any detrending restriction. Unit-specific extrapolation from earlier outcomes requires enough pre-treatment observations per unit. Cohort slopes instead impose a shared trajectory adjustment within each cohort. Inspect sensitivity to the pre-window and check horizon support. A trend estimated over too few periods can dominate the result. <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4516518">Lee &amp; Wooldridge</a></p></article>
+    <p><strong>Hausman comparison.</strong> Compare estimators of the same target in the same sample, such as a last-pre contrast and an estimator using additional valid moments under the null. Use the variance of their difference, Var(A) + Var(B) − 2 Cov(A, B), from joint influence functions or an appropriate shared resampling design. A difference-of-variances shortcut needs the efficiency/orthogonality conditions that justify it. Disagreement identifies tension among the restrictions. <a href="../../effects/difference-in-differences/#pre-trends-and-sensitivity">Assess sensitivity to departures from parallel trends</a>.</p>
+  </section>
+  <section class="ex-card" id="donor-methods">
+    <h2>Build a comparison from donor histories</h2>
+    <figure class="causal-figure">
+      <img class="causal-history" src="../../assets/causal-donor-history.png" alt="The treated series and a weighted donor series follow a similar pre-treatment path, then diverge when treatment begins. The donor uses weights 0.75 and 0.25.">
+      <figcaption>The illustrative blend uses weights 0.75 and 0.25. An outcome-level offset aligns pre-period levels. Synthetic DiD also weights pre dates to match the donors’ post level. A factor model can capture shared movements with different unit loadings.</figcaption>
+    </figure>
+    <div class="ex-table"><table>
+      <caption>How to read the donor diagnostics</caption>
+      <thead><tr><th scope="col">Diagnostic</th><th scope="col">Illustration</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Synthetic control pre-fit and placebo gaps</th><td>The figure’s raw blend misses each pre-period level by 1 unit and has a month-0 gap of +3. A comparable pre-fit placebo with a gap of +2.5 would weaken the case that +3 is unusual.</td></tr>
+        <tr><th scope="row">Synthetic DiD weight concentration</th><td>The donor weights give 1.60 effective donors. Illustrative pre-period weights of 0.10, 0.15, 0.25 and 0.50 give 2.90 effective pre-periods. Half the time weight rests on the last pre-period.</td></tr>
+        <tr><th scope="row">TROP held-out untreated error</th><td>In an illustrative validation block, compare a held-out root mean squared prediction error of 0.80 with 0.95 for an additive-only model. Measure errors on the same untreated cells.</td></tr>
+      </tbody>
+    </table></div>
+    <article id="synthetic-control"><h3>Synthetic control</h3>
+      <p>Estimate a treated unit’s post-period gap against an unexposed donor blend with nonnegative weights summing to one. A credible convex combination needs long, comparable pre-outcomes and pre-fit that can plausibly extend without treatment. Inspect donor weights, pre-fit, post gaps and placebo gaps under the same recipe. Poor support, donor contamination or a dominant donor can undermine the contrast. A placebo plot supplies sensitivity evidence. A formal reference distribution needs a defensible assignment or sampling argument. <a href="https://doi.org/10.1257/jel.20191450">Abadie</a></p></article>
+    <article id="synthetic-did"><h3>Synthetic DiD</h3>
+      <p>Estimate an average effect over a treated block of unit-date cells. Pick donor weights to match the treated pre-path up to a level offset, and time weights to align donor pre outcomes with their post outcomes. Then contrast weighted changes under the resulting counterfactual model. Inspect pre-fit and the concentration of both sets of weights. Short histories, shocks absent from donors, or weights on nearly single observations can make the fit unstable. <a href="https://doi.org/10.1257/aer.20190159">Arkhangelsky et al.</a></p></article>
+    <article id="trop"><h3>Triply robust panel (TROP)</h3>
+      <p>Predict missing untreated outcomes for supported treated cells with unit and time weighting, additive effects and a regularized latent factor component. The block-design bias bound depends on its weighting and outcome restrictions. Check held-out untreated prediction error and sensitivity to factors and tuning. Strong fit in one untreated block can fail in a new regime. An extension for switching requires no carryover for the indicated comparisons. <a href="https://arxiv.org/html/2508.21536v1">Athey et al.</a></p></article>
+  </section>
+  <section class="ex-card" id="eligibility-and-exposure">
+    <h2>Compare eligibility gaps or map spillovers</h2>
+    <figure class="causal-figure ex-table">
+      <table><caption>Eight cells for a triple difference</caption><thead><tr><th scope="col">Area and date</th><th scope="col">Eligible</th><th scope="col">Ineligible</th></tr></thead><tbody>
+        <tr><th scope="row">Program area · before</th><td>Eligible baseline</td><td>Subgroup baseline</td></tr>
+        <tr><th scope="row">Program area · after</th><td>Exposed</td><td>Must be unaffected</td></tr>
+        <tr><th scope="row">Comparison area · before</th><td>Eligible baseline</td><td>Subgroup baseline</td></tr>
+        <tr><th scope="row">Comparison area · after</th><td>Unexposed comparison</td><td>Unexposed subgroup</td></tr>
+      </tbody></table>
+      <figcaption>Form the eligible-minus-ineligible gap in each row. Compare its change across areas.</figcaption>
+    </figure>
+    <article id="common-ddd"><h3>Common-adoption triple differences (DDD)</h3>
+      <p>Target the effect for eligible people in the program area. Require an unaffected comparison subgroup and parallel untreated changes in eligibility gaps across areas. Audit all eight cells and subgroup composition over time. With covariates, build the conditional contrast then standardize it to the target covariate distribution. Differencing two independently averaged DiDs can mix different covariate populations. <a href="https://arxiv.org/abs/2505.09942">Ortiz-Villavicencio &amp; Sant’Anna</a></p></article>
+    <article id="staggered-ddd"><h3>Staggered triple differences</h3>
+      <p>Estimate an eligible-cohort effect at each supported date using a valid comparison cohort with both eligibility subgroups. Form cohort-specific gap contrasts before aggregating. Inspect eight-cell support and composition at each horizon. Pooling all not-yet-treated units can introduce bias even when covariate adjustment is unnecessary. <a href="https://arxiv.org/abs/2505.09942">Ortiz-Villavicencio &amp; Sant’Anna</a></p></article>
+    <article id="spillover-did"><h3>Spatial spillover DiD</h3>
+      <figure class="causal-figure">
+        <ol class="causal-exposure" aria-label="Exposure map from the treatment location to an unexposed area">
+          <li><strong>Program area</strong><span>Own adoption at month 0</span></li>
+          <li><strong>Neighbor</strong><span>First exposure at month 0</span></li>
+          <li><strong>Outside radius</strong><span>Clean comparison while unexposed</span></li>
+        </ol>
+        <figcaption>Define the exposure radius from how the intervention travels. Record own adoption and first neighbor exposure separately.</figcaption>
+      </figure>
+      <p>Compare own treatment holding neighbor exposure fixed for a direct effect, exposure among untreated units for a spillover effect, or joint own and neighbor exposure against neither for a total effect. Require support for the relevant combinations and parallel counterfactual changes under a defensible exposure mapping. Tabulate support by horizon and try plausible exposure definitions. A misspecified radius can contaminate controls. The distance used for spatial covariance is a separate inference choice. <a href="https://www.kylebutts.com/papers/spatial-spillovers/">Butts</a></p>
+    </article>
+  </section>
+  <section class="ex-card" id="dose-and-switching">
+    <h2>Follow treatment paths</h2>
+    <figure class="causal-figure ex-table"><table>
+      <caption>Illustrative treatment histories</caption>
+      <thead><tr><th scope="col">Path</th><th scope="col">Baseline</th><th scope="col">Period 1</th><th scope="col">Period 2</th><th scope="col">Period 3</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Untreated comparison</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><th scope="row">Small positive adoption</th><td>0</td><td>ε &gt; 0</td><td>ε</td><td>ε</td></tr>
+        <tr><th scope="row">Treated path with repeated switches</th><td>2</td><td>4</td><td>0</td><td>3</td></tr>
+        <tr><th scope="row">Same-baseline stayer</th><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+      </tbody>
+    </table><figcaption>The treated switching path turns off and crosses its starting dose. Group trajectories by initial dose and first switch before building horizon comparisons.</figcaption></figure>
+    <article id="continuous-dose"><h3>Continuous-dose DiD</h3>
+      <p>Compare outcomes at an observed dose to the zero-dose counterfactual for units receiving that dose, with untreated units and a parallel untreated change restriction. A derivative holding the target population fixed requires stronger cross-dose comparability. Check support by dose and time, especially near zero. A slope through dose-specific effects can combine response and selection across dose groups. <a href="https://www.nber.org/papers/w32117">Callaway, Goodman-Bacon &amp; Sant’Anna</a></p></article>
+    <article id="didhad"><h3>Heterogeneous adoption without stayers (DIDHAD)</h3>
+      <p>In the no-stayers adoption design, near-zero positive doses can recover the untreated change via continuity at the boundary under the design’s common-trend restriction. The target is a weighted average of dose-normalized effects, with the estimator’s stated weighting scheme. Inspect dose mass near zero and boundary-fit sensitivity. Without adequate near-zero variation the approach relies on extrapolation. <a href="https://github.com/Credible-Answers/did_had">DIDHAD authors’ guide</a></p></article>
+    <article id="intertemporal-did"><h3>Intertemporal DiD</h3>
+      <p>Compare switchers’ observed paths after a first change to staying at their initial treatment. Require same-baseline controls that stay at baseline through the horizon, and compatible untreated-increment trends and histories where carryover matters. Lagged effects can persist after switch-off and repeat switches. Audit comparisons by direction and horizon. A sign orientation aligns upward and downward first changes. Dose normalization scales by the relevant cumulative dose difference and can combine current and lagged responses. Inspect paths crossing baseline separately because the signed dose denominator can cancel and change the interpretation. <a href="https://arxiv.org/abs/2007.04267">de Chaisemartin &amp; D’Haultfœuille</a></p></article>
+  </section>
+  <section class="ex-card" id="quantile-did">
+    <h2>Change the outcome target</h2>
+    <figure class="causal-figure">
+      <ol class="causal-exposure" aria-label="Changes-in-changes rank transport">
+        <li><strong>Treated pre-quantile</strong><span>Locate its outcome value.</span></li>
+        <li><strong>Control pre-rank</strong><span>Find the percentile of that value among controls.</span></li>
+        <li><strong>Control post-quantile</strong><span>Read the outcome at that percentile.</span></li>
+      </ol>
+      <figcaption>The transported outcome is the treated group’s counterfactual post quantile. Subtract it from the observed treated post quantile.</figcaption>
+    </figure>
+    <article id="changes-in-changes"><h3>Changes-in-changes (CiC)</h3>
+      <p>Estimate treated counterfactual quantiles from treated and unexposed comparison distributions at both dates. A common monotone outcome transformation and stable within-group latent distributions justify the transport over shared support. Check tail overlap and composition. The transport works at the distribution level. Individual ranks can move. For conditional CiC, integrate the conditional counterfactual distributions over treated baseline characteristics before taking marginal quantiles. <a href="https://www.nber.org/papers/t0280">Athey &amp; Imbens</a></p></article>
+    <article id="additive-quantile-did"><h3>Additive quantile DiD</h3>
+      <p>Apply the untreated control’s change in a chosen quantile to that treated pre-quantile. This requires parallel untreated quantile shifts on the selected outcome scale, a distinct assumption from common rank transport. Inspect the implied counterfactual distribution for crossing and check common support. Additive shifts depend on the outcome scale. For conditional models, integrate distributions before reading a marginal quantile. <a href="https://www.nber.org/papers/t0280">Athey &amp; Imbens</a></p></article>
+    <article id="duration-did"><h3>Duration DiD</h3>
+      <p>For an absorbing event such as contract exit, target the difference in cumulative exit probability by a named duration. Align cohort origin and risk sets. Comparable repeated cross-sections or uneven observation dates can provide the needed group survival means. Check censoring, cohort composition and risk-set support. Use <i>S</i>(<i>t</i>) for survival and <i>H</i>(<i>t</i>) = −log <i>S</i>(<i>t</i>) for cumulative hazard.</p>
+      <div class="ex-table"><table>
+        <caption>Illustrative survival and cumulative hazards</caption>
+        <thead><tr><th scope="col">Group</th><th scope="col">Survival at month 1</th><th scope="col">Survival at month 2</th><th scope="col">ΔH</th><th scope="col">Interval exit probability among month-1 survivors</th></tr></thead>
+        <tbody><tr><th scope="row">Comparison</th><td>0.80</td><td>0.72</td><td>0.105</td><td>10%</td></tr>
+        <tr><th scope="row">Treated, observed</th><td>0.75</td><td>0.60</td><td>0.223</td><td>20%</td></tr></tbody>
+      </table></div>
+      <p>Common dynamics assume a constant additive gap between untreated hazard rates. A proportional-hazards restriction instead gives proportional increments of cumulative hazard. An interval exit probability is 1 − exp(−Δ<i>H</i>). Convert the reconstructed counterfactual survival to cumulative exit (1 − <i>S</i>) before reporting the effect. Check pre-treatment hazard implications on the chosen scale, including within covariate strata if used. Non-comparable cohorts, informative censoring and sparse risk sets can invalidate the comparison. <a href="https://arxiv.org/html/2405.05220v2">Deaner &amp; Ku, Theorem 1 and Remark 3</a> · <a href="../../models/retention/">Retention</a></p>
+    </article>
+  </section>
+  <section class="ex-card" id="cutoff-designs">
+    <h2>Assignment by cutoff</h2>
+    <p>Does a documented score threshold change eligibility, with outcome data just above and below it? Go to <a href="../../effects/regression-discontinuity/#eligibility-rule">sharp and fuzzy Regression Discontinuity</a> to choose between an eligibility effect and a local receipt effect, and use the <a href="../../effects/regression-discontinuity/#cutoff-explorer">cutoff explorer</a> to inspect both sides.</p>
+  </section>
+</div>
+<aside class="mg-lesson-next"><div><h2>Related lessons</h2><ul class="mg-links"><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/matching-and-difference-in-differences/">Worked Example · Loyalty Program Lift</a></li><li><a href="../../models/retention/">Retention</a></li></ul></div></aside>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><a href="../">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/causal-comparison.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>
