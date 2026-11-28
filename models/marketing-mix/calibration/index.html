@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calibrating an MMM with a Lift Test | Marketing Measurement Science</title>
+  <meta name="description" content="Update a Search and Social model with a paired geo test and check a reserved result.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/marketing-mix/calibration/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/marketing-mix/calibration/">
+  <meta property="og:title" content="Calibrating an MMM with a Lift Test | Marketing Measurement Science">
+  <meta property="og:description" content="Update a Search and Social model with a paired geo test and check a reserved result.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Calibrating an MMM with a Lift Test | Marketing Measurement Science">
+  <meta name="twitter:description" content="Update a Search and Social model with a paired geo test and check a reserved result.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../../assets/experiments.css"><script src="../../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../../assets/guide.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../../"><img class="mg-wordmark-logo" src="../../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../../effects/incrementality/">Incrementality</a></li><li><a href="../../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../../effects/p-values/">P-Values</a></li><li><a href="../../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../reading-regressions/">Reading Regressions</a></li><li><a href="../../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../media-response/">Media Response</a><ul class="mg-links"><li><a href="../../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../readiness/">MMM Readiness</a></li><li><a href="../">Marketing Mix Modeling</a></li><li><a href="./">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../churn/">Churn</a></li><li><a href="../../retention/">Retention</a></li><li><a href="../../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../segmentation/">Segmentation</a></li><li><a href="../../segmentation/prizm/">PRIZM</a></li><li><a href="../../market-basket/">Market Basket Analysis</a></li><li><a href="../../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../../">Home</a></li><li><a href="../../">Model Outcomes</a></li><li><a href="../../media-response/">Media Response</a></li><li aria-current="page">Calibrating an MMM with a Lift Test</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Calibrating an MMM with a Lift Test</h1></header><div class="ex-content">
+  <section class="ex-card" id="geo-test">
+    <h2>Paired Search geo test</h2>
+    <p>A retailer randomly assigns one market in each of eight matched pairs to raise weekly Search spend from $2,000 to $3,000 for four weeks. Both markets then spend $2,000 for two weeks. Compare six-week revenue per market, weight pairs equally, and keep Social spend fixed.</p>
+    <p>Interpret the result as the effect of the planned spend change if delivery followed assignment and markets did not affect each other.</p>
+    <p id="media-study-dates"></p>
+    <div id="media-audit">
+      <details><summary>Assignment, delivered spend and revenue by pair</summary><div id="media-study-table"></div></details>
+      <p id="media-study-result" class="ex-status"></p>
+      <p id="media-study-decision"></p>
+      <p>The update uses one aggregate lift estimate and its standard error from the eight paired differences.</p>
+      <h3>Check whether the test matches the model contrast</h3>
+      <div class="ex-fields">
+        <label>Study scenario
+          <select id="media-challenge">
+            <option value="intact">Full six-week study</option>
+            <option value="spillover">Cross-border Search exposure</option>
+            <option value="short">Follow-up ends after week four</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="media-evidence-choice" checked> Include the six-week increase test</label>
+      </div>
+      <p id="media-evidence-feedback" class="ex-status" role="status"></p>
+    </div>
+  </section>
+
+  <section class="ex-card" id="update-media-model">
+    <h2>Update the history-only fit</h2>
+    <p>Update the lower-Search-prior fit with the signed lift from the same markets, spend schedules, and six-week window. The fit uses earlier outcomes. The study-period outcomes enter through the lift estimate.</p>
+    <p class="media-equation"><code>study lift ~ Normal(model schedule difference, study SE²)</code></p>
+    <p>The second argument is variance. A smaller standard error gives the test more weight. Model evidence jointly if it reuses outcomes or controls.</p>
+    <div class="ex-fields">
+      <label>First study precision
+        <select id="media-study-precision">
+          <option value="1">Reported paired SE</option>
+          <option value="2">Less precise (2× SE)</option>
+          <option value=".5">More precise (½× SE)</option>
+        </select>
+      </label>
+    </div>
+    <h3>Check the model against a later Search cut</h3>
+    <p id="media-cut-schedule"></p>
+    <p>The reserved prediction uses the increase test at its reported precision and includes the cut study’s sampling error. Adding the cut to the fit makes the comparison in-sample.</p>
+    <p id="media-cut-prediction" class="ex-status"></p>
+    <p id="media-cut-result" class="ex-status"></p>
+    <label><input id="media-second-study" type="checkbox"> Include the cut in the model update</label>
+    <p id="media-update-status" class="ex-status" role="status"></p>
+    <div class="ex-chart"><canvas id="media-study-comparison" role="img" aria-label="Signed observed lift and model differences by study" data-units="Six-week incremental revenue per market ($)"></canvas></div>
+    <div id="media-lift-comparison-table"></div>
+    <h3>Search response before and after the update</h3>
+    <p>The gray and blue bands show 95% credible intervals before and after calibration. The update changes the curve’s scale while holding decay and shape fixed.</p>
+    <label>Response target
+      <select id="media-response-target">
+        <option value="tested">Eligible markets · equal weights</option>
+        <option value="untested">Two untested markets · equal weights</option>
+      </select>
+    </label>
+    <div class="ex-chart"><canvas id="media-calibration-curve" role="img" aria-label="Search response curve credible bands before and after lift calibration"></canvas></div>
+    <div id="media-return-summary" class="ex-status" role="status"></div>
+    <details><summary>Search response by spend level</summary><div id="media-calibration-curve-table"></div></details>
+    <p>The untested-market curves borrow information through partial pooling. Applying them to another market requires evidence that the response transfers.</p>
+    <p>One test constrains the response over its tested spend range. Tests at other spend levels can help distinguish curves that agree over that range.</p>
+  </section>
+
+  <section class="ex-card" id="allocate-budget">
+    <h2>Reallocate a fixed $4,400 weekly budget</h2>
+    <p>Compare a new four-week split with $2,200 per channel. Both plans return to the original split for two more weeks. Rank plans by expected six-week revenue per market, holding total spend and contribution margin fixed.</p>
+    <label for="media-budget-search">Weekly Search spend in the new plan</label>
+    <input type="range" id="media-budget-search" min="1500" max="2900" step="100" value="2200">
+    <p id="media-allocation-summary" class="ex-status" role="status"></p>
+    <div class="ex-actions"><button class="ex-primary" id="media-optimize" type="button">Use the best split on this grid</button></div>
+    <div class="ex-chart"><canvas id="media-allocation-chart" role="img" aria-label="Expected gain for every feasible budget split"></canvas></div>
+    <details><summary>Revenue gain by budget split</summary><div id="media-allocation-table"></div></details>
+    <p>The test changes Search only. Changing both channels requires a model projection that depends on the fitted response, carryover, and channel interactions.</p>
+  </section>
+
+  <section aria-labelledby="calibration-reference-examples">
+    <h2 id="calibration-reference-examples">Other calibration examples</h2>
+    <details class="ex-card" id="displaced-credit">
+      <summary>When a test measures the wrong effect</summary>
+      <p>In this synthetic meal-kit example, increasing Video adds 30 orders per week with Search fixed, or 46 when Search spend also rises. Using the joint estimate for the fixed-Search contrast shifts modeled credit from Search to Video.</p>
+      <label>Evidence for the direct Video contrast
+        <select id="media-credit-evidence">
+          <option value="history">History only</option>
+          <option value="fixed">Test holding paid Search fixed</option>
+          <option value="responsive">Test allowing paid Search to follow Video</option>
+        </select>
+      </label>
+      <p id="media-credit-result" class="ex-status" role="status"></p>
+      <div class="ex-chart media-credit-chart"><canvas id="media-credit-interval" role="img" aria-label="Direct Video lift estimate and credible interval with markers for the known direct lift and policy total" data-units="Incremental orders per week"></canvas></div>
+      <div id="media-credit-ledger"></div>
+    </details>
+    <details class="ex-card" id="experiment-roi-prior">
+      <summary>How an experiment becomes an ROI prior</summary>
+      <p>A prior uses experiment evidence before fitting the media history. Meridian’s calibration workflow is designed for average ROI against a zero-spend baseline. The Search example above uses a likelihood for a specific increase from positive spend.</p>
+      <p>In this separate illustration, a $40,000 Video holdout estimates 1,000 incremental orders (SE 200). At $60 of revenue per order, the starting ROI is 1.50 (SE 0.30). The example shifts and widens it to about 1.60 for differences in timing, spend, and captured carryover. The chart shows the resulting Video Gamma approximation (mean 1.60, SD 0.58) and a default Social prior.</p>
+      <div class="ex-chart"><canvas id="media-roi-densities" role="img" aria-label="Calibrated Video and default Social prior densities on revenue ROI"></canvas></div>
+      <details><summary>Prior density values</summary><div id="media-roi-table"></div></details>
+    </details>
+    <details class="ex-card" id="return-likelihood">
+      <summary>Compare cost per order and orders per dollar</summary>
+      <p>A separate study spends $48,000 and estimates 600 incremental orders. Its cost is $80 per incremental order with a reported SE of $10.</p>
+      <p>Changing display units preserves the likelihood at corresponding values. Changing the assumed measurement error can change the likelihood. Each curve has a maximum of 1.</p>
+      <div class="ex-fields">
+        <label>Candidate return units
+          <select id="media-ratio-units">
+            <option value="cost">Dollars per incremental order</option>
+            <option value="return">Incremental orders per $1,000</option>
+          </select>
+        </label>
+        <label>Measurement assumption
+          <select id="media-ratio-family">
+            <option value="reported">Normal on reported cost scale</option>
+            <option value="fresh">Fresh Normal on orders per $1,000</option>
+            <option value="lognormal">LogNormal multiplicative error</option>
+            <option value="student">Student-t on reported cost scale (5 df)</option>
+          </select>
+        </label>
+      </div>
+      <p id="media-ratio-result" class="ex-status" role="status"></p>
+      <p id="media-ratio-assumption"></p>
+      <div class="ex-chart"><canvas id="media-ratio-likelihood" role="img" aria-label="Relative likelihood of the observed study result by candidate return"></canvas></div>
+      <div id="media-ratio-table"></div>
+      <p>Use signed lift when a ratio denominator is zero or too uncertain. With fixed incremental spend, divide the revenue-lift SE by the absolute spend change. If both quantities are estimated, account for their joint uncertainty.</p>
+    </details>
+  </section>
+</div>
+
+  </main>
+  <footer class="mg-footer"><div><a href="../../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../../assets/media-calibration.js"></script><script src="../../../assets/guide.js"></script>
+</body>
+</html>

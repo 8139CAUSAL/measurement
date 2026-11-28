@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Incremental Lift Report | Marketing Measurement Science</title>
+  <meta name="description" content="Calculate overall and segment-level lift from exposures, responses, and revenue.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/incremental-lift-report/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/incremental-lift-report/">
+  <meta property="og:title" content="Incremental Lift Report | Marketing Measurement Science">
+  <meta property="og:description" content="Calculate overall and segment-level lift from exposures, responses, and revenue.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Incremental Lift Report | Marketing Measurement Science">
+  <meta name="twitter:description" content="Calculate overall and segment-level lift from exposures, responses, and revenue.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Reporting Page Styles === */
+
+    .sim-card {
+      background: rgba(98, 114, 164, 0.08); border: 1px solid var(--brand-border);
+      border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    }
+    .sim-card__title {
+      font-size: 12px; font-weight: 700; text-transform: none;
+      color: var(--brand-text-muted); letter-spacing: 0.05em; margin-bottom: 12px; display: block;
+    }
+    .input-group { flex: 1; }
+    .input-group label { display: block; font-size: 11px; color: var(--brand-text-muted); margin-bottom: 4px; }
+    .sim-input {
+      width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--brand-border);
+      color: #fff; padding: 6px 10px; border-radius: 4px; font-family: inherit; font-size: 13px;
+    }
+    .metric-name { font-size: 13px; color: var(--brand-text-muted); }
+    .metric-val { font-size: 18px; font-weight: 700; font-family: "SF Mono", monospace; }
+
+    .yd-metric-grid .metric-row { margin: 0; border-bottom: 1px solid var(--mg-border); }
+    #guide-main .yd-metric-grid .metric-header {
+      display: grid; grid-template-columns: minmax(0, 1fr) fit-content(60%); gap: 12px;
+      align-items: baseline; list-style: none; cursor: pointer; padding-block: .5rem; margin: 0;
+    }
+    #guide-main .yd-metric-grid .metric-header > span { overflow-wrap: anywhere; }
+    #guide-main .yd-metric-grid .metric-header .metric-val { white-space: normal; text-align: right; }
+    .yd-metric-grid .metric-header::-webkit-details-marker { display: none; }
+    .yd-metric-grid .metric-val::before { content: "▸\00a0" / ""; font-size: .8em; }
+    .yd-metric-grid [open] > .metric-header .metric-val::before { content: "▾\00a0" / ""; }
+    .yd-metric-grid .tooltip-content { margin-bottom: .6rem; }
+    .lift-calculation .tooltip-content, .sr-calculation {
+      padding: .5rem; text-align: left;
+      background: var(--mg-background); color: var(--mg-text);
+      border: 1px solid var(--mg-border); border-radius: 6px;
+      font: 400 .82rem/1.4 "Public Sans", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    .tooltip-title { display: block; font-weight: 700; margin-bottom: .3rem; }
+    .yd-table [aria-invalid="true"] { border-color: #B91C1C; }
+    .sr-unavailable { grid-column: span 3; font-size: .85rem; }
+    .sr-val, .sr-val-hdr { overflow-wrap: anywhere; }
+
+    /* Campaign Row */
+    .yd-campaign-row { display: grid; grid-template-columns: 1fr 1fr 3fr; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--mg-border); }
+
+    /* Data Table */
+    .yd-table-wrap { overflow-x: auto; margin-top: 8px; }
+    .yd-table { width: 100%; border-collapse: collapse; }
+    .yd-table th, .yd-table td { padding: 8px 10px; text-align: center; font-size: 13px; border-bottom: 1px solid var(--mg-border); }
+    .yd-table th { color: var(--brand-text-muted); font-weight: 600; font-size: 11px; text-transform: none; letter-spacing: 0.03em; }
+    .yd-table th:first-child, .yd-table td:first-child { text-align: left; }
+    .yd-group-header { border-bottom: 2px solid var(--mg-border) !important; }
+    .yd-group-test { color: var(--brand-accent) !important; }
+    .yd-group-ctrl { color: #3b82f6 !important; }
+    .yd-subheader th { font-size: 10px; padding-top: 4px; }
+    .yd-table .seg-name-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--brand-text); font-size: 13px; white-space: nowrap; }
+    .yd-table input[type=number] {
+      width: 6rem; background: rgba(0,0,0,0.2); border: 1px solid var(--mg-border);
+      color: #fff; padding: 5px 8px; border-radius: 4px; font-family: "SF Mono", monospace; font-size: 13px; text-align: right;
+    }
+    .yd-table input[type=number]:focus { outline: none; border-color: var(--brand-accent); }
+
+    /* Results Grid */
+    .yd-campaign-row, .yd-results-grid > div, .sr-row > * { min-width: 0; }
+    .yd-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .yd-results-section-label {
+      font-size: 11px; font-weight: 700; text-transform: none; color: var(--brand-accent);
+      letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--mg-border);
+    }
+    .sr-header, .sr-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--mg-border); }
+    .sr-header { border-bottom: 1px solid var(--mg-border); padding-bottom: 8px; margin-bottom: 2px; }
+    .sr-val-hdr { font-size: 10px; text-transform: none; color: var(--brand-text-muted); font-weight: 600; letter-spacing: 0.03em; text-align: right; }
+    .sr-seg-name { font-size: 13px; font-weight: 600; color: var(--brand-text); }
+    .sr-val { font-family: "SF Mono", monospace; font-size: 13px; font-weight: 700; text-align: right; }
+    button.sr-val { min-height: 24px; padding: 0; border: 0; background: transparent; cursor: pointer; text-decoration: underline dotted; }
+    button.sr-val:hover, button.sr-val[aria-expanded="true"] { text-decoration-style: solid; }
+    .sr-calculation { grid-column: 1 / -1; }
+    .sr-tt-line { margin-bottom: 3px; font-size: 12px; }
+    .sr-tt-sub { margin-left: 10px; font-size: 11px; color: var(--mg-secondary); margin-bottom: 2px; }
+
+    @media (max-width: 900px) {
+      .yd-results-grid { grid-template-columns: 1fr; }
+      .yd-campaign-row { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="./">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Incremental Lift Report</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Incremental Lift Report</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">
+      Enter your Test vs Control results per segment to measure
+      incremental lift. A causal interpretation requires a credible test and comparable follow-up.
+    </p>
+
+    <div class="sim-card">
+      <span class="sim-card__title">Experiment Data</span>
+      <div class="yd-campaign-row">
+        <div class="input-group">
+          <label for="yd-cost-test">Test Cost/Contact ($)</label>
+          <input type="number" id="yd-cost-test" class="sim-input" value="5">
+        </div>
+        <div class="input-group">
+          <label for="yd-cost-ctrl">Control Cost/Contact ($)</label>
+          <input type="number" id="yd-cost-ctrl" class="sim-input" value="0">
+        </div>
+        <div id="yd-campaign-summary" style="display:flex;align-items:center;gap:16px;font-size:13px;color:var(--brand-text-muted);justify-content:flex-end;"></div>
+      </div>
+      <div class="yd-table-wrap">
+        <table class="yd-table">
+          <thead>
+            <tr>
+              <th>Segment</th>
+              <th colspan="3" class="yd-group-header yd-group-test">Test Group</th>
+              <th colspan="3" class="yd-group-header yd-group-ctrl">Control Group</th>
+            </tr>
+            <tr class="yd-subheader">
+              <th></th>
+              <th class="yd-group-test">Conversions</th><th class="yd-group-test">Exposures</th><th class="yd-group-test">Revenue</th>
+              <th class="yd-group-ctrl">Conversions</th><th class="yd-group-ctrl">Exposures</th><th class="yd-group-ctrl">Revenue</th>
+            </tr>
+          </thead>
+          <tbody id="yd-table-body"></tbody>
+        </table>
+      </div>
+      <p class="mg-context">The five simulated segments resemble the <a href="../uplift-modeling/#panel-segments">uplift response types</a> in order from Segment 1 to Segment 5: Persuadables, Mild Responders, Neutral (Sure Things and Lost Causes), Weak Negative, and Sleeping Dogs. In real data, segments come from observed characteristics or model scores. An individual’s response type cannot be observed.</p>
+    </div>
+
+    <div id="yd-validation" role="status"></div>
+    <div class="sim-card">
+      <span class="sim-card__title">Results</span>
+      <div class="yd-results-grid">
+        <div>
+          <div class="yd-results-section-label">Campaign Totals</div>
+          <p class="mg-context">The campaign rate difference weights each segment by its test exposures. This report gives point estimates. See <a href="../randomized-experiment/#report-decision">the offer experiment</a> for an example with uncertainty. The first cost-adjusted lift subtracts each arm’s contact cost from its revenue before comparing arms. The second subtracts the test arm’s contact cost from incremental revenue.</p>
+          <div class="yd-metric-grid">
+            <details class="metric-row lift-calculation">
+              <summary class="metric-header">
+                <span class="metric-name">Response lift (pp)</span>
+                <span class="metric-val" id="yd-res-conv">0.0 pp</span>
+              </summary>
+              <div id="yd-tt-conv" class="tooltip-content"></div>
+            </details>
+            <details class="metric-row lift-calculation">
+              <summary class="metric-header">
+                <span class="metric-name">Incremental revenue</span>
+                <span class="metric-val" id="yd-res-incr-rev">$0</span>
+              </summary>
+              <div id="yd-tt-rev" class="tooltip-content"></div>
+            </details>
+            <details class="metric-row lift-calculation">
+              <summary class="metric-header">
+                <span class="metric-name">Lift net of both arms’ contact costs</span>
+                <span class="metric-val" id="yd-res-gm">$0</span>
+              </summary>
+              <div id="yd-tt-gm" class="tooltip-content"></div>
+            </details>
+            <details class="metric-row lift-calculation">
+              <summary class="metric-header">
+                <span class="metric-name">Campaign Cost</span>
+                <span class="metric-val" id="yd-res-cost">$0</span>
+              </summary>
+              <div id="yd-tt-cost" class="tooltip-content"></div>
+            </details>
+            <details class="metric-row lift-calculation">
+              <summary class="metric-header">
+                <span class="metric-name">Incremental revenue minus campaign cost</span>
+                <span class="metric-val" id="yd-res-profit">$0</span>
+              </summary>
+              <div id="yd-tt-profit" class="tooltip-content"></div>
+            </details>
+          </div>
+        </div>
+        <div>
+          <div class="yd-results-section-label">Per-Segment</div>
+          <div id="yd-segment-results"></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function(){'use strict';
+  var yd=[{tC:85,tE:200,tRv:16000,cC:20,cE:200,cRv:900},{tC:60,tE:300,tRv:15000,cC:40,cE:300,cRv:12000},{tC:50,tE:300,tRv:10500,cC:48,cE:300,cRv:10080},{tC:25,tE:150,tRv:3750,cC:35,cE:150,cRv:5250},{tC:5,tE:50,tRv:300,cC:15,cE:50,cRv:900}];
+  var $=function(id){return document.getElementById(id);};
+  var yU={coT:$('yd-cost-test'),coC:$('yd-cost-ctrl'),tb:$('yd-table-body'),rC:$('yd-res-conv'),rIR:$('yd-res-incr-rev'),rP:$('yd-res-profit'),rCo:$('yd-res-cost'),rGM:$('yd-res-gm'),sR:$('yd-segment-results'),cs:$('yd-campaign-summary'),ttC:$('yd-tt-conv'),ttR:$('yd-tt-rev'),ttP:$('yd-tt-profit'),ttCo:$('yd-tt-cost'),ttGM:$('yd-tt-gm')};
+  function setValText(el,txt){if(!el)return;var c=el.childNodes;for(var i=0;i<c.length;i++){if(c[i].nodeType===3){c[i].textContent=txt;return;}}el.insertBefore(document.createTextNode(txt),el.firstChild);}
+  function ttH(t,L){var h='<span class="tooltip-title">'+t+'</span>';for(var i=0;i<L.length;i++){var l=L[i];if(l==='---')h+='<hr style="border:0;border-top:1px solid rgba(98,114,164,0.55);margin:6px 0">';else if(l[0]==='_')h+='<div class="sr-tt-sub">'+l.slice(1)+'</div>';else h+='<div class="sr-tt-line">'+l+'</div>';}return h;}
+  function clr(v,pos){return pos?'#066B4F':'#B91C1C';}function bld(t,c){return'<strong'+(c?' style="color:'+c+'"':'')+'>'+t+'</strong>';}
+  function fL(n){return Math.round(n).toLocaleString();}function fP(r){return(r*100).toFixed(1)+'%';}function fD(n){return(Math.round(n)<0?'\u2212$':'$')+fL(Math.abs(n));}
+  const fields = [
+    ['tC', 'test conversions', 0], ['tE', 'test exposures', 1], ['tRv', 'test revenue', 0],
+    ['cC', 'control conversions', 0], ['cE', 'control exposures', 1], ['cRv', 'control revenue', 0]
+  ];
+  const inputRows = [];
+  const signedPP = value => (value < 0 ? '−' : '+') + Math.abs(value).toFixed(1) + ' pp';
+  const fixed = value => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace('-', '−');
+  function rYT() {
+    yd.forEach((segment, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = '<td><div class="seg-name-cell">Segment ' + (index + 1) + '</div></td>';
+      inputRows.push(fields.map(([key, label, min]) => {
+        const cell = row.insertCell();
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'yd-input';
+        input.min = min;
+        input.step = key.endsWith('Rv') ? 'any' : '1';
+        input.value = segment[key];
+        input.setAttribute('aria-label', 'Segment ' + (index + 1) + ' ' + label);
+        input.setAttribute('aria-describedby', 'yd-validation');
+        input.addEventListener('input', () => {
+          segment[key] = input.valueAsNumber;
+          cYD();
+        });
+        cell.appendChild(input);
+        return input;
+      }));
+      yU.tb.appendChild(row);
+    });
+  }
+  function cYD() {
+  const ccT = yU.coT.valueAsNumber;
+  const ccC = yU.coC.valueAsNumber;
+  const moneyValid = value => Number.isFinite(value) && value >= 0;
+  const costValid = moneyValid(ccT) && moneyValid(ccC);
+  const issues = [];
+  [yU.coT, yU.coC].forEach(field => field.setAttribute('aria-invalid', String(!moneyValid(field.valueAsNumber))));
+  if (!costValid) issues.push('Enter finite, nonnegative costs per contact in both arms.');
+  const invalid = yd.map((segment, index) => {
+    const errors = [];
+    fields.forEach(([key, label, min], column) => {
+      const value = segment[key];
+      const exposure = segment[key[0] + 'E'];
+      const valid = key.endsWith('Rv') ? moneyValid(value) : Number.isSafeInteger(value) && value >= min
+        && (!key.endsWith('C') || !Number.isSafeInteger(exposure) || exposure < 1 || value <= exposure);
+      inputRows[index][column].setAttribute('aria-invalid', String(!valid));
+      if (!valid) errors.push(label);
+    });
+    if (errors.length) issues.push('Segment ' + (index + 1) + ': check ' + errors.join(', ') + '.');
+    return errors.length > 0;
+  });
+  const incomplete = invalid.some(Boolean);
+  $('yd-validation').textContent = issues.join(' ') + (incomplete
+    ? ' Each comparison needs positive whole exposures, whole conversions from zero through exposures, and nonnegative finite revenue. Campaign estimates require all segments.' : '');
+  var sg=[],tp=0,tTr=0,totIncrResp=0,totIncrRev=0,totTCv=0,totIncrGM=0;
+  for(var i=0;i<yd.length;i++){if(invalid[i]) { sg.push(null); continue; } var d=yd[i],tE=d.tE||0,cE=d.cE||0,tC=d.tC||0,cC=d.cC||0,tRv=d.tRv||0,cRv=d.cRv||0;
+  var pop=tE+cE,tRate=tE>0?tC/tE:0,cRate=cE>0?cC/cE:0;
+  var cfResp=cRate*tE,incrResp=tC-cfResp,incrRespPc=tE>0?incrResp/tE:0;
+  var cRvPerExp=cE>0?cRv/cE:0,cfRev=cRvPerExp*tE,incrRev=tRv-cfRev;
+  var tCost=tE*ccT,tGM=tRv-tCost,cCost=cE*ccC,cGM=cRv-cCost,cGMperExp=cE>0?cGM/cE:0,cfGM=cGMperExp*tE,incrGM=tGM-cfGM;
+  sg.push({x:i,tE:tE,cE:cE,tC:tC,cC:cC,tRv:tRv,cRv:cRv,pop:pop,tRate:tRate,cRate:cRate,cfResp:cfResp,incrResp:incrResp,incrRespPc:incrRespPc,cfRev:cfRev,incrRev:incrRev,cRvPerExp:cRvPerExp,tCost:tCost,tGM:tGM,cCost:cCost,cGM:cGM,cGMperExp:cGMperExp,cfGM:cfGM,incrGM:incrGM});
+  tp+=pop;tTr+=tE;totTCv+=tC;totIncrResp+=incrResp;totIncrRev+=incrRev;totIncrGM+=incrGM;}
+  
+  var tCo=tTr*ccT,pr=totIncrRev-tCo;
+  var actualReachPc=(tTr/tp)*100;
+  var totIncrRespPc=tTr>0?totIncrResp/tTr:0;
+  var totTRate=tTr>0?totTCv/tTr:0,totCCv=0,totCE=0;for(i=0;i<sg.length;i++){if(!sg[i])continue;totCCv+=sg[i].cC;totCE+=sg[i].cE;}var totCRate=totCE>0?totCCv/totCE:0,totTRv=0,totCfRev=0,totTGM=0,totCfGM=0,totCGM=0;for(i=0;i<sg.length;i++){if(!sg[i])continue;totTRv+=sg[i].tRv;totCfRev+=sg[i].cfRev;totTGM+=sg[i].tGM;totCfGM+=sg[i].cfGM;totCGM+=sg[i].cGM;}
+  var v=totIncrRespPc*100;
+  if(yU.rC){setValText(yU.rC,signedPP(v));yU.rC.style.color=clr(v,v>=0);}
+  if(yU.ttC){yU.ttC.innerHTML=ttH('Incremental Response',['Test Response: '+fL(totTCv)+'/'+fL(tTr)+' = '+bld(fP(totTRate)),'Control Response: '+fL(totCCv)+'/'+fL(totCE)+' = '+bld(fP(totCRate)),'---','Test-exposure-weighted segment differences: '+bld(signedPP(v),clr(v,v>=0))]);}
+  if(yU.rIR){setValText(yU.rIR,fD(totIncrRev));yU.rIR.style.color=clr(totIncrRev,totIncrRev>=0);}
+  if(yU.ttR){yU.ttR.innerHTML=ttH('Incremental Revenue',['Test Revenue: '+bld(fD(totTRv)),'Counterfactual Revenue: '+bld(fD(totCfRev)),'_(Control revenue per exposure × test exposures)','---','Incremental: '+fD(totTRv)+' &minus; '+fD(totCfRev)+' = '+bld(fD(totIncrRev),clr(totIncrRev,totIncrRev>=0))]);}
+  if(yU.rGM){setValText(yU.rGM,fD(totIncrGM));yU.rGM.style.color=clr(totIncrGM,totIncrGM>=0);}
+  if(yU.ttGM){yU.ttGM.innerHTML=ttH('Lift net of both arms’ contact costs',['Test revenue less contact cost: '+fD(totTRv)+' rev &minus; '+fD(tCo)+' cost = '+bld(fD(totTGM)),'_('+tTr.toLocaleString()+' exp &times; $'+fixed(ccT)+'/contact)','Control revenue less contact cost: '+fD(totCGM),'_(Rev &minus; '+totCE.toLocaleString()+' exp &times; $'+fixed(ccC)+'/contact)','Expected revenue less control contact cost: '+bld(fD(totCfGM)),'_(Control revenue less contact cost per exposure, scaled to test exposures)','---','Incremental: '+fD(totTGM)+' &minus; '+fD(totCfGM)+' = '+bld(fD(totIncrGM),clr(totIncrGM,totIncrGM>=0))]);}
+  if(yU.rP){setValText(yU.rP,fD(pr));yU.rP.style.color=clr(pr,pr>=0);}
+  if(yU.ttP){yU.ttP.innerHTML=ttH('Incremental revenue minus campaign cost',['Incremental Revenue: '+bld(fD(totIncrRev)),'Campaign Cost: '+bld(fD(tCo)),'_('+tTr.toLocaleString()+' treated &times; $'+fixed(ccT)+'/contact)','---','Incremental revenue − campaign cost: '+fD(totIncrRev)+' &minus; '+fD(tCo)+' = '+bld(fD(pr),clr(pr,pr>=0))]);}
+  if(yU.rCo){setValText(yU.rCo,fD(tCo));}
+  if(yU.ttCo){yU.ttCo.innerHTML=ttH('Campaign Cost',['Treated: '+bld(tTr.toLocaleString())+' contacts','Test Cost/Contact: '+bld('$'+fixed(ccT)),'---','Total: '+tTr.toLocaleString()+' &times; $'+fixed(ccT)+' = '+bld(fD(tCo))]);}
+  if(yU.cs){yU.cs.innerHTML='<span>Total Treated: <strong style="color:#282A36;">'+tTr.toLocaleString()+' / '+tp.toLocaleString()+'</strong> ('+actualReachPc.toFixed(1)+'%)</span>';}
+  const withheld = incomplete ? [[yU.rC, yU.ttC], [yU.rIR, yU.ttR], [yU.rGM, yU.ttGM],
+    [yU.rP, yU.ttP], [yU.rCo, yU.ttCo]] : costValid ? [] : [[yU.rGM, yU.ttGM], [yU.rP, yU.ttP], [yU.rCo, yU.ttCo]];
+  withheld.forEach(([result, details]) => {
+    setValText(result, 'Unavailable');
+    result.style.color = '';
+    details.textContent = incomplete ? 'Complete all segment comparisons.' : 'Enter valid costs for both arms.';
+  });
+  if (incomplete) yU.cs.textContent = '';
+  rSR(sg, ccT, ccC, costValid);
+  }
+  function rSR(sg, ccT, ccC, costValid) {
+    if (!yU.sR) return;
+    yU.sR.innerHTML = '';
+    const header = document.createElement('div');
+    header.className = 'sr-header';
+    header.innerHTML = '<span class="sr-seg-name"></span><span class="sr-val-hdr">Lift (pp)</span><span class="sr-val-hdr">Incr. Rev</span><span class="sr-val-hdr">Lift net of both arms’ contact costs</span>';
+    yU.sR.appendChild(header);
+
+    sg.forEach((s, index) => {
+      const row = document.createElement('div');
+      row.className = 'sr-row';
+      const name = document.createElement('span');
+      name.className = 'sr-seg-name';
+      name.textContent = 'Segment ' + (index + 1);
+      row.appendChild(name);
+      yU.sR.appendChild(row);
+      if (!s) {
+        const unavailable = document.createElement('span');
+        unavailable.className = 'sr-unavailable';
+        unavailable.textContent = 'No comparison';
+        row.appendChild(unavailable);
+        return;
+      }
+
+      const responseLift = s.incrRespPc * 100;
+      const metrics = [
+        {
+          label: 'response lift', value: signedPP(responseLift), color: clr(responseLift, responseLift >= 0),
+          title: 'Incremental Response', lines: [
+            'Test Response: ' + fL(s.tC) + '/' + fL(s.tE) + ' = ' + bld(fP(s.tRate)),
+            'Counterfactual Response:',
+            '_Control rate: ' + fL(s.cC) + '/' + fL(s.cE) + ' = ' + fP(s.cRate),
+            '_Scaled to test exposures: ' + fL(s.tE) + ' &times; ' + fP(s.cRate) + ' = ' + s.cfResp.toFixed(1),
+            '---',
+            'Incremental: ' + fP(s.tRate) + ' &minus; ' + fP(s.cRate) + ' = ' + bld(signedPP(responseLift), clr(responseLift, responseLift >= 0))
+          ]
+        },
+        {
+          label: 'incremental revenue', value: fD(s.incrRev), color: clr(s.incrRev, s.incrRev >= 0),
+          title: 'Incremental Revenue', lines: [
+            'Test Rev: ' + fD(s.tRv),
+            '_($' + fixed(s.tRv) + ' / ' + fL(s.tE) + ' exp = $' + (s.tE > 0 ? (s.tRv / s.tE).toFixed(2) : '0') + '/exp)',
+            'Counterfactual Rev:',
+            '_Control: ' + fD(s.cRv) + ' / ' + fL(s.cE) + ' = $' + fixed(s.cRvPerExp) + '/exp',
+            '_Scaled to test exposures: ' + fL(s.tE) + ' &times; $' + fixed(s.cRvPerExp) + ' = ' + fD(s.cfRev),
+            '---',
+            'Incremental: ' + fD(s.tRv) + ' &minus; ' + fD(s.cfRev) + ' = ' + bld(fD(s.incrRev), clr(s.incrRev, s.incrRev >= 0))
+          ]
+        },
+        costValid ? {
+          label: 'lift net of both arms’ contact costs', value: fD(s.incrGM), color: clr(s.incrGM, s.incrGM >= 0),
+          title: 'Lift net of both arms’ contact costs', lines: [
+            'Test revenue less contact cost: ' + fD(s.tRv) + ' rev &minus; ' + fD(s.tCost) + ' cost = ' + bld(fD(s.tGM)),
+            '_Cost: ' + fL(s.tE) + ' exp &times; $' + fixed(ccT) + '/contact',
+            'Control revenue less contact cost: ' + fD(s.cRv) + ' rev &minus; ' + fD(s.cCost) + ' cost = ' + bld(fD(s.cGM)),
+            '_Cost: ' + fL(s.cE) + ' exp &times; $' + fixed(ccC) + '/contact',
+            'Expected revenue less control contact cost:',
+            '_Control revenue less contact cost per exposure: $' + fixed(s.cGMperExp) + '/exp',
+            '_Scaled to test exposures: ' + fL(s.tE) + ' &times; $' + fixed(s.cGMperExp) + ' = ' + fD(s.cfGM),
+            '---',
+            'Incremental: ' + fD(s.tGM) + ' &minus; ' + fD(s.cfGM) + ' = ' + bld(fD(s.incrGM), clr(s.incrGM, s.incrGM >= 0))
+          ]
+        } : null
+      ];
+
+      const panel = document.createElement('div');
+      panel.id = 'yd-segment-calculation-' + (index + 1);
+      panel.className = 'tooltip-content sr-calculation';
+      panel.hidden = true;
+      let activeButton = null;
+      metrics.forEach(metric => {
+        if (!metric) {
+          const unavailable = document.createElement('span');
+          unavailable.className = 'sr-val';
+          unavailable.textContent = 'Unavailable';
+          row.appendChild(unavailable);
+          return;
+        }
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'sr-val';
+        button.textContent = metric.value;
+        button.style.color = metric.color;
+        button.setAttribute('aria-label', name.textContent + ' ' + metric.label + ': ' + metric.value + '. Calculation details');
+        button.setAttribute('aria-controls', panel.id);
+        button.setAttribute('aria-expanded', 'false');
+        button.addEventListener('click', () => {
+          const opening = activeButton !== button;
+          if (activeButton) activeButton.setAttribute('aria-expanded', 'false');
+          panel.hidden = !opening;
+          activeButton = opening ? button : null;
+          if (opening) {
+            panel.innerHTML = ttH(metric.title, metric.lines);
+            button.setAttribute('aria-expanded', 'true');
+          }
+        });
+        row.appendChild(button);
+      });
+      row.appendChild(panel);
+    });
+  }
+  yU.coT.addEventListener('input',function(){cYD();});
+  yU.coC.addEventListener('input',function(){cYD();});
+  rYT();cYD();})();
+  </script><script src="../../assets/guide.js"></script>
+</body>
+</html>

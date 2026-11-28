@@ -1,0 +1,391 @@
+/* Map the imported lesson styles to the guide palette. The original sites
+   continue to supply component layouts and the colors of plotted series. */
+.mg-source {
+  --brand-background: var(--mg-background);
+  --brand-text: var(--mg-text);
+  --brand-text-muted: var(--mg-secondary);
+  --brand-border: var(--mg-border);
+  --brand-border-dim: var(--mg-border);
+  --brand-accent: var(--mg-link-hover);
+  --brand-danger: #B91C1C;
+  --brand-warning: #8A5700;
+  --brand-success: #066B4F;
+  --bg-card: var(--mg-surface);
+  --bg-card-raised: var(--mg-surface);
+  --accent-tint: color-mix(in srgb, var(--mg-accent) 7%, transparent);
+  --bg: var(--mg-background);
+  --text: var(--mg-text);
+  --text-muted: var(--mg-secondary);
+  --text-dim: var(--mg-secondary);
+  --border: var(--mg-border);
+  --border-soft: var(--mg-border);
+  --accent: var(--mg-link-hover);
+  --accent-soft: var(--accent-tint);
+  --accent-glow: var(--accent-tint);
+  --danger: var(--brand-danger);
+  --surface: var(--mg-surface);
+  --surface-soft: var(--mg-surface);
+  --font-sans: var(--mg-sans);
+  --font-mono: var(--mg-mono);
+}
+
+#guide-main .mg-source :is(p.problem-statement, .content-card > p, p.prose, .prose li) { font-size: 15px; }
+#guide-main .mg-source :is(.content-card, .sim-card, .comparison-container, .spreadsheet-container, .calibration-container) {
+  padding: clamp(.75rem, 2.5vw, 1.15rem);
+  background-color: var(--mg-surface);
+  border-color: var(--mg-border);
+}
+#guide-main .mg-source :is(th, td) { border-color: var(--mg-border); font-size: 14px; }
+/* Headings and table headers keep their written case: capitals turn alpha into Alpha and read as alerts. */
+#guide-main .mg-source :is(h2, h3, h4, th) { text-transform: none; letter-spacing: normal; }
+#guide-main .mg-source h4 { font-family: var(--mg-sans); font-size: 15px; font-weight: 650; line-height: 1.35; color: var(--mg-text); }
+#guide-main .mg-source th { color: var(--mg-text); font-weight: 650; }
+#guide-main .mg-source :is(.calc-btn:not(.secondary), .semb-fit-btn):disabled { opacity: .5; filter: none; }
+#guide-main .mg-source :is(input:not([type]), input:is([type="text"], [type="number"], [type="date"]), textarea, select) {
+  color: var(--mg-text);
+  background-color: var(--mg-background);
+  border-color: var(--mg-supporting);
+  color-scheme: light;
+}
+#guide-main :is(.mg-source, .ex-content, .ex-extension) :is(input[type="range"], input[type="checkbox"], input[type="radio"]) {
+  accent-color: var(--mg-accent);
+}
+#guide-main .mg-source :is(.legend-item, .legend-label, .chart-caption, small) { font-size: 13px; }
+#guide-main .mg-source :is(summary, [role="tab"], [role="button"]) { font-size: 14px; }
+#guide-main .mg-source :is([role="tab"][aria-selected="true"], .view-button.active, .toggle-btn.active, .chart-btn.active, .model-button.active, .alpha-pill.active) {
+  background: var(--mg-surface);
+  border-color: var(--mg-link);
+  color: var(--mg-link-hover);
+}
+#guide-main .mg-source :is(.btn-primary, button.primary, .submit-button, .final-btn-primary, .custom-kpi-btn, .be-btn-accent, .semb-canvas-btn, .calc-btn:not(.secondary), .semb-fit-btn) {
+  background: var(--mg-button);
+  border-color: var(--mg-button);
+  color: var(--mg-text);
+}
+#guide-main .mg-source :is(.btn-primary, button.primary, .submit-button, .final-btn-primary, .custom-kpi-btn, .be-btn-accent, .semb-canvas-btn, .calc-btn:not(.secondary), .semb-fit-btn):not(:disabled):hover {
+  background: var(--mg-button-hover);
+  border-color: var(--mg-button-hover);
+  filter: none;
+}
+.mg-source :is(.code-block, .flow-area, .formula-box) { font-family: var(--mg-mono); }
+#guide-main .mg-source .code-block { background: var(--mg-code-background); color: var(--mg-code-text); }
+#guide-main .mg-source :is(.callout a, .ref-link):hover { filter: none; }
+#guide-main .mg-source :is(.callout a, .ref-link) { color: var(--mg-link-hover); }
+#guide-main .mg-source .touchpoint-item.active .touchpoint-emoji { color: var(--mg-text); }
+
+/* Imported panels with literal colors or their own theme variables. */
+#guide-main .mg-source :is(.readiness-card, .context-preview, .reality-insights, .output-summary, .implementation-section, .option-btn) {
+  background-color: var(--mg-surface);
+  border-color: var(--mg-border);
+}
+#guide-main .mg-source .option-btn.selected { background-color: var(--mg-background); border-color: var(--mg-link); }
+#guide-main .mg-source .readiness-card:hover { box-shadow: 0 4px 12px rgba(40, 42, 54, .08); }
+#guide-main .mg-source :is(.readiness-card .card-label, .readiness-card .card-desc, .hero-tagline,
+  .step-label, .step-indicator, .pill-status, .column-title, .summary-title, .implementation-title, .note-text,
+  .mapping-table th, .implementation-table th, .kpi-badge:not(.strong)) { color: var(--mg-secondary); }
+#guide-main .mg-source :is(.step-indicator.active, .option-icon, .option-btn.selected .option-title,
+  .step-hint strong, .context-preview-body strong, .insight-item strong, .toggle-btn:not(.active):hover,
+  .badge-later, .option-btn, .tooltip-wrap:hover) { color: var(--mg-text); }
+#guide-main .mg-source :is(.slider-track, .column, .tab-bar, .flow-area, .mapping-table th, .summary-row,
+  .summary-title, .implementation-title) { border-color: var(--mg-border); }
+#guide-main .mg-source .slider-track { background-color: var(--mg-border); }
+#guide-main .mg-source .flow-row[style*="255,255,255"],
+#guide-main .mg-source :is(#did-interp, #rw-interp, .page:has(#csv-status) :is(p, small)[style*="255,255,255"]) {
+  color: var(--mg-secondary) !important;
+}
+#guide-main .mg-source .flow-messy { color: var(--brand-warning); }
+#guide-main .mg-source .page:has(.readiness-grid) > p[style] { color: var(--mg-secondary) !important; }
+#guide-main .mg-source .page:has(.readiness-grid) a[style] { color: var(--mg-link) !important; }
+#guide-main .mg-source .page:has(.readiness-grid) a[style]:hover { color: var(--mg-link-hover) !important; }
+
+#guide-main .mg-source .page:has(.be-btn) {
+  --tx: var(--mg-text);
+  --txm: var(--mg-secondary);
+  --txf: var(--mg-secondary);
+  --acc: var(--mg-link-hover);
+  --brd: var(--mg-border);
+  --brd-light: var(--mg-border);
+  --card: var(--mg-surface);
+  --bg: var(--mg-background);
+}
+#guide-main .mg-source .page:has(.be-btn) .builder-card { box-shadow: none !important; }
+#guide-main .mg-source .page:has(.be-btn) :is(.model-button:hover, .be-btn:not(.be-btn-danger), .card-stats strong) { color: var(--mg-text); }
+#guide-main .mg-source .page:has(.be-btn) :is(.seg, .badge) { color: #fff; text-shadow: none; }
+#guide-main .mg-source .page:has(.be-btn) .model-button.active { color: var(--mg-link-hover); }
+#guide-main .mg-source .fw-total-value.invalid { color: var(--brand-danger); }
+
+/* Analytical status labels use darker shades of the same hues on light surfaces. */
+#guide-main .mg-source :is(.status-msg.info, .formula-display .hl) { color: var(--mg-link-hover); }
+#guide-main .mg-source :is(.status-msg.success, .mba .interp-item.good .interp-value, .formula-display .res) { color: var(--brand-success); }
+#guide-main .mg-source :is(.status-msg.error, .highlight-rose) { color: var(--brand-danger); }
+#guide-main .mg-source :is(.mba .callout.warning .callout-title, .formula-display .op, .highlight-amber) { color: var(--brand-warning); }
+#guide-main .mg-source .highlight-violet { color: #6941A5; }
+#guide-main .mg-source :is(.clv-model .formula-var, .clv-model .metric-val) { color: var(--mg-text); }
+#guide-main .mg-source #yd-campaign-summary strong { color: var(--mg-text) !important; }
+#guide-main .mg-source .yd-group-ctrl { color: var(--mg-secondary) !important; }
+#guide-main .mg-source .yd-group-ctrl { box-shadow: inset 0 -2px var(--mg-counterfactual); }
+#guide-main .mg-source .tooltip-content .tooltip-title { color: var(--mg-text); text-transform: none; }
+#guide-main .mg-source .metric-val.tooltip-wrap .tooltip-content { font-family: var(--mg-sans); font-size: 13px; }
+#guide-main .mg-source :is(.metric-val, .sr-val, td[id^="reg-sig-"])[style*="color: rgb(248, 113, 113)"] { color: var(--brand-danger) !important; }
+#guide-main .mg-source :is(.metric-val, .sr-val)[style*="color: rgb(16, 185, 129)"],
+#guide-main .mg-source td[id^="reg-sig-"][style*="color: rgb(52, 211, 153)"] { color: var(--brand-success) !important; }
+#guide-main .mg-source :is(.seg-title, .seg-action)[style*="color: #fbbf24"] { color: var(--brand-warning) !important; }
+#guide-main .mg-source :is(.seg-title, .seg-action)[style*="color: #a78bfa"] { color: #6941A5 !important; }
+#guide-main .mg-source :is(.seg-title, .seg-action)[style*="color: #a3724e"] { color: #785138 !important; }
+#guide-main .mg-source :is(.seg-title, .seg-action)[style*="color: #2dd4bf"] { color: var(--brand-success) !important; }
+
+#guide-main .mg-source .clv-model .key-definition p { color: var(--mg-text); }
+#guide-main .mg-source .clv-model .tab-btn small { color: var(--mg-secondary); opacity: 1; }
+#guide-main .mg-source .clv-model :not(h3, path)[style*="color: var(--brand-orange)"] { color: var(--mg-text) !important; }
+#guide-main .mg-source .clv-model summary { color: var(--mg-link); }
+#guide-main .mg-source .clv-model strong[style*="#2dd4bf"],
+#guide-main .mg-source .clv-model :is(#val-non-clv, #inp-non-avg-spend) { color: var(--brand-success) !important; }
+#guide-main .mg-source #truth-bar { background: #2DD4BF; color: var(--mg-text); }
+#guide-main .mg-source #exercise { --error-text: var(--brand-danger); }
+
+/* Imported plots sit on the light plot surface shared by every chart in the guide. */
+.mg-source :is(canvas:not(.ex-chart canvas, .causal-diagram), svg.chart-svg, #scatter-svg, #qini-svg, #semb-svg, #semb-fitted svg) {
+  --brand-background: var(--mg-background);
+  --brand-text: var(--mg-text);
+  --brand-text-muted: var(--mg-secondary);
+  --brand-border: rgba(98, 114, 164, .45);
+  --brand-border-dim: rgba(98, 114, 164, .18);
+  --brand-accent: var(--mg-accent);
+  --accent: var(--mg-accent);
+  --text: var(--mg-text);
+  --text-muted: var(--mg-secondary);
+  --border: rgba(98, 114, 164, .45);
+  --border-soft: rgba(98, 114, 164, .18);
+  background-color: var(--mg-background);
+  border: 1px solid var(--mg-border);
+  border-radius: .35rem;
+  font-family: var(--mg-sans);
+}
+
+/* Tooltips are light panels. */
+#guide-main .mg-source :is(.tooltip-content, .chart-tooltip) {
+  background: var(--mg-background);
+  color: var(--mg-text);
+  border: 1px solid var(--mg-border);
+  box-shadow: 0 6px 18px rgba(40, 42, 54, .12);
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------------------
+   Shared text roles for imported lessons. These replace the original sites'
+   per-page variants with the guide's type scale and palette.
+   --------------------------------------------------------------------------- */
+
+/* Prose reads left to right under a left-aligned heading. */
+#guide-main .mg-source .page :is(p, li, h2, h3, .explainer, .card-desc, .card-label, .formula-box, .formula) { text-align: left; }
+#guide-main .mg-source .readiness-card { text-align: left; }
+
+/* Tab rows start under the text they belong to. */
+#guide-main .mg-source :is(.model-selector, .tab-selector, .view-selector, .tab-container) { justify-content: flex-start; }
+
+/* Eyebrow labels and small headers: caption size, sentence case, no tracking. */
+#guide-main .mg-source :is(.callout-title, .formula-box .label, .formula-box > div:first-child:not(:only-child), .kicker,
+  .section-title, .sim-card__title, .yd-results-section-label, .sr-val-hdr, .stat-label, .step-num, .column-title,
+  .pill-status, .context-preview-title, .insights-title, .summary-title, .implementation-title, .funnel-label,
+  .card-sub, .tiny, .control-meta span, .control-meta em, .semb-hint, .semb-none, .csv-drop-zone span,
+  .expand-hint, .badge, .interp-label, .chart-caption, .control > label, .fw-control > label, .input-group label) {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 13px;
+}
+#guide-main .mg-source :is(.callout-title, .kicker, .section-title, .sim-card__title, .yd-results-section-label,
+  .stat-label, .step-num, .column-title, .context-preview-title, .insights-title, .summary-title, .implementation-title,
+  .formula-box .label, .formula-box > div:first-child:not(:only-child)) {
+  color: var(--mg-secondary);
+  font-weight: 650;
+}
+#guide-main .mg-source .seg { text-transform: none; letter-spacing: normal; font-size: 12px; }
+#guide-main .mg-source .cohort-table td { font-size: 13px; }
+
+/* Values and emphasis use the text colour: blue is reserved for links. */
+#guide-main .mg-source :is(.result-item .value, .results-grid .value, .stat-val, .stat-value, .slider-value, .summary-val, .param-val, .metric-value, .computed-metric,
+  .fw-total-value, .goal-display, .val-display, .value-display, .bar-meta span, .summary-value, .card-stats strong,
+  .interp-value, .result-metric .value, .metric-val, .sr-val) {
+  color: var(--mg-text);
+  font-family: var(--mg-sans);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+#guide-main .mg-source :is(.highlight, td.highlight, .prose em, p > em, .formula-display .hl, .formula-var) {
+  color: var(--mg-text);
+  font-weight: 650;
+}
+#guide-main .mg-source p > em { font-weight: inherit; }
+#guide-main .mg-source :is(.formula-box, .formula, .formula-display, .formula-box sub, .formula-box sup) { color: var(--mg-text); }
+#guide-main .mg-source :is(td.readonly, .f-table td) { font-family: var(--mg-sans); font-variant-numeric: tabular-nums; }
+#guide-main .mg-source :is(th.yd-group-test, .yd-group-test) { color: var(--mg-text) !important; }
+#guide-main .mg-source .expand-hint { color: var(--mg-link); }
+
+/* Status colours keep their meaning on values that carry a sign. */
+#guide-main .mg-source :is(.metric-val, .sr-val)[style*="color: rgb(248, 113, 113)"] { color: var(--brand-danger) !important; }
+
+/* Two callout styles: a note and a caution. */
+#guide-main .mg-source :is(.callout, .key-definition, div.explainer, .status-msg, .mg-context) {
+  background: var(--mg-background);
+  border: 0;
+  border-inline-start: 2px solid var(--mg-accent);
+  border-radius: 0;
+  box-shadow: none;
+}
+#guide-main .mg-source :is(.callout.warning, .callout.danger, .danger-callout, .warning-text) {
+  background: var(--mg-background);
+  border: 0;
+  border-inline-start: 2px solid var(--brand-warning);
+  border-radius: 0;
+}
+#guide-main .mg-source :is(.callout.success) { border-inline-start-color: var(--mg-accent); }
+#guide-main .mg-source :is(.callout.warning, .callout.danger) .callout-title { color: var(--brand-warning); }
+
+/* Instructions are body text, not captions. */
+#guide-main .mg-source :is(.tool-desc, #model-explanation) { font-style: normal; color: var(--mg-secondary); }
+
+/* Fields in a row align their inputs even when one label wraps. */
+#guide-main .mg-source .input-row:has(> .field) { align-items: start; }
+#guide-main .mg-source .input-row > .field { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; }
+#guide-main .mg-source .input-row > .field > label { align-self: end; }
+#guide-main .mg-source .yd-campaign-row { align-items: stretch; }
+#guide-main .mg-source .yd-campaign-row .input-group { display: flex; flex-direction: column; }
+#guide-main .mg-source .yd-campaign-row .input-group > input { margin-top: auto; }
+
+/* Focus uses the guide's ring only. */
+#guide-main .mg-source :is(input, select, textarea):focus { box-shadow: none; }
+
+/* View-switch links on the plan pages. */
+#guide-main .mg-source .view-button .dot { background: var(--mg-supporting); }
+#guide-main .mg-source .view-button.active .dot { background: var(--mg-accent); }
+
+/* Explanatory paragraphs under results align with the text around them. */
+#guide-main .mg-source p.explainer { margin-inline: 0; max-width: 68ch; }
+
+/* Flow diagrams run in one row only when every step fits; otherwise they stack with arrows pointing down. */
+@media (max-width: 56rem) {
+  #guide-main .mg-source .flow-diagram { flex-direction: column; }
+  #guide-main .mg-source .flow-arrow { transform: rotate(90deg); }
+}
+
+/* Page-specific corrections. */
+#guide-main .mg-source #truth-bar { background: var(--mg-secondary); color: #fff; }
+#guide-main .mg-source .comparison-container .panel-grid > * { min-width: 0; }
+#guide-main .mg-source .result-metric { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1rem; align-items: baseline; }
+#guide-main .mg-source .result-metric .value { text-align: right; white-space: nowrap; }
+#guide-main .mg-source .metric-val { white-space: nowrap; }
+#guide-main .mg-source .metric-val .tooltip-content { white-space: normal; }
+#guide-main .mg-source .concept-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr)); }
+#guide-main .mg-source :is(.btn-danger, .be-btn-danger) { background: transparent; color: var(--brand-danger); border-color: color-mix(in srgb, var(--brand-danger) 40%, transparent); }
+#guide-main .mg-source #reg-ciGrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); }
+
+/* The MMM tab row ends with a link to the Readiness page: it reads as a tab, not as inline link text. */
+#guide-main .mg-source #mmm-tabs { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+#guide-main .mg-source #mmm-tabs > a.tab-btn { text-decoration: none; }
+#guide-main .mg-source #mmm-tabs > a.tab-btn::after { content: " \2197"; font-size: .85em; }
+
+@media (max-width: 36rem) {
+  /* The Readiness link joins the scrolling tab strip on phones. */
+  #guide-main .mg-source #mmm-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-block: 4px; }
+  #guide-main .mg-source #mmm-tabs > * { flex: none; }
+  #guide-main .mg-source #mmm-tabs > .mg-tab-group { overflow: visible; }
+  /* Contract-type tabs sit side by side like other tab rows. */
+  #guide-main .mg-source .clv-model .tab-container { flex-direction: row; }
+  #guide-main .mg-source .clv-model .tab-container > * { flex: 1 1 0; min-width: 0; }
+}
+
+/* Date fields match the other inputs instead of the browser's compact default. */
+#guide-main .mg-source input[type="date"] {
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  min-height: 2.25rem;
+  padding: .45rem .55rem;
+  border: 1px solid var(--mg-supporting);
+  border-radius: .3rem;
+  font: 14px / 1.35 var(--mg-sans);
+}
+
+/* Calculated results read as values, not as fields to type into. */
+#guide-main .mg-source .spreadsheet-table input[readonly] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--mg-text);
+  font-weight: 650;
+  text-align: right;
+  box-shadow: none;
+}
+
+/* Plain definition lists in lessons use the guide's glossary spacing. */
+#guide-main .mg-source dl:not([class]) { margin: .75rem 0; }
+#guide-main .mg-source dl:not([class]) dt { font-weight: 650; color: var(--mg-text); margin-top: .75rem; }
+#guide-main .mg-source dl:not([class]) dd { margin: .25rem 0 0; color: var(--mg-secondary); max-width: 72ch; }
+
+/* Four-step pipelines: one row on desktop, two by two on tablets, stacked on phones. */
+#guide-main .mg-source .concept-grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 56rem) { #guide-main .mg-source .concept-grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 30rem) { #guide-main .mg-source .concept-grid:has(> :nth-child(4):last-child) { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------------------------------------------------------------------
+   Remaining page fixes.
+   --------------------------------------------------------------------------- */
+
+/* A section embedded in a lesson card is part of that card, not a card within a card. */
+#guide-main .mg-source :is(.stage, .content-card, .tool-section) > .ex-extension.ex-card {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--mg-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Arrow lists read as body text and align with the paragraph above them. */
+#guide-main .mg-source .accordion-body li { font-size: 15px; color: var(--mg-text); }
+
+/* Formulas start at the left edge; long ones indent their continuation lines. */
+#guide-main .mg-source :is(.formula-box, .formula) { text-align: left !important; }
+#guide-main .mg-source .clv-model .formula-box { color: var(--mg-text); padding-left: calc(20px + 1.5em); text-indent: -1.5em; }
+#guide-main .mg-source .clv-model .formula-box strong { text-indent: 0; margin-left: -1.5em; color: var(--mg-secondary); }
+
+/* Holdout table: space above each group heading. */
+#guide-main .mg-source .spreadsheet-table tr.group-header:not(:first-child) th { padding-top: .9rem; }
+
+/* Power: the four levers share one card style; the two sample-size results lead the row on phones. */
+#guide-main .mg-source .lever-card { border-top: 1px solid var(--mg-border); }
+#guide-main .mg-source .stat-item.highlight-card { border-color: var(--mg-border); }
+@media (max-width: 36rem) {
+  #guide-main .mg-source .stat-grid:has(> .highlight-card) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  #guide-main .mg-source .stat-grid:has(> .highlight-card) > .stat-item { grid-column: span 2; }
+  #guide-main .mg-source .stat-grid:has(> .highlight-card) > .stat-item.highlight-card { grid-column: span 3; order: -1; }
+}
+
+/* Lift report: metric pairs; an odd last metric takes the full row. */
+#guide-main .mg-source .yd-metric-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
+
+/* Regression and reference tables: headers and values stay on one line; the table scrolls if it must. */
+#guide-main .mg-source .reg-table :is(th, td) { white-space: nowrap; }
+/* The t and F tables keep their headers in view while their rows scroll. */
+#guide-main .mg-source .reg-table-wrap:has(#tt-table) { max-height: min(70vh, 36rem); overflow: auto; }
+#guide-main .mg-source :is(#tt-table, #ft-table) { overflow: visible; border-collapse: separate; border-spacing: 0; }
+#guide-main .mg-source :is(#tt-table, #ft-table) thead { position: sticky; top: 0; z-index: 3; }
+#guide-main .mg-source :is(#tt-table, #ft-table) thead th { background: var(--mg-surface); box-shadow: inset 0 -1px var(--mg-border); }
+
+/* Market basket: the file picker uses the guide's secondary button. */
+#guide-main .mg-source input[type="file"] { font: 14px var(--mg-sans); color: var(--mg-secondary); }
+#guide-main .mg-source input[type="file"]::file-selector-button {
+  margin-right: .75rem;
+  padding: .45rem .9rem;
+  border: 1px solid var(--mg-border);
+  border-radius: .35rem;
+  background: var(--mg-background);
+  color: var(--mg-text);
+  font: 650 14px var(--mg-sans);
+  cursor: pointer;
+}
+#guide-main .mg-source input[type="file"]::file-selector-button:hover { border-color: var(--mg-accent); }
+
+/* Seven tabs split four and three instead of leaving one tab alone on a second row. */
+@media (min-width: 36.01rem) {
+  #guide-main .mg-source .tab-selector:has(> :nth-child(7):last-child) { display: grid; grid-template-columns: repeat(4, max-content); justify-content: start; justify-items: start; }
+}

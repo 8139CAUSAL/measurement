@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heckman Selection Correction | Marketing Measurement Science</title>
+  <meta name="description" content="Adjust a spending model when customer outcomes are selectively observed.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/heckman-selection/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/heckman-selection/">
+  <meta property="og:title" content="Heckman Selection Correction | Marketing Measurement Science">
+  <meta property="og:description" content="Adjust a spending model when customer outcomes are selectively observed.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Heckman Selection Correction | Marketing Measurement Science">
+  <meta name="twitter:description" content="Adjust a spending model when customer outcomes are selectively observed.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="./">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Heckman Selection Correction</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Heckman Selection Correction</h1></header><div class="mg-source"><div class="page">
+
+  <p class="problem-statement">Estimate a spending equation when linked spending is observed for only part of the customer population.</p>
+
+  <section class="content-card" id="why-linked-customers-differ">
+    <h2>Why linked customers differ</h2>
+    <p>Every customer has monthly spending during the measurement window, but spending is recorded only for customers who link their receipts. In this example, 1,206 of 2,000 customers link.</p>
+    <p>Customers earn reward points in proportion to what they spend, so customers who spend more have more reason to link. Longer-tenured customers spend more on average, but even among customers with the same tenure, those who spent more than usual are more likely to link. As a result, linked customers spend more on average than unlinked customers with the same tenure.</p>
+    <p>A regression fitted only to linked customers inherits this difference. In this example, it overstates spending at every tenure, and most at short tenures, where fewer customers link and the ones who do are furthest above average. It therefore also understates how much spending rises with tenure. Averaged over all 2,000 customers’ tenures, its predictions come to $113.36 a month. The true spending equation gives $103.70.</p>
+    <p>Linking that depends only on tenure would not cause this. Linked and unlinked customers with the same tenure would then spend the same on average, so a regression on linked customers would still estimate the population relationship, as long as it has the right form. In this example spending rises in a straight line with tenure, so a straight-line regression has the right form. The bias comes from linking that depends on the part of spending tenure doesn’t explain.</p>
+    <p>Heckman’s correction models who links alongside spending and uses that model to adjust the spending regression. The worked example below follows the two-step correction from the selection equation to the corrected spending regression and explains what each part assumes. The result describes spending for all customers. It does not measure whether linking receipts changes spending, which would need a treatment comparison.</p>
+  </section>
+
+  <div class="diagram-container">
+    <h3 class="diagram-title">Heckman two-step process</h3>
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-num">STEP 1</div>
+        <div class="step-label">Probit on all customers</div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="step-num">EXTRACT</div>
+        <div class="step-label">Mills Ratio (λ)</div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="step-num">STEP 2</div>
+        <div class="step-label">Observed spending on X and λ</div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step" style="border-color: var(--accent);">
+        <div class="step-num" style="color: var(--accent);">RESULT</div>
+        <div class="step-label">Corrected spending equation</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content-card" id="selection-equation">
+    <h2>Step 1. Selection equation</h2>
+    <p>For each of the 2,000 simulated customers, we know their tenure in months, whether they received a reminder, and whether they linked their receipts. Set the reminder indicator to 1 for customers who received it and 0 otherwise. Set S = 1 when the customer linked and S = 0 otherwise. Spending is observed for the 1,206 customers who linked, or 60.3% of the sample.</p>
+    <p>Fit a probit on all customers. The coefficients γ<sub>0</sub>, γ<sub>1</sub>, and γ<sub>2</sub> are the intercept, tenure coefficient, and reminder coefficient in the linking model. The linear index Zγ adds the intercept to the tenure and reminder terms. The standard normal cumulative distribution Φ converts that index to a linking probability.</p>
+    <p class="ex-formula">P(S = 1 | tenure, reminder) = Φ(γ<sub>0</sub> + γ<sub>1</sub> × tenure + γ<sub>2</sub> × reminder)</p>
+    <div id="heckman-selection-fit"></div>
+    <p>The reminder was randomly assigned with a 50% probability and sent after the spending window closed. It changes whether customers link existing receipts, and spending for the window is already fixed. This is the exclusion restriction. If the reminder also changed spending, the correction would mix that change with selection.</p>
+    <p>With the reminder in the probit, the inverse Mills ratio can vary between customers with the same tenure. With tenure alone, the method relies on the curvature of the ratio to estimate separate coefficients for tenure and the ratio. The <a href="#corrected-spending-equation">result section</a> shows how much precision that costs. If some customer profiles have very little chance of linking, their spending predictions rely more heavily on extrapolation.</p>
+  </section>
+
+  <section class="content-card" id="inverse-mills-ratio">
+    <h2>Extract. Inverse Mills ratio</h2>
+    <p>For each linked customer, calculate the inverse Mills ratio λ from the fitted linking index Zγ̂. The hat marks an estimate, and φ is the standard normal density.</p>
+    <p class="ex-formula">λ̂ = φ(Zγ̂) / Φ(Zγ̂)</p>
+    <p>This calculation uses the coefficients from Step 1. If the unexplained parts of linking and spending are jointly normal given the predictors, the average spending error among linked customers with index Zγ is ρσλ. Here ρ is the correlation between the two errors and σ is the standard deviation of the spending error. The simulation draws the errors this way, with ρ = 0.60 and σ = $30. In real data, joint normality is an assumption. If it fails, the ratio generally gives the wrong correction for the average spending error.</p>
+    <div id="heckman-mills-examples"></div>
+    <p>The linked customer with a 17.77% estimated linking probability has a ratio of 1.465. At 93.97%, the ratio falls to 0.127. With a positive error correlation, higher linking probabilities mean less upward bias in the average spending of customers who link.</p>
+  </section>
+
+  <section class="content-card" id="outcome-equation">
+    <h2>Step 2. Outcome equation</h2>
+    <p>Regress spending on tenure and the fitted ratio using the linked customers. In the diagram, X contains the intercept and tenure. In this equation, β<sub>0</sub> is the intercept, β<sub>1</sub> is the change in average spending per month of tenure, and β<sub>λ</sub> is the coefficient on λ̂. That last coefficient estimates ρσ, which equals $18 in the simulation.</p>
+    <p class="ex-formula">spending = β<sub>0</sub> + β<sub>1</sub> × tenure + β<sub>λ</sub> × λ̂ + error</p>
+    <div id="heckman-outcome-fit"></div>
+    <p>Ordinary least squares (OLS) assumes equal error variance across linked customers for its usual standard errors. Here the variance changes with the ratio. The usual standard errors also treat the ratio as fixed, even though its estimated inputs carry sampling error from Step 1. The two-step standard errors account for both. Here they are larger for all three coefficients. The standard error for the ratio coefficient rises from $3.027 to $3.143.</p>
+    <p>Under the model’s assumptions, testing β<sub>λ</sub> = 0 tests whether linking depends on the unexplained part of spending. Failure to reject can reflect low precision, so selection bias can still be present.</p>
+  </section>
+
+  <section class="content-card" id="corrected-spending-equation">
+    <h2>Result. Corrected spending equation</h2>
+    <p>OLS on linked customers estimates a tenure slope of $0.78 per month. The Heckman fit with the reminder puts it at $1.01, close to the true $1.00. The average predicted spending in the table uses each row’s intercept and tenure slope at all 2,000 customers’ tenure values. It is $113.36 for OLS and $103.29 for the corrected equation, compared with $103.70 from the true spending equation. The customers’ simulated spending averages $103.16. The gap is the average of their random spending errors.</p>
+    <div id="heckman-spending-fits"></div>
+    <p>The corrected line uses the estimated intercept and tenure slope from Step 2, β̂<sub>0</sub> + β̂<sub>1</sub> × tenure. The dashed curve describes expected spending among linked customers. It adds the fitted ratio coefficient times the average ratio for linked customers at each tenure. To compute that average, weight each reminder group by its assignment probability times its fitted linking probability at that tenure.</p>
+    <div class="ex-chart heckman-chart"><canvas id="heckman-spending-chart" role="img" aria-label="Monthly spending against tenure for linked and simulated unlinked customers, with the true relationship, linked-only OLS, the corrected regression, and dashed expected spending among linkers. The plotted values follow the chart."></canvas></div>
+    <details>
+      <summary>Inspect plotted spending values</summary>
+      <div id="heckman-plotted-fits"></div>
+      <details id="heckman-plotted-customers">
+        <summary>Inspect individual customer points</summary>
+        <div id="heckman-customer-points"></div>
+      </details>
+    </details>
+    <p>The OLS line approximates the dashed curve, with a largest gap of $1.01 across the plotted tenure values. The light grey points show the unlinked customers’ spending, which is visible only in the simulation. Interpret spending here as net of refunds, so it can be negative.</p>
+    <p>Without the reminder, the fitted ratio is nearly a straight-line function of tenure among linked customers. Their correlation is −0.997 without the reminder and −0.574 with it. The second step can barely separate the two terms. Without the reminder, the intercept is $84.51, the tenure slope is $0.939 per month, and the ratio coefficient is $10.21. The intercept’s standard error rises from $3.33 to $49.43 and the slope’s rises from $0.073 to $0.753.</p>
+    <p>The spending equation assumes a straight-line relationship with tenure. If that relationship is curved, a straight line can miss the population average at some tenures even after correcting for selection. The corrected equation describes average monthly spending at each tenure across all customers, including those who never linked their receipts.</p>
+  </section>
+
+  <p class="mg-context">Compare selection models with <a href="../matching/#missing-outcomes">weighting for missing outcomes</a> when baseline covariates and treatment can account for who is observed.</p>
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/causal-heckman.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

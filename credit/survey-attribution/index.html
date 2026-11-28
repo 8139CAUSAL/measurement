@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Survey Attribution | Marketing Measurement Science</title>
+  <meta name="description" content="Summarize self-reported discovery, check response bias, and compare with platform credit.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/credit/survey-attribution/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/credit/survey-attribution/">
+  <meta property="og:title" content="Survey Attribution | Marketing Measurement Science">
+  <meta property="og:description" content="Summarize self-reported discovery, check response bias, and compare with platform credit.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Survey Attribution | Marketing Measurement Science">
+  <meta name="twitter:description" content="Summarize self-reported discovery, check response bias, and compare with platform credit.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Survey Attribution Page Styles === */
+    .channels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+    .channel-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 20px; position: relative; transition: border-color 0.3s;
+    }
+    .channel-card:hover { border-color: var(--brand-accent); }
+    .channel-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .channel-header h3 { margin: 0; font-size: 15px; color: var(--brand-text); }
+    .channel-inputs { display: grid; gap: 10px; }
+    .channel-inputs label { font-size: 12px; color: var(--brand-text-muted); font-weight: 600; display: block; margin-bottom: 4px; }
+    .channel-inputs input { width: 100%; }
+
+    .results-table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--brand-border-dim); }
+    .results-table th, .results-table td { padding: 10px 14px; text-align: center; border: 1px solid var(--brand-border-dim); font-size: 13px; }
+    .results-table th { background: var(--bg-card-raised); color: var(--brand-accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .results-table td { color: var(--brand-text-muted); }
+
+    .sv-tooltip-trigger { cursor: help; touch-action: manipulation; }
+    .sv-tooltip-trigger:focus-visible { outline: 2px solid var(--brand-accent, #0284c7); outline-offset: -3px; }
+    .sv-tooltip {
+      position: fixed; top: 0; left: 0; z-index: 10;
+      width: 26rem; box-sizing: border-box; padding: .65rem .8rem; border-radius: 6px;
+      background: #f8fafc; color: #282a36; border: 1px solid #cbd5e1;
+      box-shadow: 0 6px 18px rgba(40, 42, 54, .12);
+      text-align: left; line-height: 1.45; overflow-wrap: anywhere; overflow: auto; cursor: auto;
+    }
+    .sv-tooltip .tooltip-title { display: block; font-weight: 700; margin-bottom: .3rem; }
+    .sv-tooltip > div + div { margin-top: .3rem; }
+
+    .sv-example-table { overflow-x: auto; margin: 16px 0; }
+    .sv-example-table .results-table { margin-top: 0; }
+    .sv-bias-range { display: flex; align-items: center; gap: 12px; max-width: 100%; }
+    .sv-bias-range input { min-width: 0; }
+    .sv-bias-range output { flex: none; }
+
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .analytics-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 20px; text-align: center; transition: transform 0.3s, border-color 0.3s;
+    }
+    .analytics-card:hover { transform: translateY(-3px); border-color: var(--brand-accent); }
+    .analytics-card h4 { margin: 0 0 8px; font-size: 14px; color: var(--brand-text); }
+    .analytics-card p { margin: 0; font-size: 13px; color: var(--brand-text-muted); line-height: 1.5; }
+    .analytics-card .card-value { font-size: 1.6rem; font-weight: 700; color: var(--brand-accent); margin-bottom: 6px; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .badge--success { background: rgba(52, 211, 153, 0.15); color: var(--brand-success); }
+    .badge--warning { background: rgba(251, 191, 36, 0.15); color: var(--brand-warning); }
+    .badge--danger { background: rgba(248, 113, 113, 0.15); color: var(--brand-danger); }
+
+    .warning-box {
+      background: var(--danger-tint); border-left: 3px solid var(--brand-danger); padding: 16px 20px;
+      border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .warning-box strong { color: var(--brand-text); }
+
+    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; margin: 16px 0; }
+    .step-list li {
+      counter-increment: step-counter; position: relative; padding-left: 40px; margin-bottom: 16px;
+      font-size: 14px; color: var(--brand-text-muted); line-height: 1.6;
+    }
+    .step-list li::before {
+      content: counter(step-counter); position: absolute; left: 0; top: 0;
+      background: var(--brand-accent); color: var(--brand-background); width: 26px; height: 26px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+    }
+    .step-list li strong { color: var(--brand-text); }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+    .tool-card {
+      background: var(--bg-card-raised); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px; text-align: center;
+    }
+    .tool-card h4 { margin: 0 0 6px; font-size: 14px; color: var(--brand-text); }
+    .tool-card p { margin: 0; font-size: 12px; color: var(--brand-text-muted); }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.2); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px 20px; font-family: var(--font-mono); font-size: 12px; color: var(--brand-text-muted);
+      overflow-x: auto; line-height: 1.7; margin: 16px 0; white-space: pre;
+    }
+
+    .input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .input-row label { font-weight: 600; color: var(--brand-text); font-size: 14px; min-width: 120px; }
+    .input-row input { width: 120px; }
+
+    .multiplier-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+    .multiplier-card {
+      background: var(--bg-card); border: 1px solid var(--brand-border-dim); border-radius: 8px;
+      padding: 16px;
+    }
+    .multiplier-card label { font-size: 12px; color: var(--brand-text-muted); font-weight: 600; display: block; margin-bottom: 6px; }
+    .multiplier-card input { width: 100%; }
+
+    @media (max-width: 600px) {
+      .channels-grid { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr 1fr; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+      .multiplier-inputs { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; align-items: flex-start; }
+      .input-row input { width: 100%; }
+      .sv-bias-range { width: 100%; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../attribution-rules/">Attribution Rules</a></li><li><a href="../markov-attribution/">Markov Attribution</a></li><li><a href="../holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="./">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Reconcile Credit</a></li><li aria-current="page">Survey Attribution</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Survey Attribution</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">A post-purchase survey records what responding buyers recall about discovery. Compare responses with platform credit after aligning the population, period, and channel definitions.</p>
+
+    <div class="tab-selector" data-guide-tablist="Survey Attribution views">
+      <button class="tab-btn active" data-tab="overview" type="button" data-guide-tab="sv-panel-overview">Overview</button>
+      <button class="tab-btn" data-tab="methodology" type="button" data-guide-tab="sv-panel-methodology">Methodology</button>
+      <button class="tab-btn" data-tab="calibration" type="button" data-guide-tab="sv-panel-calibration">Calibration</button>
+      <button class="tab-btn" data-tab="analytics" type="button" data-guide-tab="sv-panel-analytics">Survey Analytics</button>
+      <button class="tab-btn" data-tab="bias" type="button" data-guide-tab="sv-panel-bias">Response Bias</button>
+      <button class="tab-btn" data-tab="implementation" type="button" data-guide-tab="sv-panel-implementation">Implementation</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-panel active" id="sv-panel-overview">
+      <div class="stage">
+        <h2 id="what-the-survey-measures">What the survey measures</h2>
+        <p class="prose">A discovery question can surface mentions of word of mouth, podcasts, or offline media that have no trackable click. “Where did you first hear about us?” measures something different from “What prompted this purchase?”</p>
+        <p class="prose">Memory, option order, and who responds all affect the results. A survey share describes reported discovery. Estimating how a channel changes purchases requires a credible comparison, such as a holdout.</p>
+      </div>
+    </div>
+
+    <!-- TAB 2: METHODOLOGY -->
+    <div class="tab-panel" id="sv-panel-methodology">
+      <div class="stage">
+        <p class="prose">Enter the survey-attributed revenue among respondents, the response rate, and ad spend. The calculator divides survey revenue by the response fraction, then divides the resulting revenue by spend. This simple expansion assumes respondent revenue and reported channel shares represent all eligible buyers. The inputs are hypothetical.</p>
+
+        <h2 class="prose" style="margin-top: 24px;" id="interactive-calculator"><strong>Interactive Calculator</strong></h2>
+
+        <div class="input-row">
+          <label for="response-rate">Response Rate (%):</label>
+          <input type="number" id="response-rate" aria-describedby="response-rate-status" value="38" min="0" max="100" step="any">
+          <div id="response-rate-status" role="status"></div>
+        </div>
+
+        <div id="channels-container" class="channels-grid"></div>
+
+        <div class="controls" style="margin-top: 16px;">
+          <button class="btn btn-secondary" id="add-channel-btn" type="button">+ Add Channel</button>
+        </div>
+
+        <h3 class="prose" style="margin-top: 24px;" id="results"><strong>Results</strong></h3>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="methodology-results">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Ad Spend</th>
+                <th>Survey Revenue</th>
+                <th>Implied Revenue</th>
+                <th>Implied ROAS</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CALIBRATION -->
+    <div class="tab-panel" id="sv-panel-calibration">
+      <div class="stage">
+        <p class="prose">Compare survey-implied ROAS with platform-reported ROAS for the same spend. The ratio shows how much the figures differ. Window, eligibility, reporting rules, or response bias can all contribute to the gap.</p>
+        <div class="formula-box"><strong>Survey-to-platform ratio</strong> = Survey-implied ROAS / Platform-reported ROAS</div>
+
+        <h2 class="prose" style="margin-top: 24px;" id="platform-revenue-inputs">Platform revenue inputs</h2>
+        <p class="prose">
+          Enter each channel's platform-reported revenue. Default values assume a 1.4x platform ROAS on spend.
+        </p>
+        <div id="multiplier-inputs" class="multiplier-inputs"></div>
+
+        <h2 class="prose" style="margin-top: 24px;" id="roas-comparison">ROAS comparison</h2>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="calibration-results">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Survey ROAS</th>
+                <th>Platform ROAS</th>
+                <th>Survey / Platform</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 4: SURVEY ANALYTICS -->
+    <div class="tab-panel" id="sv-panel-analytics">
+      <div class="stage">
+        <h2 id="survey-quality-checks">Survey quality checks</h2>
+        <dl>
+          <dt>Response rate</dt><dd>Divide completed responses by eligible survey invitations. Compare participation across devices, order-value bands, or other groups where you know the eligible counts.</dd>
+          <dt>Time to answer</dt><dd>Review unusually fast or slow responses in context. Timing alone gives weak evidence about validity.</dd>
+          <dt>Write-ins and multi-select</dt><dd>Use write-ins to spot missing categories. When buyers can select several channels, report the share mentioning each channel and those shares can sum to more than 100%.</dd>
+        </dl>
+        <h2 id="check-wording-and-option-order">Check wording and option order</h2>
+        <p class="prose">Randomly vary wording or option order among otherwise comparable buyers. Compare both completion and answer shares across versions, with uncertainty. Use the version that measures the question you intend to answer.</p>
+      </div>
+    </div>
+
+    <!-- TAB 5: BIAS CORRECTION -->
+    <div class="tab-panel" id="sv-panel-bias">
+      <p class="mg-context">Define the population eligible to respond and consider how their characteristics relate to who replies. For comparable groups and the role of overlap, see <a href="../../effects/matching/#overlap">Overlap diagnostics</a>.</p>
+      <div class="stage">
+        <h2 id="who-responded">Who responded?</h2>
+        <p class="prose">This hypothetical example starts from the Methodology tab’s default inputs. Order records tell us which device each eligible buyer used, including buyers who skipped the survey.</p>
+        <div class="sv-example-table">
+          <table class="results-table" id="sv-bias-composition" aria-label="Eligible buyers and respondents by device">
+            <thead><tr>
+              <th scope="col">Device</th>
+              <th scope="col">Eligible buyers</th>
+              <th scope="col">Share of eligible</th>
+              <th scope="col">Respondents</th>
+              <th scope="col">Share of respondents</th>
+              <th scope="col">Response rate</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="prose">Each respondent names one channel where they first heard of the brand. The table shows the three channels from Methodology and leaves out other answers such as word of mouth. The revenue totals match Methodology’s default survey revenue.</p>
+        <div class="sv-example-table">
+          <table class="results-table" id="sv-bias-revenue" aria-label="Respondent survey revenue by channel and device">
+            <thead><tr>
+              <th scope="col">Channel</th>
+              <th scope="col">Ad spend</th>
+              <th scope="col">Desktop</th>
+              <th scope="col">Mobile</th>
+              <th scope="col">Total</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="prose">Desktop buyers make up 40.0% of eligible buyers and 52.6% of respondents. Most Facebook survey revenue comes from desktop respondents. Most Instagram and TikTok survey revenue comes from mobile respondents.</p>
+
+        <h2 id="post-stratification">Post-stratify the expansion</h2>
+        <p class="prose">Methodology divides all survey revenue by 38%, so every response stands for 1 ÷ 0.38 ≈ 2.63 eligible buyers. In this example, that gives desktop answers too much weight and mobile answers too little.</p>
+        <p class="prose">Post-stratification divides each device group’s survey revenue by its own response rate. One desktop response stands for 4,000 ÷ 2,000 = 2.00 eligible buyers. One mobile response stands for 6,000 ÷ 1,800 ≈ 3.33.</p>
+        <div class="formula-box"><strong>Post-stratified implied revenue</strong> = desktop survey revenue ÷ desktop response rate + mobile survey revenue ÷ mobile response rate</div>
+        <p class="prose">For TikTok, $4,800 ÷ 50% + $15,000 ÷ 30% = $9,600 + $50,000 = $59,600.</p>
+        <p class="prose">A group’s relative weight is its share of eligible buyers divided by its share of respondents. Using the displayed shares gives 40.0% ÷ 52.6% ≈ 0.76 for desktop and 60.0% ÷ 47.4% ≈ 1.27 for mobile. Dividing each unrounded relative weight by the 38% overall response rate gives the expansion weights of 2.00 and 3.33 buyers per response.</p>
+        <div class="sv-example-table">
+          <table class="results-table" id="sv-bias-results" aria-label="Methodology and post-stratified results">
+            <thead><tr>
+              <th scope="col">Channel</th>
+              <th scope="col">Methodology implied revenue</th>
+              <th scope="col">Post-stratified implied revenue</th>
+              <th scope="col">Change</th>
+              <th scope="col">Methodology ROAS</th>
+              <th scope="col">Post-stratified ROAS</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="prose">With two device groups, weighting changes a channel’s implied revenue only if the groups differ in both response rate and average channel-attributed revenue per respondent. If both groups had responded at 38%, each response would stand for 2.63 buyers. If desktop and mobile respondents reported the same average revenue per respondent for a channel, the two implied revenue columns would also match. Facebook’s estimate falls because most of its survey revenue comes from the overrepresented desktop group.</p>
+
+        <h2 id="weighting-assumption">What the weights assume</h2>
+        <p class="prose">The weights use device alone. They assume that within each device group, respondents and nonrespondents have the same average revenue attributed to each channel.</p>
+        <p class="prose">Mobile TikTok buyers are mobile buyers who first heard of the brand on TikTok. Of the 1,800 mobile respondents, 250 named TikTok and 1,550 named other channels. The control changes the TikTok group’s response rate relative to the other mobile buyers’ rate while holding the observed mobile response rate at 30%.</p>
+        <p class="prose">When the control is <var>k</var>, other mobile buyers respond at <var>r</var> = (250 ÷ <var>k</var> + 1,550) ÷ 6,000, and mobile TikTok buyers respond at <var>k</var> × <var>r</var>. The scenario divides mobile TikTok revenue by <var>k</var> × <var>r</var> and mobile Facebook and Instagram revenue by <var>r</var>. It still divides desktop revenue by 50%. At 1.0×, both mobile rates are 30% and the scenario matches the post-stratified results.</p>
+        <p class="prose">The scenario assumes that respondents and nonrespondents have the same average revenue within each group defined by device and discovery channel. If those averages differ, changing response probabilities alone cannot tell us how much revenue to attribute to each channel.</p>
+        <div class="input-row">
+          <label for="sv-bias-relative-rate">Mobile TikTok buyers' response rate, relative to other mobile buyers</label>
+          <div class="sv-bias-range">
+            <input type="range" id="sv-bias-relative-rate" min="0.5" max="1.5" step="0.1" value="1.0">
+            <output id="sv-bias-relative-value" for="sv-bias-relative-rate"></output>
+          </div>
+        </div>
+        <p class="prose" id="sv-bias-mobile-rates"></p>
+        <div class="sv-example-table">
+          <table class="results-table" id="sv-bias-scenario" aria-label="Post-stratified and scenario results">
+            <thead><tr>
+              <th scope="col">Channel</th>
+              <th scope="col">Post-stratified implied revenue</th>
+              <th scope="col">Scenario implied revenue</th>
+              <th scope="col">Post-stratified ROAS</th>
+              <th scope="col">Scenario ROAS</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="prose">TikTok’s implied ROAS ranges from 2.16x at 0.5× to 0.99x at 1.5×. The respondent counts, survey revenue and device response rates stay the same at every setting, so the survey data cannot distinguish these scenarios. Following up with randomly sampled mobile nonrespondents could help estimate differences in response probability and average revenue. Random sampling alone guarantees neither successful follow-up nor narrower uncertainty. Report the weighted estimate alongside the range of settings you consider plausible.</p>
+        <p class="prose">See <a href="../../effects/matching/#missing-outcomes">Missing outcomes</a> for the general treatment of outcome-driven missingness.</p>
+
+        <h2 id="thin-and-empty-groups">Thin and empty groups</h2>
+        <p class="prose"><strong>Empty group.</strong> Suppose eligible buyers also included 1,000 app orders where the survey never appeared. With no app respondents, the group’s expansion weight is undefined. To estimate channel-attributed revenue for app buyers, survey them directly or state an assumption, such as that their average revenue by channel matches that of mobile web buyers.</p>
+        <p class="prose"><strong>Thin group.</strong> Splitting mobile buyers into new and returning could leave 1,200 new mobile buyers with 40 responses. Each response would stand for 30 buyers, so a few answers could move the result. Compare weighted and unweighted estimates. Combining the groups makes individual responses less influential and can reduce variance. It can also introduce bias if the groups’ average channel-attributed revenue differs substantially.</p>
+        <p class="prose"><strong>Models.</strong> With device as the only attribute, a model of TikTok revenue per respondent predicts $4,800 ÷ 2,000 = $2.40 for a desktop respondent and $15,000 ÷ 1,800 for a mobile respondent. Apply the group averages to all 10,000 eligible buyers and sum to get 4,000 × $2.40 + 6,000 × $15,000 ÷ 1,800 = $9,600 + $50,000 = $59,600, the post-stratified figure. A response-probability model using device alone estimates the same 50% and 30% response rates. Models can help when combinations of device, region and order value have few or no respondents. To make predictions for those combinations, the model needs assumptions about how the attributes combine. For example, it could assume that the difference between desktop and mobile is the same in every region.</p>
+      </div>
+    </div>
+
+    <!-- TAB 6: IMPLEMENTATION -->
+    <div class="tab-panel" id="sv-panel-implementation">
+      <div class="stage">
+        <h2 id="survey-design-guide">Survey Design Guide</h2>
+        <ol class="step-list">
+          <li>Define which purchases are eligible and whether you are measuring first discovery or influence on this purchase.</li>
+          <li>Record eligible invitations and link responses to order IDs. Store question version, option order, response time, and the channel selections or write-ins.</li>
+          <li>Plan collection around the precision and periods needed for your decision. Review participation and missing categories before aggregating.</li>
+          <li>Align platform and survey periods and channel definitions before comparing figures. Use discrepancies to check tracking or prioritize a follow-up test.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function() {
+  'use strict';
+
+  /* --- State --- */
+  var nextChannelId = 1;
+  var channels = [
+    { id: nextChannelId++, name: 'Facebook', spend: 185000, surveyRevenue: 42300 },
+    { id: nextChannelId++, name: 'Instagram', spend: 0, surveyRevenue: 40000 },
+    { id: nextChannelId++, name: 'TikTok', spend: 45000, surveyRevenue: 19800 }
+  ];
+  var activeTooltip = null;
+  var invalidRateMessage = 'Enter a response rate above 0% and at most 100%.';
+  var methodologyTable = document.getElementById('methodology-results');
+  var methodologyScroll = methodologyTable.parentElement;
+  var rateInput = document.getElementById('response-rate');
+
+  const biasExample = {
+    desktop: { name: 'Desktop', eligible: 4000, respondents: 2000 },
+    mobile: { name: 'Mobile', eligible: 6000, respondents: 1800, tikTokRespondents: 250 },
+    channels: [
+      { name: 'Facebook', spend: 185000, desktopRevenue: 30000, mobileRevenue: 12300 },
+      { name: 'Instagram', spend: 0, desktopRevenue: 13000, mobileRevenue: 27000 },
+      { name: 'TikTok', spend: 45000, desktopRevenue: 4800, mobileRevenue: 15000 }
+    ]
+  };
+
+  /* --- Tab Switching --- */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  function activateTab(tabId) {
+    closeTooltip();
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+    }
+    for (var j = 0; j < tabPanels.length; j++) {
+      tabPanels[j].classList[tabPanels[j].id === 'sv-panel-' + tabId ? 'add' : 'remove']('active');
+    }
+    recalculate();
+  }
+
+  for (var ti = 0; ti < tabBtns.length; ti++) {
+    tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+  }
+
+  /* --- Helpers --- */
+  function money(n) {
+    if (!Number.isFinite(n)) return '—';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function roas(n) {
+    if (!Number.isFinite(n)) return '—';
+    return n.toFixed(2) + 'x';
+  }
+
+  function getResponseRate() {
+    const value = rateInput.valueAsNumber;
+    const valid = value > 0 && value <= 100;
+    rateInput.setAttribute('aria-invalid', String(!valid));
+    document.getElementById('response-rate-status').textContent =
+      valid ? '' : invalidRateMessage;
+    return valid ? value / 100 : NaN;
+  }
+
+  /* --- Response Bias Worked Example --- */
+  function renderExampleRows(tableId, rows) {
+    document.getElementById(tableId).tBodies[0].innerHTML = rows.map(function(row) {
+      return '<tr><td>' + row.join('</td><td>') + '</td></tr>';
+    }).join('');
+  }
+
+  function percent(fraction) {
+    return (fraction * 100).toFixed(1) + '%';
+  }
+
+  function renderBiasExample() {
+    const { desktop, mobile, channels: exampleChannels } = biasExample;
+    const total = {
+      name: 'Total', eligible: desktop.eligible + mobile.eligible,
+      respondents: desktop.respondents + mobile.respondents
+    };
+    const desktopRate = desktop.respondents / desktop.eligible;
+    const mobileRate = mobile.respondents / mobile.eligible;
+    const overallRate = total.respondents / total.eligible;
+    const otherMobileRespondents = mobile.respondents - mobile.tikTokRespondents;
+    const scenarioInput = document.getElementById('sv-bias-relative-rate');
+    const scenarioValue = document.getElementById('sv-bias-relative-value');
+    const mobileRates = document.getElementById('sv-bias-mobile-rates');
+
+    renderExampleRows('sv-bias-composition', [desktop, mobile, total].map(function(group) {
+      return [group.name, group.eligible.toLocaleString('en-US'), percent(group.eligible / total.eligible),
+        group.respondents.toLocaleString('en-US'), percent(group.respondents / total.respondents),
+        percent(group.respondents / group.eligible)];
+    }));
+
+    renderExampleRows('sv-bias-revenue', exampleChannels.map(function(channel) {
+      return [channel.name, money(channel.spend), money(channel.desktopRevenue), money(channel.mobileRevenue),
+        money(channel.desktopRevenue + channel.mobileRevenue)];
+    }));
+
+    const results = exampleChannels.map(function(channel) {
+      return {
+        channel,
+        methodologyRevenue: (channel.desktopRevenue + channel.mobileRevenue) / overallRate,
+        desktopImplied: channel.desktopRevenue / desktopRate,
+        weightedRevenue: channel.desktopRevenue / desktopRate + channel.mobileRevenue / mobileRate
+      };
+    });
+
+    function exampleRoas(revenue, spend) {
+      return spend > 0 ? roas(revenue / spend) : 'N/A (no spend)';
+    }
+
+    renderExampleRows('sv-bias-results', results.map(function(result) {
+      const { channel, methodologyRevenue, weightedRevenue } = result;
+      const change = (weightedRevenue - methodologyRevenue) / methodologyRevenue;
+      const sign = change < 0 ? '−' : change > 0 ? '+' : '';
+      return [channel.name, money(methodologyRevenue), money(weightedRevenue), sign + percent(Math.abs(change)),
+        exampleRoas(methodologyRevenue, channel.spend), exampleRoas(weightedRevenue, channel.spend)];
+    }));
+
+    function updateScenario() {
+      const k = scenarioInput.valueAsNumber;
+      const otherRate = (mobile.tikTokRespondents / k + otherMobileRespondents) / mobile.eligible;
+      const tikTokRate = k * otherRate;
+      scenarioValue.value = k.toFixed(1) + '×';
+      scenarioInput.setAttribute('aria-valuetext', scenarioValue.value);
+      mobileRates.textContent = 'Mobile TikTok buyers respond at ' + percent(tikTokRate) +
+        ' and other mobile buyers at ' + percent(otherRate) + '.';
+
+      renderExampleRows('sv-bias-scenario', results.map(function(result) {
+        const { channel, desktopImplied, weightedRevenue } = result;
+        const scenarioRate = channel.name === 'TikTok' ? tikTokRate : otherRate;
+        const scenarioRevenue = desktopImplied + channel.mobileRevenue / scenarioRate;
+        return [channel.name, money(weightedRevenue), money(scenarioRevenue),
+          exampleRoas(weightedRevenue, channel.spend), exampleRoas(scenarioRevenue, channel.spend)];
+      }));
+    }
+
+    scenarioInput.addEventListener('input', updateScenario);
+    updateScenario();
+  }
+
+  /* --- Channel Rendering --- */
+  function renderChannels() {
+    var container = document.getElementById('channels-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (var i = 0; i < channels.length; i++) {
+      var ch = channels[i];
+      var card = document.createElement('div');
+      card.className = 'channel-card';
+      card.setAttribute('data-index', i);
+
+      var header = document.createElement('div');
+      header.className = 'channel-header';
+
+      var title = document.createElement('h3');
+      title.textContent = ch.name;
+      header.appendChild(title);
+
+      if (channels.length > 1) {
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.textContent = 'Remove';
+        removeBtn.setAttribute('data-index', i);
+        removeBtn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-index'), 10);
+          removeChannel(idx);
+        });
+        header.appendChild(removeBtn);
+      }
+
+      card.appendChild(header);
+
+      var inputs = document.createElement('div');
+      inputs.className = 'channel-inputs';
+
+      inputs.innerHTML =
+        '<div>' +
+          '<label for="sv-name-' + i + '">Channel Name</label>' +
+          '<input type="text" id="sv-name-' + i + '" data-field="name" data-index="' + i + '" value="' + escapeHtml(ch.name) + '">' +
+        '</div>' +
+        '<div>' +
+          '<label for="sv-spend-' + i + '">Ad Spend ($)</label>' +
+          '<input type="number" id="sv-spend-' + i + '" data-field="spend" data-index="' + i + '" value="' + ch.spend + '" min="0" step="1000">' +
+        '</div>' +
+        '<div>' +
+          '<label for="sv-surveyRevenue-' + i + '">Survey Revenue ($)</label>' +
+          '<input type="number" id="sv-surveyRevenue-' + i + '" data-field="surveyRevenue" data-index="' + i + '" value="' + ch.surveyRevenue + '" min="0" step="100">' +
+        '</div>';
+
+      card.appendChild(inputs);
+      container.appendChild(card);
+    }
+
+    /* Attach input listeners */
+    var allInputs = container.querySelectorAll('input');
+    for (var k = 0; k < allInputs.length; k++) {
+      allInputs[k].addEventListener('input', function() {
+        var idx = parseInt(this.getAttribute('data-index'), 10);
+        var field = this.getAttribute('data-field');
+        if (field === 'name') {
+          channels[idx].name = this.value;
+        } else {
+          channels[idx][field] = parseFloat(this.value) || 0;
+        }
+        recalculate();
+      });
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML.replace(/"/g, '&quot;');
+  }
+
+  function addChannel() {
+    channels.push({ id: nextChannelId++, name: 'Channel ' + (channels.length + 1), spend: 0, surveyRevenue: 0 });
+    renderChannels();
+    recalculate();
+  }
+
+  function removeChannel(idx) {
+    channels.splice(idx, 1);
+    renderChannels();
+    recalculate();
+  }
+
+  /* --- Multiplier Inputs (Calibration Tab) --- */
+  function renderMultiplierInputs() {
+    var container = document.getElementById('multiplier-inputs');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (var i = 0; i < channels.length; i++) {
+      var ch = channels[i];
+      if (ch.spend <= 0) continue;
+
+      if (ch.platformRevenue === undefined) {
+        ch.platformRevenue = Math.round(ch.spend * 1.4);
+      }
+
+      var card = document.createElement('div');
+      card.className = 'multiplier-card';
+      card.innerHTML =
+        '<label for="sv-platform-' + i + '">' + escapeHtml(ch.name) + ' Platform Revenue ($)</label>' +
+        '<input type="number" id="sv-platform-' + i + '" data-index="' + i + '" value="' + (Number.isFinite(ch.platformRevenue) ? ch.platformRevenue : '') + '" min="0" step="1000">';
+      container.appendChild(card);
+    }
+
+    var platInputs = container.querySelectorAll('input');
+    for (var k = 0; k < platInputs.length; k++) {
+      platInputs[k].addEventListener('input', function() {
+        channels[Number(this.dataset.index)].platformRevenue = this.valueAsNumber;
+        recalculate(true);
+      });
+    }
+  }
+
+  /* --- Methodology Results Tooltips --- */
+  const cents = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+  function calculationResult(value, digits, display) {
+    if (!Number.isFinite(value)) return ' → —';
+    const rounded = Number(value.toFixed(digits));
+    const tolerance = 4 * Number.EPSILON * Math.max(Math.abs(value), Math.abs(rounded));
+    return (Math.abs(value - rounded) <= tolerance ? ' = ' : ' ≈ ') + display;
+  }
+
+  function channelTooltip(channel, metric, content, lines) {
+    const id = 'sv-' + metric + '-tip-' + channel.id;
+    const name = channel.name.trim();
+    const title = (name ? escapeHtml(name) + ' implied ' : 'Implied ') + (metric === 'roas' ? 'ROAS' : 'revenue');
+    if (lines.some(function(line) { return line.includes('≈'); })) lines.push('Calculations use unrounded values.');
+
+    return '<td class="sv-tooltip-trigger" tabindex="0" aria-describedby="' + id + '">' + content +
+      '<div class="tooltip-content sv-tooltip" id="' + id + '" role="tooltip" hidden>' +
+      '<span class="tooltip-title">' + title + '</span><div>' + lines.join('</div><div>') + '</div></div></td>';
+  }
+
+  function methodologyTooltips(channel, rate, implied, impliedRoas) {
+    const survey = cents.format(channel.surveyRevenue);
+    const spend = cents.format(channel.spend);
+    const revenueLines = ['Survey revenue ÷ response rate'];
+    const roasLines = ['Implied revenue ÷ ad spend'];
+
+    if (Number.isNaN(rate)) {
+      revenueLines.push('Survey revenue: ' + survey, invalidRateMessage);
+      roasLines.push('Survey revenue: ' + survey, 'Ad spend: ' + spend, invalidRateMessage);
+    } else {
+      const impliedDisplay = cents.format(implied);
+      const expansion = survey + ' ÷ ' + escapeHtml(rateInput.value) + '%' + calculationResult(implied, 2, impliedDisplay);
+      revenueLines.push(expansion);
+      roasLines.push('Implied revenue: ' + expansion);
+      if (channel.spend > 0 && Number.isFinite(implied)) {
+        roasLines.push(impliedDisplay + ' ÷ ' + spend + calculationResult(impliedRoas, 3, impliedRoas.toFixed(3) + 'x'));
+      }
+    }
+
+    if (channel.spend <= 0) roasLines.push('Ad spend is ' + spend + ', so ROAS is undefined.');
+
+    return channelTooltip(channel, 'revenue', money(implied), revenueLines) +
+      channelTooltip(channel, 'roas', channel.spend > 0 ? roas(impliedRoas) : 'N/A (no spend)', roasLines);
+  }
+
+  function positionTooltip() {
+    if (!activeTooltip) return;
+    var panel = activeTooltip.panel;
+    // Without the generated page's doctype, the body reports the viewport size.
+    var viewport = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
+    var gutter = 16;
+    var triggerBounds = activeTooltip.trigger.getBoundingClientRect();
+    var wrapperBounds = methodologyScroll.getBoundingClientRect();
+    var wrapperLeft = wrapperBounds.left + methodologyScroll.clientLeft;
+    var visibleLeft = Math.max(triggerBounds.left, wrapperLeft, 0);
+    var visibleRight = Math.min(triggerBounds.right, wrapperLeft + methodologyScroll.clientWidth, viewport.clientWidth);
+    if (visibleLeft >= visibleRight || triggerBounds.bottom <= 0 || triggerBounds.top >= viewport.clientHeight) {
+      closeTooltip();
+      return;
+    }
+    panel.hidden = false;
+    panel.style.maxWidth = Math.max(0, viewport.clientWidth - 2 * gutter) + 'px';
+    panel.style.maxHeight = '';
+    var panelBounds = panel.getBoundingClientRect();
+    // Keep the edges in contact so the pointer can move from the cell into the panel.
+    var belowEdge = Math.max(gutter, triggerBounds.bottom - 1);
+    var aboveEdge = Math.min(viewport.clientHeight - gutter, triggerBounds.top + 1);
+    var roomBelow = viewport.clientHeight - belowEdge - gutter;
+    var roomAbove = aboveEdge - gutter;
+    var above = panelBounds.height > roomBelow && roomAbove > roomBelow;
+    var height = Math.min(panelBounds.height, above ? roomAbove : roomBelow);
+    var left = Math.max(gutter, Math.min(visibleLeft, viewport.clientWidth - gutter - panelBounds.width));
+    panel.style.maxHeight = height + 'px';
+    panel.style.left = left + 'px';
+    panel.style.top = (above ? aboveEdge - height : belowEdge) + 'px';
+  }
+
+  function closeTooltip() {
+    if (!activeTooltip) return;
+    activeTooltip.panel.hidden = true;
+    activeTooltip = null;
+  }
+
+  function showTooltip(trigger, mode) {
+    if (activeTooltip?.trigger === trigger) {
+      activeTooltip.mode = mode;
+      return;
+    }
+    closeTooltip();
+    var panel = trigger.lastElementChild;
+    activeTooltip = { trigger: trigger, panel: panel, mode: mode };
+    positionTooltip();
+  }
+
+  function bindTooltips(container) {
+    container.querySelectorAll('.sv-tooltip-trigger').forEach(function(trigger) {
+      var panel = trigger.lastElementChild;
+      function closeOnPointerLeave(event) {
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'hover' &&
+            !trigger.contains(event.relatedTarget)) closeTooltip();
+      }
+      trigger.addEventListener('pointerenter', function(event) {
+        if (event.pointerType !== 'touch' && activeTooltip?.trigger !== trigger) {
+          showTooltip(trigger, 'hover');
+        }
+      });
+      trigger.addEventListener('pointerleave', closeOnPointerLeave);
+      trigger.addEventListener('focus', function() {
+        const alreadyTapped = activeTooltip?.trigger === trigger && activeTooltip.mode === 'tap';
+        if (!alreadyTapped && trigger.matches(':focus-visible')) {
+          // Bring the cell into view before positioning the panel, even with smooth page scrolling.
+          trigger.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+          showTooltip(trigger, 'focus');
+        }
+      });
+      trigger.addEventListener('blur', function() {
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'focus') closeTooltip();
+      });
+      trigger.addEventListener('click', function(event) {
+        if (panel.contains(event.target)) return;
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'tap') closeTooltip();
+        else showTooltip(trigger, 'tap');
+      });
+    });
+  }
+
+  /* --- Recalculate --- */
+  function recalculate(preservePlatformFields) {
+    var rate = getResponseRate();
+
+    /* Methodology results table */
+    var methBody = methodologyTable.tBodies[0];
+    if (methBody) {
+      const previousTooltip = activeTooltip;
+      const restoreFocus = previousTooltip?.trigger === document.activeElement;
+      closeTooltip();
+      methBody.innerHTML = '';
+      for (var m = 0; m < channels.length; m++) {
+        var c = channels[m];
+        var implied = c.surveyRevenue / rate;
+        var iRoas = c.spend > 0 ? implied / c.spend : Infinity;
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + escapeHtml(c.name) + '</td>' +
+          '<td>' + money(c.spend) + '</td>' +
+          '<td>' + money(c.surveyRevenue) + '</td>' +
+          methodologyTooltips(c, rate, implied, iRoas);
+        methBody.appendChild(tr);
+      }
+      bindTooltips(methBody);
+      if (previousTooltip) {
+        // The panel ID carries both the stable channel ID and the metric.
+        const newTrigger = document.getElementById(previousTooltip.panel.id)?.parentElement;
+        if (newTrigger) {
+          if (restoreFocus) newTrigger.focus({ preventScroll: true });
+          showTooltip(newTrigger, previousTooltip.mode);
+        }
+      }
+    }
+
+    /* Calibration: render multiplier inputs and results */
+    if (!preservePlatformFields) renderMultiplierInputs();
+
+    var calBody = document.querySelector('#calibration-results tbody');
+    if (calBody) {
+      calBody.innerHTML = '';
+
+      for (var ci = 0; ci < channels.length; ci++) {
+        var cc = channels[ci];
+        if (cc.spend <= 0) continue;
+
+        var surveyImplied = cc.surveyRevenue / rate;
+        var surveyRoas = cc.spend > 0 ? surveyImplied / cc.spend : 0;
+        var platRev = cc.platformRevenue;
+        var platRoas = cc.spend > 0 ? platRev / cc.spend : 0;
+        var multiplier = platRoas > 0 && rate > 0 ? surveyRoas / platRoas : null;
+
+        var tr2 = document.createElement('tr');
+        tr2.innerHTML =
+          '<td>' + escapeHtml(cc.name) + '</td>' +
+          '<td>' + roas(surveyRoas) + '</td>' +
+          '<td>' + roas(platRoas) + '</td>' +
+          '<td>' + (multiplier === null ? 'Undefined' : roas(multiplier)) + '</td>';
+        calBody.appendChild(tr2);
+
+      }
+    }
+  }
+
+  /* --- Event Listeners --- */
+  var addBtn = document.getElementById('add-channel-btn');
+  if (addBtn) addBtn.addEventListener('click', addChannel);
+
+  if (rateInput) rateInput.addEventListener('input', function() { recalculate(); });
+  function dismissOutsideTooltip(event) {
+    if (activeTooltip && !activeTooltip.trigger.contains(event.target)) closeTooltip();
+  }
+  document.addEventListener('pointermove', function(event) {
+    // A cell rebuilt under a stationary pointer may never receive pointerleave.
+    if (activeTooltip?.mode === 'hover' && event.pointerType !== 'touch') dismissOutsideTooltip(event);
+  });
+  document.addEventListener('pointerdown', function(event) {
+    // Touch scrolling starts with a pointerdown too. Dismiss only on an actual tap.
+    if (event.pointerType !== 'touch') dismissOutsideTooltip(event);
+  });
+  document.addEventListener('click', function(event) {
+    if (event.isTrusted) dismissOutsideTooltip(event);
+  });
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeTooltip();
+  });
+  window.addEventListener('resize', positionTooltip);
+  window.addEventListener('scroll', positionTooltip, { passive: true });
+  methodologyScroll.addEventListener('scroll', positionTooltip, { passive: true });
+
+  /* --- Init --- */
+  renderBiasExample();
+  renderChannels();
+  recalculate();
+
+  })();
+  </script><script src="../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Huff Model | Marketing Measurement Science</title>
+  <meta name="description" content="Estimate store choice with distance and store attractiveness.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/huff-model/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/huff-model/">
+  <meta property="og:title" content="Huff Model | Marketing Measurement Science">
+  <meta property="og:description" content="Estimate store choice with distance and store attractiveness.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Huff Model | Marketing Measurement Science">
+  <meta name="twitter:description" content="Estimate store choice with distance and store attractiveness.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><style>
+/* Huff Model */
+.huff .tab-container { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 24px; }
+.huff .tab-btn {
+  padding: .6rem 1.1rem;
+  border: 1px solid var(--mg-border);
+  border-radius: 9999px;
+  background: var(--mg-background);
+  color: var(--mg-secondary);
+  font-weight: 650;
+  cursor: pointer;
+}
+.huff .tab-btn:hover,
+.huff .tab-btn.active { border-color: var(--mg-link); color: var(--mg-link-hover); }
+.huff .tab-btn.active { background: var(--mg-surface); }
+
+.huff .tab-content { display: none; }
+.huff .tab-content.active { display: block; }
+
+.huff .content-card h3 { margin: 22px 0 8px; }
+.huff .formula-box { background: var(--mg-background); }
+.huff .formula-label { font: 650 13px var(--mg-sans); }
+.huff .key-definition { padding: .6rem .8rem; margin: 16px 0; color: var(--mg-secondary); }
+.huff #tab-execution {
+  --mg-code-background: var(--mg-background);
+  --mg-code-text: var(--mg-text);
+}
+.huff #tab-execution :is(code, .code-block) { border: 1px solid var(--mg-border); }
+.huff #tab-execution .code-block {
+  border-radius: .5rem;
+  padding: .85rem 1rem;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.huff .sim-params { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0 20px; }
+.huff :is(.param-item, .summary-item, .sim-table-wrap) {
+  background: var(--mg-background);
+  border: 1px solid var(--mg-border);
+  border-radius: .5rem;
+}
+.huff :is(.param-item, .summary-item) { padding: 14px 16px; }
+.huff .param-item label { display: block; color: var(--mg-text); font-weight: 650; margin-bottom: 8px; }
+.huff .param-item input[type="range"] { width: 100%; margin-inline: 0; accent-color: var(--mg-accent); }
+.huff .param-item .param-val { display: block; margin-top: 6px; }
+
+.huff .sim-table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+.huff :is(.sim-table, .results-table) {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--mg-text);
+  font-variant-numeric: tabular-nums;
+}
+.huff .sim-table:has(#huff-distance-body) { min-width: 35rem; }
+.huff .results-table { min-width: 32.5rem; }
+.huff :is(.sim-table, .results-table) :is(th, td) {
+  padding: .5rem .75rem;
+  text-align: right;
+  border-bottom: 1px solid var(--mg-border);
+}
+.huff :is(.sim-table, .results-table) :is(th, td):first-child { text-align: left; }
+.huff :is(.sim-table, .results-table) th { background: var(--mg-surface); white-space: nowrap; }
+.huff :is(.sim-table, .results-table) tbody tr:last-child td { border-bottom: 0; }
+.huff :is(.sim-table, .results-table) td.zip-cell { font-weight: 650; }
+.huff .results-table td.accent-cell {
+  background: color-mix(in srgb, var(--mg-accent) 7%, var(--mg-background));
+  font-weight: 650;
+}
+.huff .sim-table input[type="number"] {
+  width: 6.5rem;
+  padding: .4rem .5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--mg-supporting);
+  border-radius: .35rem;
+  color: var(--mg-text);
+  background: var(--mg-background);
+}
+
+.huff .sim-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 12px 0 20px; }
+.huff .summary-item strong { display: block; font-size: 13px; color: var(--mg-secondary); margin-bottom: 6px; }
+.huff .summary-item .summary-val { font-size: 22px; }
+.huff .summary-item.accent { border-inline-start: 2px solid var(--mg-accent); }
+
+@media (max-width: 600px) {
+  .huff .sim-params { grid-template-columns: 1fr; }
+  .huff .formula-box { font-size: 13px; padding: 14px 16px; }
+}
+
+@media (max-width: 36rem) {
+  #guide-main .huff .tab-container[data-guide-tablist] { flex-wrap: wrap; overflow: visible; }
+}
+</style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media Response</a><ul class="mg-links"><li><a href="../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="../retention/">Retention</a></li><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="./">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li><a href="../customers-and-markets/">Customers and Markets</a></li><li aria-current="page">Huff Model</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Huff Model</h1></header><div class="mg-source"><div class="page huff">
+
+  
+
+  <p class="problem-statement">Estimate how customers at each origin distribute purchases among the stores in their choice set.</p>
+
+  <div class="tab-container" data-guide-tablist="Huff Model views">
+    <button class="tab-btn active" data-tab="concept" type="button" data-guide-tab="tab-concept">Model and Formula</button>
+    <button class="tab-btn" data-tab="execution" type="button" data-guide-tab="tab-execution">BigQuery Example</button>
+    <button class="tab-btn" data-tab="report" type="button" data-guide-tab="tab-report">Store Choice Simulator</button>
+  </div>
+
+  <!-- Tab 1: Concept -->
+  <div id="tab-concept" class="tab-content active">
+    <div class="content-card">
+      <h2 id="store-choice-probabilities">Store choice probabilities</h2>
+      <p>For a customer at origin <em>i</em>, the Huff model divides store <em>j</em>’s attractiveness adjusted for distance by the sum across eligible stores.</p>
+
+      <div class="formula-box">
+        P<sub>ij</sub> = (A<sub>j</sub><sup>α</sup> / D<sub>ij</sub><sup>β</sup>) ÷ Σ<sub>k</sub> (A<sub>k</sub><sup>α</sup> / D<sub>ik</sub><sup>β</sup>)
+      </div>
+
+      <p>In this example, <em>A</em> is store size and <em>D</em> is distance. The exponent α controls the importance of size. A larger positive β discounts distant stores more sharply.</p>
+    </div>
+  </div>
+
+  <!-- Tab 2: Execution -->
+  <div id="tab-execution" class="tab-content">
+    <p class="mg-context">Review <a href="../reading-regressions/">Reading Regressions</a> for help interpreting the coefficients.</p><div class="content-card">
+      <h2 id="fit-size-and-distance-weights">Fit size and distance weights</h2>
+      <p>This example trains on trips with exactly two available stores. Provide one row per trip in <code>paired_store_choices</code> with <code>chosen_a</code> (0 or 1), <code>size_a</code>, <code>size_b</code>, <code>distance_a_km</code>, and <code>distance_b_km</code>. The log odds of choosing A over B are the differences in their log utilities. The fitted size coefficient is α and the negative of the distance coefficient is β.</p>
+      <div class="code-block">CREATE OR REPLACE MODEL `project.dataset.huff_model`
+OPTIONS (
+  MODEL_TYPE = 'LOGISTIC_REG',
+  INPUT_LABEL_COLS = ['chosen_a'],
+  FIT_INTERCEPT = FALSE,
+  DATA_SPLIT_METHOD = 'NO_SPLIT'
+) AS
+SELECT
+  chosen_a,
+  LN(size_a) - LN(size_b) AS log_size_ratio,
+  LN(GREATEST(distance_a_km, 0.1)) - LN(GREATEST(distance_b_km, 0.1)) AS log_distance_ratio
+FROM `project.dataset.paired_store_choices`
+WHERE chosen_a IN (0, 1)
+  AND size_a &gt; 0 AND size_b &gt; 0
+  AND distance_a_km &gt;= 0 AND distance_b_km &gt;= 0;</div>
+
+      <h2 id="predict-shares-with-the-fitted-weights">Predict shares with the fitted weights</h2>
+      <p>The prediction query expects one row per eligible origin–store pair in <code>store_choice_inputs</code>, with <code>origin_id</code>, <code>store_id</code>, <code>square_footage</code>, <code>distance_km</code>, and <code>spend_potential</code>. Use the same distance measure and units in both queries. Straight-line distance and driving time measure different things and call for separate fits. The 0.1 km floor keeps coincident points finite.</p>
+      <div class="code-block">WITH coefficients AS (
+  SELECT
+    MAX(IF(processed_input = 'log_size_ratio', weight, NULL)) AS alpha,
+    -MAX(IF(processed_input = 'log_distance_ratio', weight, NULL)) AS beta
+  FROM ML.WEIGHTS(MODEL `project.dataset.huff_model`,
+                  STRUCT(FALSE AS standardize))
+),
+scores AS (
+  SELECT origin_id, store_id, spend_potential,
+    alpha * LN(square_footage) - beta * LN(GREATEST(distance_km, 0.1)) AS log_utility
+  FROM `project.dataset.store_choice_inputs`
+  CROSS JOIN coefficients
+  WHERE square_footage &gt; 0 AND distance_km &gt;= 0
+),
+utilities AS (
+  SELECT *,
+    EXP(log_utility - MAX(log_utility) OVER (PARTITION BY origin_id)) AS utility
+  FROM scores
+),
+shares AS (
+  SELECT origin_id, store_id, spend_potential,
+    SAFE_DIVIDE(utility, SUM(utility) OVER (PARTITION BY origin_id)) AS choice_probability
+  FROM utilities
+)
+SELECT origin_id, store_id, choice_probability,
+  spend_potential * choice_probability AS expected_spend
+FROM shares;</div>
+      <p>Validate the coefficients and predicted shares on held-out trips. Applying a two-store fit to larger choice sets assumes the same utilities and that relative odds for two stores stay stable when alternatives are added. Expected spend also assumes the input spend is allocated among the listed stores.</p>
+    </div>
+  </div>
+
+  <!-- Tab 3: Simulator -->
+  <div id="tab-report" class="tab-content">
+    <div class="content-card">
+      <h2 id="interactive-huff-simulator">Interactive Huff simulator</h2>
+      <p>All values below are computed live using the Huff formula from the Model and Formula tab. Adjust stores, distances, and parameters to see market shares and revenue predictions update in real time.</p>
+
+      <div class="key-definition">
+        <strong>Distance:</strong> This example uses entered straight-line distances. Use the same distance measure when fitting and applying the model.
+      </div>
+
+      <h3 id="model-parameters">Model parameters</h3>
+      <div class="sim-params">
+        <div class="param-item">
+          <label for="huff-beta">β (distance decay)</label>
+          <input type="range" min="0.5" max="4.0" step="0.1" value="2.0" id="huff-beta">
+          <span class="param-val" id="huff-beta-val">2.0</span>
+        </div>
+        <div class="param-item">
+          <label for="huff-alpha">α (size exponent)</label>
+          <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" id="huff-alpha">
+          <span class="param-val" id="huff-alpha-val">1.0</span>
+        </div>
+      </div>
+
+      <p id="huff-status" role="status"></p>
+      <h3 id="stores">Stores</h3>
+      <div class="sim-table-wrap">
+        <table class="sim-table">
+          <thead>
+            <tr><th>Store</th><th>Sq Ft</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Our Store (104)</td><td><input type="number" class="huff-store-size" data-store="0" value="45000" min="1000" step="1000"></td></tr>
+            <tr><td>Competitor A</td><td><input type="number" class="huff-store-size" data-store="1" value="30000" min="1000" step="1000"></td></tr>
+            <tr><td>Competitor B</td><td><input type="number" class="huff-store-size" data-store="2" value="60000" min="1000" step="1000"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="distance-matrix-km-spend-potential">Distance matrix (km) &amp; spend potential</h3>
+      <p>Enter straight-line distance from each zip code to each store. All fields are editable.</p>
+      <div class="sim-table-wrap">
+        <table class="sim-table">
+          <thead>
+            <tr>
+              <th>Zip</th>
+              <th>Spend ($k)</th>
+              <th>→ Store 104</th>
+              <th>→ Comp A</th>
+              <th>→ Comp B</th>
+            </tr>
+          </thead>
+          <tbody id="huff-distance-body">
+            <tr><td class="zip-cell">90210</td><td><input type="number" class="huff-spend" data-zip="0" value="1300" min="1"></td><td><input type="number" class="huff-dist" data-zip="0" data-store="0" value="2.1" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="0" data-store="1" value="5.0" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="0" data-store="2" value="8.2" min="0.1" step="0.1"></td></tr>
+            <tr><td class="zip-cell">90211</td><td><input type="number" class="huff-spend" data-zip="1" value="1000" min="1"></td><td><input type="number" class="huff-dist" data-zip="1" data-store="0" value="4.5" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="1" data-store="1" value="3.2" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="1" data-store="2" value="6.1" min="0.1" step="0.1"></td></tr>
+            <tr><td class="zip-cell">90212</td><td><input type="number" class="huff-spend" data-zip="2" value="750" min="1"></td><td><input type="number" class="huff-dist" data-zip="2" data-store="0" value="6.2" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="2" data-store="1" value="2.8" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="2" data-store="2" value="4.0" min="0.1" step="0.1"></td></tr>
+            <tr><td class="zip-cell">90213</td><td><input type="number" class="huff-spend" data-zip="3" value="500" min="1"></td><td><input type="number" class="huff-dist" data-zip="3" data-store="0" value="12.5" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="3" data-store="1" value="9.0" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="3" data-store="2" value="3.5" min="0.1" step="0.1"></td></tr>
+            <tr><td class="zip-cell">90214</td><td><input type="number" class="huff-spend" data-zip="4" value="300" min="1"></td><td><input type="number" class="huff-dist" data-zip="4" data-store="0" value="15.0" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="4" data-store="1" value="11.0" min="0.1" step="0.1"></td><td><input type="number" class="huff-dist" data-zip="4" data-store="2" value="2.0" min="0.1" step="0.1"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="computed-results">Computed results</h3>
+      <div class="sim-summary">
+        <div class="summary-item"><strong>Store 104 Revenue</strong><span class="summary-val" id="huff-rev-0">—</span></div>
+        <div class="summary-item"><strong>Comp A Revenue</strong><span class="summary-val" id="huff-rev-1">—</span></div>
+        <div class="summary-item"><strong>Comp B Revenue</strong><span class="summary-val" id="huff-rev-2">—</span></div>
+        <div class="summary-item accent"><strong>Store 104 Market Share</strong><span class="summary-val" id="huff-share-0">—</span></div>
+      </div>
+
+      <h3 id="zip-code-probability-breakdown">ZIP code probability breakdown</h3>
+      <div class="sim-table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Zip</th>
+              <th>Spend ($k)</th>
+              <th>P(Store 104)</th>
+              <th>P(Comp A)</th>
+              <th>P(Comp B)</th>
+              <th>Rev → 104</th>
+            </tr>
+          </thead>
+          <tbody id="huff-results-body"></tbody>
+        </table>
+      </div>
+
+      <div class="formula-box">
+        <strong class="formula-label">Formula applied:</strong><br>
+        P<sub>ij</sub> = (Size<sub>j</sub><sup>α</sup> / Dist<sub>ij</sub><sup>β</sup>) ÷ Σ<sub>k</sub>(Size<sub>k</sub><sup>α</sup> / Dist<sub>ik</sub><sup>β</sup>)  |  Revenue<sub>ij</sub> = P<sub>ij</sub> × Spend<sub>i</sub>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var app = document.querySelector('.huff');
+  if (!app) return;
+
+  /* Tabs */
+  var tabBtns = app.querySelectorAll('.tab-btn');
+  var tabContents = app.querySelectorAll('.tab-content');
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].addEventListener('click', function() {
+      var id = this.getAttribute('data-tab');
+      for (var j = 0; j < tabBtns.length; j++) tabBtns[j].classList.remove('active');
+      for (var k = 0; k < tabContents.length; k++) tabContents[k].classList.remove('active');
+      this.classList.add('active');
+      var target = app.querySelector('#tab-' + id);
+      if (target) target.classList.add('active');
+    });
+  }
+
+  /* Huff simulator */
+  var storeNames = ['Store 104', 'Comp A', 'Comp B'];
+  var zipNames = ['90210', '90211', '90212', '90213', '90214'];
+
+  const status = app.querySelector('#huff-status');
+  const sizeFields = [...app.querySelectorAll('.huff-store-size')];
+  const spendFields = [...app.querySelectorAll('.huff-spend')];
+  const distanceFields = [...app.querySelectorAll('.huff-dist')];
+  sizeFields.forEach((field, index) => field.setAttribute('aria-label', storeNames[index] + ' size in square feet'));
+  spendFields.forEach((field, index) => field.setAttribute('aria-label', 'ZIP ' + zipNames[index] + ' spend in thousands of dollars'));
+  distanceFields.forEach(field => field.setAttribute('aria-label',
+    'ZIP ' + zipNames[field.dataset.zip] + ' distance to ' + storeNames[field.dataset.store] + ' in kilometers'));
+
+  function clearHuff(message) {
+    status.textContent = message;
+    app.querySelector('#huff-results-body').replaceChildren();
+    app.querySelector('#huff-share-0').textContent = '—';
+    storeNames.forEach((_, index) => { app.querySelector('#huff-rev-' + index).textContent = '—'; });
+  }
+
+  function computeHuff() {
+    const beta = app.querySelector('#huff-beta').valueAsNumber;
+    const alpha = app.querySelector('#huff-alpha').valueAsNumber;
+    const errors = [];
+    for (const field of [...sizeFields, ...spendFields, ...distanceFields]) {
+      const value = field.valueAsNumber;
+      const valid = Number.isFinite(value) && value >= Number(field.min);
+      field.setAttribute('aria-invalid', String(!valid));
+      field.setAttribute('aria-describedby', 'huff-status');
+      if (!valid) errors.push(field.getAttribute('aria-label') + ' must be at least ' + field.min + '.');
+    }
+    app.querySelector('#huff-beta-val').textContent = beta.toFixed(1);
+    app.querySelector('#huff-alpha-val').textContent = alpha.toFixed(1);
+    if (errors.length) return clearHuff(errors.join(' '));
+    const storeSizes = sizeFields.map(field => field.valueAsNumber);
+    const zipSpends = spendFields.map(field => field.valueAsNumber);
+    const totalSpend = zipSpends.reduce((sum, spend) => sum + spend, 0);
+    if (!Number.isFinite(totalSpend)) return clearHuff('Total spend exceeds the supported numeric range.');
+
+    const logSizes = storeSizes.map(size => alpha * Math.log(size));
+    const probs = zipNames.map((_, zip) => {
+      const utilities = logSizes.map((size, store) => size - beta * Math.log(
+        distanceFields[zip * storeNames.length + store].valueAsNumber));
+      const max = Math.max(...utilities);
+      const weights = utilities.map(utility => Math.exp(utility - max));
+      const total = weights.reduce((sum, weight) => sum + weight, 0);
+      return weights.map(weight => weight / total);
+    });
+    if (probs.some(row => Math.abs(row.reduce((sum, probability) => sum + probability, 0) - 1) > 1e-12
+      || row.some(probability => !Number.isFinite(probability)))) {
+      return clearHuff('Store probabilities could not be normalized.');
+    }
+    const revenues = storeNames.map((_, store) => probs.reduce((sum, row, zip) => sum + row[store] * zipSpends[zip], 0));
+    status.textContent = '';
+
+    for (var s5 = 0; s5 < storeNames.length; s5++) {
+      var re = app.querySelector('#huff-rev-' + s5);
+      if (re) re.textContent = '$' + Math.round(revenues[s5]).toLocaleString() + 'k';
+    }
+    var sh = app.querySelector('#huff-share-0');
+    if (sh) {
+      var share = totalSpend > 0 ? (revenues[0] / totalSpend * 100) : 0;
+      sh.textContent = share.toFixed(1) + '%';
+    }
+
+    var tbody = app.querySelector('#huff-results-body');
+    if (tbody) {
+      var html = '';
+      for (var z3 = 0; z3 < zipNames.length; z3++) {
+        var rev104 = probs[z3][0] * zipSpends[z3];
+        html +=
+          '<tr>' +
+          '<td class="zip-cell">' + zipNames[z3] + '</td>' +
+          '<td>$' + zipSpends[z3].toLocaleString() + 'k</td>' +
+          '<td class="accent-cell">' + (probs[z3][0] * 100).toFixed(1) + '%</td>' +
+          '<td>' + (probs[z3][1] * 100).toFixed(1) + '%</td>' +
+          '<td>' + (probs[z3][2] * 100).toFixed(1) + '%</td>' +
+          '<td>$' + Math.round(rev104).toLocaleString() + 'k</td>' +
+          '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+  }
+
+  var inputs = app.querySelectorAll('#huff-beta, #huff-alpha, .huff-store-size, .huff-spend, .huff-dist');
+  for (var i2 = 0; i2 < inputs.length; i2++) {
+    inputs[i2].addEventListener('input', computeHuff);
+  }
+  computeHuff();
+});
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

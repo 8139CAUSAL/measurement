@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plan Builder | Marketing Measurement Science</title>
+  <meta name="description" content="Specify KPIs, event definitions, and implementation constraints. Export the plan as CSV.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/plan/measurement-plan/builder/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/plan/measurement-plan/builder/">
+  <meta property="og:title" content="Plan Builder | Marketing Measurement Science">
+  <meta property="og:description" content="Specify KPIs, event definitions, and implementation constraints. Export the plan as CSV.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Plan Builder | Marketing Measurement Science">
+  <meta name="twitter:description" content="Specify KPIs, event definitions, and implementation constraints. Export the plan as CSV.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../../assets/legacy/measurement.css"><style>
+    .page { text-align: center; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 24px; }
+    .view-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: transparent; border: 1px solid var(--brand-border); color: var(--brand-text-muted); }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); border-color: var(--brand-accent); color: var(--brand-background); }
+    .view-button .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mg-supporting); }
+    .view-button.active .dot { background: var(--mg-accent); }
+
+    .builder-card { background: var(--mg-surface); border: 1px solid var(--mg-border); border-radius: .65rem; overflow: hidden; display: flex; flex-direction: column; text-align: left; }
+    .step-progress { display: grid; grid-template-columns: repeat(5, minmax(4rem, 1fr)); overflow-x: auto; background: var(--mg-background); border-bottom: 1px solid var(--mg-border); flex-shrink: 0; }
+    .step-content { display: none; padding: 24px; flex: 1; overflow-y: auto; }
+    .step-content.active { display: block; }
+    .step-indicator { appearance: none; border: none; background: transparent; padding: 14px 4px 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; color: var(--mg-secondary); transition: background-color 0.2s, color 0.2s; position: relative; text-align: center; font-family: inherit; }
+    .step-indicator:hover { background: var(--mg-surface); color: var(--mg-text); }
+    .step-indicator.active { color: var(--mg-text); }
+    .step-indicator.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--mg-accent); }
+    .step-dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--mg-supporting); background: var(--mg-background); color: var(--mg-secondary); font-size: 14px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; }
+    .step-indicator.active .step-dot { border-color: var(--mg-accent); background: color-mix(in srgb, var(--mg-accent) 14%, var(--mg-background)); color: var(--mg-text); }
+    .step-indicator.completed .step-dot { border-color: var(--mg-accent); color: transparent; position: relative; }
+    .step-indicator.completed .step-dot::before { content: '\2713'; position: absolute; color: var(--mg-accent); font-size: 15px; font-weight: 700; }
+    .step-label { font-size: 13px; font-weight: 600; line-height: 1.25; }
+    .step-header { margin-bottom: 24px; }
+    .step-question { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .step-hint { font-size: 14px; color: var(--brand-text-muted); line-height: 1.5; }
+    .step-hint strong { color: var(--mg-text); }
+
+    .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .option-btn { background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; color: var(--mg-text); transition: all 0.2s; font-family: inherit; }
+    .option-btn:hover { background: var(--mg-surface); border-color: var(--mg-supporting); }
+    .option-btn.selected { border-color: var(--brand-accent); background: color-mix(in srgb, var(--mg-accent) 10%, var(--mg-background)); }
+    .option-icon { display: none; }
+    .option-title { font-size: 14px; font-weight: 500; color: var(--brand-text-muted); }
+    .option-btn.selected .option-title { color: var(--mg-text); }
+
+    .context-preview { margin-top: 0; padding: 20px 24px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; display: none; }
+    .context-preview.visible { display: block; }
+    .context-preview-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .context-arrow { color: var(--brand-accent); font-size: 14px; }
+    .context-preview-title { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 1.5px; color: var(--brand-accent); }
+    .context-preview-body { font-size: 14px; color: var(--brand-text-muted); line-height: 1.6; }
+    .context-preview-body strong { color: var(--mg-text); font-weight: 600; }
+    .funnel-label { font-size: 12px; font-weight: 600; margin: 16px 0 10px; }
+    .funnel-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .funnel-pill { background: var(--brand-accent); color: var(--brand-background); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 500; font-family: "SF Mono", Monaco, Consolas, monospace; }
+    .funnel-arrow { color: var(--brand-text-muted); font-size: 14px; }
+    .context-tip { font-size: 14px; color: var(--brand-warning); display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+
+    .kpi-list { display: flex; flex-direction: column; gap: 8px; }
+    .kpi-row { width: 100%; color: inherit; font: inherit; text-align: left; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; background: var(--mg-background); border: 1px solid var(--mg-border); cursor: pointer; transition: all 0.2s; }
+    .kpi-row:hover { background: var(--mg-background); border-color: var(--mg-supporting); }
+    .kpi-row.selected { background: color-mix(in srgb, var(--mg-accent) 10%, var(--mg-background)); border-color: var(--brand-accent); }
+    .checkbox-dummy { width: 18px; height: 18px; min-width: 18px; border-radius: 4px; border: 1px solid var(--mg-secondary); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .kpi-row.selected .checkbox-dummy { background: var(--brand-accent); border-color: var(--brand-accent); }
+    .kpi-row.selected .checkbox-dummy::after { content: '\2713'; color: var(--brand-background); font-size: 12px; font-weight: 800; }
+    .kpi-name { flex: 1; font-size: 14px; }
+    .kpi-badge { font-size: 12px; padding: 3px 8px; border-radius: 9999px; background: var(--mg-background); color: var(--mg-secondary); border: 1px solid var(--mg-border); }
+    .kpi-badge.strong { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); font-weight: 600; }
+    .warning { display: none; margin-top: 12px; padding: 10px 14px; background: color-mix(in srgb, var(--brand-warning) 8%, var(--mg-background)); border: 1px solid var(--brand-warning); border-radius: 8px; color: var(--brand-warning); font-size: 14px; }
+    .warning.visible { display: block; }
+    .custom-kpi-label { display: block; margin-top: 16px; font-size: 14px; font-weight: 600; }
+    .custom-kpi-form { display: flex; gap: 8px; margin-top: 6px; }
+    .custom-kpi-input { flex: 1; padding: 10px 14px; background: var(--brand-background); border: 1px solid var(--mg-border); border-radius: 8px; color: var(--mg-text); font-size: 14px; font-family: inherit; }
+    .custom-kpi-input::placeholder { color: var(--mg-secondary); }
+    .custom-kpi-input:focus { outline: none; border-color: var(--brand-accent); }
+    .custom-kpi-btn { padding: 10px 16px; background: var(--brand-accent); border: none; border-radius: 8px; color: var(--brand-background); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .custom-kpi-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .mapping-table-wrapper, .implementation-table-wrapper { overflow-x: auto; }
+    .mapping-table, .implementation-table { width: 100%; border-collapse: collapse; }
+    .mapping-table th, .implementation-table th { text-align: left; padding: 12px; border-bottom: 1px solid var(--mg-border); color: var(--mg-secondary); font-size: 12px; text-transform: none; letter-spacing: 0.5px; font-weight: 600; }
+    .mapping-table td, .implementation-table td { padding: 12px; border-bottom: 1px solid var(--mg-border); font-size: 14px; }
+    .event-input { width: 100%; padding: 8px 10px; background: var(--brand-background); border: 1px solid var(--mg-border); border-radius: 8px; color: var(--mg-text); font-size: 14px; font-family: "SF Mono", Monaco, Consolas, monospace; }
+    .event-input:focus { outline: none; border-color: var(--brand-accent); }
+    .tool-pill { display: inline-block; padding: 3px 8px; margin-right: 4px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 9999px; font-size: 12px; color: var(--brand-text-muted); }
+
+    .reality-check { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+    .check-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; gap: 16px; }
+    .check-row.slider-row { flex-direction: column; align-items: stretch; }
+    .check-label { font-size: 14px; }
+    .toggle-group { display: flex; gap: 4px; background: var(--brand-background); padding: 4px; border-radius: 9999px; border: 1px solid var(--mg-border); flex-shrink: 0; }
+    .toggle-btn { padding: 8px 16px; border: none; border-radius: 9999px; background: transparent; color: var(--brand-text-muted); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .toggle-btn:hover { color: var(--mg-text); }
+    .toggle-btn.active { background: var(--brand-accent); color: var(--brand-background); }
+
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .slider-label-left, .slider-label-right { font-size: 14px; color: var(--brand-text-muted); }
+    .slider-track { position: relative; height: 6px; background: var(--mg-border); border-radius: 3px; width: 100%; cursor: pointer; }
+    .slider-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--brand-accent); border-radius: 3px; width: 50%; transition: width 0.1s; pointer-events: none; }
+    .slider-thumb { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: var(--mg-background); border-radius: 50%; cursor: grab; border: 2px solid var(--mg-accent); box-shadow: 0 1px 3px rgba(40,42,54,0.2); z-index: 10; touch-action: none; }
+    .slider-thumb:active { cursor: grabbing; }
+
+    .reality-insights { padding: 20px 24px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; }
+    .insights-title { font-size: 11px; text-transform: none; letter-spacing: 1.5px; color: var(--brand-accent); margin-bottom: 16px; font-weight: 600; }
+    .insight-item { display: flex; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--brand-text-muted); line-height: 1.5; align-items: flex-start; }
+    .insight-item:last-child { margin-bottom: 0; }
+    .insight-item strong { color: var(--mg-text); }
+    .insight-icon { flex-shrink: 0; width: 18px; }
+
+    .output-summary { display: flex; flex-direction: column; margin-bottom: 24px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; overflow: hidden; }
+    .summary-title { font-size: 11px; text-transform: none; letter-spacing: 1.5px; color: var(--mg-secondary); padding: 16px 20px; border-bottom: 1px solid var(--mg-border); font-weight: 600; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--mg-border); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { font-size: 14px; color: var(--brand-text-muted); }
+    .summary-value { font-size: 14px; font-weight: 600; text-align: right; }
+    .summary-value.priority-value { color: var(--brand-accent); }
+
+    .implementation-section { margin-bottom: 24px; background: var(--mg-background); border: 1px solid var(--mg-border); border-radius: 12px; overflow: hidden; }
+    .implementation-title { font-size: 11px; text-transform: none; letter-spacing: 1.5px; color: var(--mg-secondary); padding: 16px 20px; border-bottom: 1px solid var(--mg-border); font-weight: 600; }
+    .implementation-table code { font-family: "SF Mono", Monaco, Consolas, monospace; font-size: 13px; color: var(--brand-accent); }
+    .badge-now { display: inline-block; background: var(--brand-accent); color: var(--brand-background); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge-later { display: inline-block; background: var(--brand-warning); color: var(--brand-background); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+
+    .final-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 8px; flex-wrap: nowrap; }
+    .final-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 9999px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid var(--brand-accent); background: transparent; color: var(--brand-accent); font-family: inherit; white-space: nowrap; flex: 1; max-width: 200px; transition: all 0.2s; }
+    .final-btn:hover { background: color-mix(in srgb, var(--mg-accent) 10%, var(--mg-background)); }
+    .final-btn-primary { background: var(--brand-accent); color: var(--brand-background); }
+    .final-btn-primary:hover { filter: brightness(1.1); background: var(--brand-accent); }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--mg-text); color: var(--mg-background); padding: 12px 24px; border-radius: 9999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; z-index: 9999; box-shadow: 0 4px 14px rgba(40,42,54,0.18); transition: all 0.3s; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 700px) { .final-buttons { flex-direction: column; } .final-btn { width: 100%; max-width: none; } }
+    @media (max-width: 600px) { .option-grid { grid-template-columns: 1fr; } .step-content { padding: 20px; } .step-question { font-size: 18px; } .check-row { flex-direction: column; align-items: flex-start; } }
+  </style>
+  <link rel="stylesheet" href="../../../assets/guide.css">
+  <link rel="stylesheet" href="../../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../../"><img class="mg-wordmark-logo" src="../../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu mg-nav-current"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../">Measurement Plan</a></li><li><a href="../without-vs-with/">Without vs. With a Plan</a></li><li><a href="./">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../../effects/incrementality/">Incrementality</a></li><li><a href="../../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../../effects/p-values/">P-Values</a></li><li><a href="../../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../../models/churn/">Churn</a></li><li><a href="../../../models/retention/">Retention</a></li><li><a href="../../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../../models/segmentation/">Segmentation</a></li><li><a href="../../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../../">Home</a></li><li><a href="../../">Plan Measurement</a></li><li aria-current="page">Plan Builder</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Plan Builder</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">Answer five questions to draft a measurement plan and an implementation table you can export as CSV. KPIs with strong signals are listed first.</p>
+
+    <div class="view-selector">
+      <a href="../" class="view-button"><span class="dot"></span> Measurement plan</a>
+      <a href="../without-vs-with/" class="view-button"><span class="dot"></span> Without vs with a plan</a>
+      <a href="./" class="view-button active"><span class="dot"></span> Plan builder</a>
+    </div>
+
+    <section class="builder-section">
+      <div class="builder-card">
+        <div class="step-progress" role="tablist" aria-label="Plan builder steps" data-guide-tablist="Plan builder steps">
+          <button type="button" class="step-indicator active" data-step="1" role="tab" aria-selected="true" data-guide-tab="business-outcome"><span class="step-dot" aria-hidden="true">1</span><span class="step-label"><span class="mg-sr-only">Step 1: </span>Business model</span></button>
+          <button type="button" class="step-indicator" data-step="2" role="tab" aria-selected="false" data-guide-tab="primary-kpis"><span class="step-dot" aria-hidden="true">2</span><span class="step-label"><span class="mg-sr-only">Step 2: </span>Primary KPIs</span></button>
+          <button type="button" class="step-indicator" data-step="3" role="tab" aria-selected="false" data-guide-tab="event-mapping"><span class="step-dot" aria-hidden="true">3</span><span class="step-label"><span class="mg-sr-only">Step 3: </span>Event mapping</span></button>
+          <button type="button" class="step-indicator" data-step="4" role="tab" aria-selected="false" data-guide-tab="implementation-constraints"><span class="step-dot" aria-hidden="true">4</span><span class="step-label"><span class="mg-sr-only">Step 4: </span>Reality check</span></button>
+          <button type="button" class="step-indicator" data-step="5" role="tab" aria-selected="false" data-guide-tab="plan-summary"><span class="step-dot" aria-hidden="true">5</span><span class="step-label"><span class="mg-sr-only">Step 5: </span>Your plan</span></button>
+        </div>
+
+        <!-- Step 1: Business model -->
+        <div class="step-content active" data-step="1" id="business-outcome">
+          <div class="step-header">
+            <div class="step-question">Step 1 — Business model</div>
+            <div class="step-hint">What is the main way this site creates value? Measurement starts from the business model — not from GA4 menus.</div>
+          </div>
+          <div class="option-grid">
+            <button type="button" class="option-btn" data-value="ecommerce"><div class="option-icon" aria-hidden="true">🛒</div><div class="option-title">Online sales</div></button>
+            <button type="button" class="option-btn" data-value="leadgen"><div class="option-icon" aria-hidden="true">📄</div><div class="option-title">Leads or inquiries</div></button>
+            <button type="button" class="option-btn" data-value="bookings"><div class="option-icon" aria-hidden="true">📅</div><div class="option-title">Bookings or appointments</div></button>
+            <button type="button" class="option-btn" data-value="content"><div class="option-icon" aria-hidden="true">👥</div><div class="option-title">Content or community</div></button>
+          </div>
+          <div class="context-preview" id="mp3-context-preview">
+            <div class="context-preview-header"><span class="context-arrow" aria-hidden="true">→</span><span class="context-preview-title">What this means for your measurement plan</span></div>
+            <div class="context-preview-body" id="mp3-context-preview-body"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: KPIs -->
+        <div class="step-content" data-step="2" id="primary-kpis">
+          <div class="step-header">
+            <div class="step-question">Pick 3-6 primary KPIs</div>
+            <div class="step-hint">Start with the few KPIs that most directly track the primary outcome from Step 1. You can add more later. Custom KPIs count as strong signals.</div>
+          <p class="mg-context">In the written measurement plan that accompanies this export, define whose outcome counts, the denominator, and when follow-up ends. If you can assign treatment, see <a href="../../../effects/randomized-assignment/">Randomized Assignment and Blocking</a>. For historical records, see <a href="../../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a>.</p></div>
+          <div class="kpi-selection">
+            <div class="kpi-list" id="mp3-kpi-list"></div>
+            <div class="warning" id="mp3-kpi-warning"><strong>Too many KPIs.</strong> Keep to 3-6 for focus.</div>
+          </div>
+          <label class="custom-kpi-label" for="mp3-custom-kpi-input">Add your own KPI</label>
+          <div class="custom-kpi-form">
+            <input id="mp3-custom-kpi-input" class="custom-kpi-input" type="text" placeholder="For example, demo requests">
+            <button id="mp3-custom-kpi-btn" class="custom-kpi-btn" type="button" disabled>+ Add KPI</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Event Mapping -->
+        <div class="step-content" data-step="3" id="event-mapping">
+          <div class="step-header">
+            <div class="step-question">Translate KPIs into events</div>
+            <div class="step-hint">For each KPI, here's a suggested event name. Edit to match your naming convention. Check whether GA4 already collects the event before adding a tag. <a href="https://support.google.com/analytics/answer/13316687">GA4 event naming rules</a>.</div>
+          <p class="mg-context">In the written plan, record the ID that joins each event to the assigned unit and the window in which the event counts.</p></div>
+          <p id="mp3-mapping-status" role="status"></p>
+          <div class="mapping-table-wrapper">
+            <table class="mapping-table"><thead><tr><th>KPI</th><th>Suggested GA4 event name</th><th>Other tools</th></tr></thead><tbody id="mp3-mapping-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Step 4: Reality Check -->
+        <div class="step-content" data-step="4" id="implementation-constraints">
+          <div class="step-header">
+            <div class="step-question">Reality check: Budget and effort</div>
+            <div class="step-hint">Use these answers to plan how to implement the core KPIs first, then the supporting KPIs.</div>
+          </div>
+          <div class="reality-check">
+            <div class="check-row"><div class="check-label">We have dev time available this quarter</div><div class="toggle-group"><button type="button" class="toggle-btn" data-group="dev" data-value="yes">Yes</button><button type="button" class="toggle-btn" data-group="dev" data-value="no">No</button></div></div>
+            <div class="check-row"><div class="check-label">We already use Google Tag Manager</div><div class="toggle-group"><button type="button" class="toggle-btn" data-group="gtm" data-value="yes">Yes</button><button type="button" class="toggle-btn" data-group="gtm" data-value="no">No</button></div></div>
+            <div class="check-row slider-row">
+              <div class="slider-header"><span class="slider-label-left">Perfect setup first</span><span class="slider-label-right">Fast wins first</span></div>
+              <div class="slider-track" id="mp3-slider-track">
+                <div class="slider-fill" id="mp3-priority-fill"></div>
+                <div class="slider-thumb" id="mp3-priority-thumb" tabindex="0" role="slider" aria-label="Implementation priority" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+              </div>
+            </div>
+          </div>
+          <div class="reality-insights"><div class="insights-title">Implementation recommendations</div><div class="insights-content" id="mp3-insights-content"></div></div>
+        </div>
+
+        <!-- Step 5: Output -->
+        <div class="step-content" data-step="5" id="plan-summary">
+          <div class="step-header">
+            <div class="step-question">Your mini measurement plan</div>
+            <div class="step-hint">Share this event list alongside your written unit, denominator, join key and follow-up window.</div>
+          </div>
+          <div class="output-summary">
+            <div class="summary-title">Plan summary</div>
+            <div class="summary-row"><div class="summary-label">Business model</div><div class="summary-value" id="mp3-out-model">—</div></div>
+            <div class="summary-row"><div class="summary-label">Primary KPIs</div><div class="summary-value" id="mp3-out-kpis">—</div></div>
+            <div class="summary-row"><div class="summary-label">Implementation Priority</div><div class="summary-value priority-value" id="mp3-out-priority">Balanced</div></div>
+          </div>
+          <div class="implementation-section">
+            <div class="implementation-title">Event implementation plan</div>
+            <div class="implementation-table-wrapper"><table class="implementation-table"><thead><tr><th>KPI</th><th>Event name</th><th>Priority</th></tr></thead><tbody id="mp3-implementation-table"></tbody></table></div>
+          </div>
+          <p id="mp3-export-status" role="status"></p>
+          <div class="final-buttons">
+            <button id="mp3-btn-export" type="button" class="final-btn final-btn-primary"><span class="btn-icon" aria-hidden="true">↓</span> Download CSV</button>
+            <button id="mp3-btn-copy" type="button" class="final-btn"><span class="btn-icon" aria-hidden="true">⎘</span> Copy to Clipboard</button>
+            <button id="mp3-btn-email" type="button" class="final-btn"><span class="btn-icon" aria-hidden="true">✉</span> Email this plan</button>
+          </div>
+        </div>
+        <div class="final-buttons" aria-label="Builder step navigation">
+          <button class="final-btn" id="mp3-back" type="button" hidden>Back</button>
+          <button class="final-btn final-btn-primary" id="mp3-next" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="mp3-toast" role="status"></div>
+  </div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function(){
+  'use strict';
+  var state = { step: 1, model: null, kpis: [], customKpis: [], overrides: {}, reality: { dev: null, gtm: null, priority: 50 } };
+
+  var models = {
+    ecommerce: { name: "Online Sales", exp: "<strong>E-commerce measurement</strong> focuses on the purchase funnel. Your primary outcome is completed transactions, with supporting signals from cart activity and product engagement.", funnel: ['view_item','add_to_cart','begin_checkout','purchase'], tip: "Strong signals like purchases and checkout starts should be prioritized over weaker signals like product views.", kpis: [{ id:'purchase', name:'Purchases', event:'purchase', tools:['GA4'], strength:'strong' },{ id:'checkout', name:'Checkout starts', event:'begin_checkout', tools:['GA4'], strength:'strong' },{ id:'addtocart', name:'Add to cart', event:'add_to_cart', tools:['GA4'], strength:'weak' },{ id:'viewitem', name:'Product views', event:'view_item', tools:['GA4'], strength:'weak' }] },
+    leadgen: { name: "Lead Generation", exp: "<strong>Lead generation measurement</strong> centers on form submissions and contact attempts. Your primary outcome is qualified leads entering your CRM or sales process.", funnel: ['view_pricing','generate_lead','qualify_lead'], tip: "Track multiple lead types (forms, calls, chats) but unify them under a common \"lead\" definition for reporting.", kpis: [{ id:'lead', name:'Lead submitted', event:'generate_lead', tools:['GA4'], strength:'strong' },{ id:'qualified', name:'Qualified lead', event:'qualify_lead', tools:['GA4'], strength:'strong' },{ id:'form_start', name:'Form started', event:'form_start', tools:['GA4 enhanced measurement'], strength:'weak' },{ id:'pricing', name:'View pricing', event:'view_pricing', tools:['GA4'], strength:'weak' }] },
+    bookings: { name: "Bookings", exp: "<strong>Booking measurement</strong> tracks the reservation funnel. Your primary outcome is confirmed appointments or reservations.", funnel: ['view_availability','begin_booking','booking_confirmed'], tip: "The booking system is often the source of truth\u2014make sure GA4 events reconcile with it.", kpis: [{ id:'booked', name:'Booking confirmed', event:'booking_confirmed', tools:['GA4'], strength:'strong' },{ id:'begin_booking', name:'Begin booking', event:'begin_booking', tools:['GA4'], strength:'strong' },{ id:'availability', name:'View availability', event:'view_availability', tools:['GA4'], strength:'weak' }] },
+    content: { name: "Content & Community", exp: "<strong>Content/community measurement</strong> focuses on engagement and audience building. Your primary outcome is growing an engaged, returning audience.", funnel: ['page_view','sign_up'], tip: "Unlike commerce, \"success\" here is often about depth (time, scroll, return visits) rather than a single transaction.", kpis: [{ id:'signup', name:'Newsletter signups', event:'sign_up', tools:['GA4'], strength:'strong' },{ id:'engaged', name:'Engaged sessions', event:null, tools:['GA4'], strength:'strong' },{ id:'share', name:'Content shares', event:'share', tools:['GA4'], strength:'strong' },{ id:'article', name:'Article scroll depth (90%)', event:'scroll', tools:['GA4 enhanced measurement'], strength:'weak' },{ id:'video', name:'Video completes', event:'video_complete', tools:['GA4 enhanced measurement'], strength:'weak' },{ id:'comment', name:'Comments posted', event:'comment', tools:['GA4'], strength:'weak' }] }
+  };
+
+  function showToast(msg) { var t = document.getElementById('mp3-toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2000); }
+
+  function goToStep(stepNum) {
+    state.step = stepNum;
+    var indicators = document.querySelectorAll('.step-indicator');
+    for (var i = 0; i < indicators.length; i++) { var btn = indicators[i]; var s = parseInt(btn.getAttribute('data-step'), 10); btn.classList.remove('active', 'completed'); if (s === stepNum) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); } else { btn.setAttribute('aria-selected', 'false'); if (s < stepNum) btn.classList.add('completed'); } }
+    var panels = document.querySelectorAll('.step-content');
+    for (var j = 0; j < panels.length; j++) { if (parseInt(panels[j].getAttribute('data-step'), 10) === stepNum) { panels[j].classList.add('active'); } else { panels[j].classList.remove('active'); } }
+    document.getElementById('mp3-back').hidden = stepNum === 1;
+    document.getElementById('mp3-next').hidden = stepNum === 5;
+    if (stepNum === 2) renderStep2();
+    if (stepNum === 3) renderStep3();
+    if (stepNum === 4) renderStep4();
+    if (stepNum === 5) renderStep5();
+  }
+
+  function renderStep2() {
+    var list = document.getElementById('mp3-kpi-list'); if (!list) return; list.innerHTML = '';
+    var pool = []; if (state.model && models[state.model]) pool = models[state.model].kpis.slice();
+    pool = pool.concat(state.customKpis);
+    if (pool.length === 0) { list.innerHTML = '<div style="padding:10px;">Select a business model first.</div>'; return; }
+    for (var i = 0; i < pool.length; i++) {
+      (function(k) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'kpi-row';
+        function syncSelection() {
+          var selected = state.kpis.indexOf(k.id) !== -1;
+          row.classList.toggle('selected', selected);
+          row.setAttribute('aria-pressed', String(selected));
+        }
+        syncSelection();
+        row.addEventListener('click', function() {
+          var idx = state.kpis.indexOf(k.id);
+          if (idx === -1) state.kpis.push(k.id);
+          else state.kpis.splice(idx, 1);
+          syncSelection();
+          document.getElementById('mp3-kpi-warning').classList.toggle('visible', state.kpis.length > 6);
+        });
+        var strengthClass = (k.strength === 'strong') ? 'strong' : 'weak';
+        var strengthLabel = (k.strength === 'strong') ? 'Strong signal' : 'Supporting';
+        row.innerHTML = '<span class="checkbox-dummy" aria-hidden="true"></span><span class="kpi-name"></span><span class="kpi-badge ' + strengthClass + '">' + strengthLabel + '</span>';
+        row.querySelector('.kpi-name').textContent = k.name;
+        list.appendChild(row);
+      })(pool[i]);
+    }
+  }
+
+  const eventPattern = /^[a-z][a-z0-9_]{0,39}$/;
+  const derivedLabel = 'Derived in GA4 · no event needed';
+  function suggestedEvent(name) {
+    const clean = name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    return (/^[a-z]/.test(clean) ? clean : 'event_' + clean).slice(0, 40).replace(/_+$/g, '');
+  }
+
+  function eventFor(kpi) {
+    return kpi.event === null ? derivedLabel : (state.overrides[kpi.id] ?? kpi.event);
+  }
+
+  function invalidEvents() {
+    return selectedKpis().filter(kpi => kpi.event !== null && !eventPattern.test(eventFor(kpi)));
+  }
+
+  function renderStep3() {
+    const tbody = document.getElementById('mp3-mapping-tbody');
+    const status = document.getElementById('mp3-mapping-status');
+    tbody.replaceChildren();
+    status.textContent = '';
+    const selected = selectedKpis();
+    if (!selected.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No KPIs selected.</td></tr>';
+      return;
+    }
+    function validate() {
+      const invalid = invalidEvents();
+      status.textContent = invalid.length ? 'Check ' + invalid.map(kpi => kpi.name).join(', ')
+        + '. Start with a lowercase letter and use at most 40 letters, digits or underscores.' : '';
+    }
+    for (const kpi of selected) {
+      const row = tbody.insertRow();
+      row.insertCell().textContent = kpi.name;
+      const cell = row.insertCell();
+      row.insertCell().textContent = kpi.tools.join(', ');
+      if (kpi.event === null) {
+        cell.textContent = derivedLabel;
+        continue;
+      }
+      const input = document.createElement('input');
+      input.className = 'event-input';
+      input.dataset.id = kpi.id;
+      input.value = eventFor(kpi);
+      input.setAttribute('aria-label', kpi.name + ' event name');
+      input.setAttribute('aria-describedby', 'mp3-mapping-status');
+      input.setAttribute('aria-invalid', String(!eventPattern.test(input.value)));
+      cell.appendChild(input);
+      input.addEventListener('input', () => {
+        state.overrides[kpi.id] = input.value;
+        input.setAttribute('aria-invalid', String(!eventPattern.test(input.value)));
+        validate();
+      });
+    }
+    validate();
+  }
+
+  function selectedKpis() {
+    var pool = state.model ? models[state.model].kpis : [];
+    return pool.concat(state.customKpis).filter(function(kpi) {
+      return state.kpis.indexOf(kpi.id) !== -1;
+    });
+  }
+
+  function priorityFor(kpi) {
+    return kpi.strength === 'strong' ? 'Implement now' : 'Implement after core events';
+  }
+
+  function implementationRows() {
+    return selectedKpis().sort(function(a, b) {
+      return Number(b.strength === 'strong') - Number(a.strength === 'strong');
+    }).map(function(kpi) {
+      return [kpi.name, eventFor(kpi), priorityFor(kpi)];
+    });
+  }
+
+  function renderStep4() {
+    var content = document.getElementById('mp3-insights-content');
+    content.replaceChildren();
+    function insight(message, icon, label) {
+      var row = document.createElement('div');
+      row.className = 'insight-item';
+      if (icon) {
+        var span = document.createElement('span');
+        span.className = 'insight-icon';
+        span.setAttribute('aria-hidden', 'true');
+        span.textContent = icon;
+        row.appendChild(span);
+      }
+      if (label) {
+        var heading = document.createElement('strong');
+        heading.textContent = label + '. ';
+        row.appendChild(heading);
+      }
+      row.appendChild(document.createTextNode(message));
+      content.appendChild(row);
+    }
+    var reality = state.reality;
+    if (reality.dev === 'yes') {
+      var names = selectedKpis().map(function(kpi) { return kpi.name; });
+      insight('With developer time available this quarter, you can validate data for ' +
+        (names.join(', ') || 'your selected KPIs') + ' and add server-side collection where client-side tags are unreliable.', '✓');
+    } else if (reality.dev === 'no') {
+      insight('Without developer time this quarter, start with the core events your tag manager or site platform can capture without code changes. Events that need server data, such as order value or lead qualification, may have to wait.', '⚠');
+    }
+    if (reality.gtm === 'yes') {
+      insight('With Google Tag Manager in place, click, form, and page events can usually be added without code changes. Events that depend on server or CRM data still need developer work.', '✓');
+    } else if (reality.gtm === 'no') {
+      insight('Without a tag manager, tracking changes may need a code deployment, depending on what your site platform lets you configure. If they do, a tag manager such as Google Tag Manager lets you change tags without a release.');
+    }
+    if (reality.priority < 30) {
+      insight('Validate each event’s parameters before launch, and use server-side collection for events that client-side tags can miss, such as purchases. Expect a slower start.', '', 'Perfect setup first');
+    } else if (reality.priority > 70) {
+      insight('Start with core events you can validate using the site or tag manager. Schedule any remaining core events and server-side collection before expanding to supporting events.', '', 'Fast wins first');
+    } else {
+      insight('Start with the events for strong-signal KPIs. Validate them before reporting, then add events for supporting KPIs.', '', 'Balanced');
+    }
+  }
+
+  function renderStep5() {
+    var modelOut = document.getElementById('mp3-out-model');
+    if (modelOut) modelOut.textContent = state.model ? models[state.model].name : 'Not set';
+    var pVal = state.reality.priority, priorityText = 'Balanced';
+    if (pVal < 30) priorityText = 'Perfect setup first';
+    if (pVal > 70) priorityText = 'Fast wins first';
+    var priorityOut = document.getElementById('mp3-out-priority');
+    if (priorityOut) priorityOut.textContent = priorityText;
+
+    const invalid = invalidEvents();
+    document.getElementById('mp3-export-status').textContent = invalid.length
+      ? 'Fix the invalid event names in Step 3 before exporting.' : '';
+    var rows = implementationRows();
+    document.getElementById('mp3-out-kpis').textContent = rows.map(function(row) { return row[0]; }).join(', ') || 'None';
+    var tbody = document.getElementById('mp3-implementation-table');
+    tbody.replaceChildren();
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="3">No KPIs selected.</td></tr>';
+      return;
+    }
+    rows.forEach(function(row) {
+      var tr = tbody.insertRow();
+      tr.insertCell().textContent = row[0];
+      var code = document.createElement('code');
+      code.textContent = eventPattern.test(row[1]) || row[1] === derivedLabel ? row[1] : 'Invalid name · edit in Step 3';
+      tr.insertCell().appendChild(code);
+      var badge = document.createElement('span');
+      badge.className = row[2] === 'Implement now' ? 'badge-now' : 'badge-later';
+      badge.textContent = row[2];
+      tr.insertCell().appendChild(badge);
+    });
+  }
+
+  function generateCSV() {
+    return [['KPI', 'Event', 'Priority']].concat(implementationRows()).map(function(row) {
+      return row.map(function(value) {
+        return /[",\r\n]/.test(value) ? '"' + value.replace(/"/g, '""') + '"' : value;
+      }).join(',');
+    }).join('\n');
+  }
+
+  function generateText() {
+    var txt = 'MEASUREMENT PLAN\n\nBusiness model: ' + (state.model ? models[state.model].name : 'Not set') + '\n\nKPIs:\n';
+    implementationRows().forEach(function(row) {
+      txt += '- ' + row[0] + ': ' + row[1] + ' (' + row[2] + ')\n';
+    });
+    return txt;
+  }
+
+  function setReality(key, val) {
+    state.reality[key] = val;
+    var toggles = document.querySelectorAll('.toggle-btn[data-group="' + key + '"]');
+    for (var i = 0; i < toggles.length; i++) { if (toggles[i].getAttribute('data-value') === val) toggles[i].classList.add('active'); else toggles[i].classList.remove('active'); }
+    renderStep4();
+  }
+
+  // Step indicator clicks
+  var stepIndicators = document.querySelectorAll('.step-indicator');
+  for (var si = 0; si < stepIndicators.length; si++) { (function(btn) { btn.addEventListener('click', function() { goToStep(parseInt(btn.getAttribute('data-step'), 10)); }); })(stepIndicators[si]); }
+
+  for (const [id, offset] of [['mp3-back', -1], ['mp3-next', 1]]) {
+    document.getElementById(id).addEventListener('click', () => {
+      const indicator = document.querySelector('.step-indicator[data-step="' + (state.step + offset) + '"]');
+      indicator.click();
+      indicator.focus();
+    });
+  }
+
+  // Business model selection
+  var optionBtns = document.querySelectorAll('.option-btn');
+  for (var ob = 0; ob < optionBtns.length; ob++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        const val = btn.dataset.value;
+        if (state.model === val) return;
+        state.model = val;
+        const compatible = new Set([...models[val].kpis, ...state.customKpis].map(kpi => kpi.id));
+        state.kpis = state.kpis.filter(id => compatible.has(id));
+        optionBtns.forEach(option => {
+          const selected = option === btn;
+          option.classList.toggle('selected', selected);
+          option.setAttribute('aria-pressed', String(selected));
+        });
+        var ctx = document.getElementById('mp3-context-preview'), ctxBody = document.getElementById('mp3-context-preview-body');
+        if (models[val] && ctxBody) {
+          var m = models[val];
+          var html = '<p>' + m.exp + '</p><div class="funnel-label">Typical measurement funnel:</div><div class="funnel-row">';
+          for (var f = 0; f < m.funnel.length; f++) { if (f > 0) html += ' <span class="funnel-arrow" aria-hidden="true">\u2192</span> '; html += '<span class="funnel-pill">' + m.funnel[f] + '</span>'; }
+          html += '</div><div class="context-tip">' + m.tip + '</div>';
+          ctxBody.innerHTML = html; ctx.classList.add('visible');
+        }
+      });
+    })(optionBtns[ob]);
+  }
+
+  // Custom KPI
+  var addBtn = document.getElementById('mp3-custom-kpi-btn'), addInput = document.getElementById('mp3-custom-kpi-input');
+  if (addInput && addBtn) {
+    addInput.addEventListener('input', function() { addBtn.disabled = !addInput.value.trim(); });
+    addBtn.addEventListener('click', function() { var name = addInput.value.trim(); if (!name) return; var id = 'custom_' + state.customKpis.length; state.customKpis.push({ id: id, name: name, event: suggestedEvent(name), tools: ['Custom'], strength: 'strong' }); state.kpis.push(id); addInput.value = ''; addBtn.disabled = true; renderStep2(); });
+  }
+
+  // Toggle buttons
+  var toggleBtns = document.querySelectorAll('.toggle-btn');
+  for (var tb = 0; tb < toggleBtns.length; tb++) { (function(btn) { btn.addEventListener('click', function() { setReality(btn.getAttribute('data-group'), btn.getAttribute('data-value')); }); })(toggleBtns[tb]); }
+
+  // Priority slider
+  var slider = document.getElementById('mp3-slider-track'), thumb = document.getElementById('mp3-priority-thumb'), fill = document.getElementById('mp3-priority-fill');
+  if (slider && thumb) {
+    var dragging = false;
+    function updateSlider(pct) { pct = Math.max(0, Math.min(100, pct)); state.reality.priority = pct; thumb.setAttribute('aria-valuenow', Math.round(pct)); thumb.style.left = pct + '%'; if (fill) fill.style.width = pct + '%'; renderStep4(); }
+    thumb.addEventListener('mousedown', function(e) { e.preventDefault(); dragging = true; });
+    thumb.addEventListener('touchstart', function() { dragging = true; }, { passive: true });
+    document.addEventListener('mouseup', function() { dragging = false; });
+    document.addEventListener('touchend', function() { dragging = false; });
+    document.addEventListener('mousemove', function(e) { if (!dragging) return; var rect = slider.getBoundingClientRect(); updateSlider(((e.clientX - rect.left) / rect.width) * 100); });
+    document.addEventListener('touchmove', function(e) { if (!dragging || !e.touches || !e.touches[0]) return; var rect = slider.getBoundingClientRect(); updateSlider(((e.touches[0].clientX - rect.left) / rect.width) * 100); }, { passive: true });
+    slider.addEventListener('click', function(e) { var rect = slider.getBoundingClientRect(); updateSlider(((e.clientX - rect.left) / rect.width) * 100); });
+    thumb.addEventListener('keydown', function(event) {
+      var keys = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5 };
+      var next;
+      if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = 100;
+      else if (Object.prototype.hasOwnProperty.call(keys, event.key)) next = state.reality.priority + keys[event.key];
+      else return;
+      event.preventDefault();
+      updateSlider(next);
+    });
+    updateSlider(50);
+  }
+
+  // Export buttons
+  function canExport() {
+    if (!invalidEvents().length) return true;
+    showToast('Fix the invalid event names in Step 3 before exporting.');
+    return false;
+  }
+
+  document.getElementById('mp3-btn-copy').addEventListener('click', async function() {
+    if (!canExport()) return;
+    try {
+      await navigator.clipboard.writeText(generateText());
+      showToast('Copied!');
+    } catch {
+      showToast('Clipboard access failed. You can download the CSV.');
+    }
+  });
+  document.getElementById('mp3-btn-export').addEventListener('click', function() {
+    if (!canExport()) return;
+    const url = URL.createObjectURL(new Blob([generateCSV()], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'measurement-plan.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Download started');
+  });
+  document.getElementById('mp3-btn-email').addEventListener('click', function() {
+    if (canExport()) window.location.href = 'mailto:?subject=Measurement Plan&body=' + encodeURIComponent(generateText());
+  });
+  })();
+  </script><script src="../../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regression and Structure | Marketing Measurement Science</title>
+  <meta name="description" content="Interpret coefficient estimates and explore how variables relate along specified paths.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/regression-and-structure/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/regression-and-structure/">
+  <meta property="og:title" content="Regression and Structure | Marketing Measurement Science">
+  <meta property="og:description" content="Interpret coefficient estimates and explore how variables relate along specified paths.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Regression and Structure | Marketing Measurement Science">
+  <meta name="twitter:description" content="Interpret coefficient estimates and explore how variables relate along specified paths.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-index">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="./">Regression and Structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media Response</a><ul class="mg-links"><li><a href="../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="../retention/">Retention</a></li><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li aria-current="page">Regression and Structure</li></ol></nav>
+    <header class="mg-intro"><h1>Regression and Structure</h1><p class="mg-description">Interpret coefficient estimates and explore how variables relate along specified paths.</p></header><div class="mg-index-content"><ul class="mg-cards"><li><a href="../reading-regressions/"><strong>Reading Regressions</strong><span>Read coefficients, standard errors, and confidence intervals.</span></a></li><li><a href="../path-analysis/"><strong>Path Analysis</strong><span>Fit relationships along specified paths and check how well they reproduce observed associations.</span></a></li></ul></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script src="../../assets/guide.js"></script>
+</body>
+</html>

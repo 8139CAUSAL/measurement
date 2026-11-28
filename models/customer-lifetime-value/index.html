@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Lifetime Value | Marketing Measurement Science</title>
+  <meta name="description" content="Estimate historical and discounted customer value or rank customers using RFM.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/customer-lifetime-value/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/customer-lifetime-value/">
+  <meta property="og:title" content="Customer Lifetime Value | Marketing Measurement Science">
+  <meta property="og:description" content="Estimate historical and discounted customer value or rank customers using RFM.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Customer Lifetime Value | Marketing Measurement Science">
+  <meta name="twitter:description" content="Estimate historical and discounted customer value or rank customers using RFM.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><style>
+  /* CLV-only sub-tab UI */
+  .cltv-tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .cltv-tab-btn {
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .cltv-tab-btn:hover { border-color: var(--text); color: var(--text); }
+  .cltv-tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .cltv-panel { display: none; }
+  .cltv-panel.active { display: block; }
+  @media (max-width: 600px) {
+    .cltv-tab-bar { gap: 6px; }
+    .cltv-tab-btn { font-size: 13px; padding: 0.5rem 0.9rem; }
+  }
+</style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media Response</a><ul class="mg-links"><li><a href="../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="../retention/">Retention</a></li><li><a href="./">Customer Lifetime Value</a></li><li><a href="contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li><a href="../customer-value/">Customer Value</a></li><li aria-current="page">Customer Lifetime Value</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Customer Lifetime Value</h1></header><div class="mg-source"><div class="page">
+
+  
+
+  <p class="problem-statement">Estimate lifetime sales from historical averages or discount expected subscription gross profit. Use RFM separately to summarize purchase behavior on a 3–15 scale.</p>
+
+  <!-- Tool: CLV Formula Calculator -->
+  <div class="tool-section">
+    <div class="cltv-tab-bar" data-guide-tablist="Customer Lifetime Value views">
+      <button class="cltv-tab-btn active" data-panel="0" data-guide-tab="cltv-panel-0">Historical Revenue</button>
+      <button class="cltv-tab-btn" data-panel="1" data-guide-tab="cltv-panel-1">RFM Scoring</button>
+      <button class="cltv-tab-btn" data-panel="2" data-guide-tab="cltv-panel-2">Discounted Subscription CLV</button>
+    </div>
+
+    <!-- Panel 1: Simple Historical CLV -->
+    <div class="cltv-panel active" id="cltv-panel-0">
+      <h2>Historical revenue</h2>
+      <p class="panel-desc">Multiply historical averages to estimate lifetime revenue per customer. Accurate average tenure requires complete customer histories or an estimate that accounts for customers still active.</p>
+      <div class="formula-display">Lifetime revenue <span class="op">=</span> <span class="hl">Average Order Value</span> <span class="op">×</span> <span class="hl">Purchase Frequency</span> <span class="op">×</span> <span class="hl">Customer Lifespan</span></div>
+
+      <div class="input-row" style="margin-top:14px;">
+        <div class="field">
+          <label for="cltv-aov">Average Order Value ($)</label>
+          <input type="number" id="cltv-aov" value="65" min="0" step="any" required>
+        </div>
+        <div class="field">
+          <label for="cltv-freq">Purchase Frequency (per year)</label>
+          <input type="number" id="cltv-freq" value="4.2" min="0" step="any" required>
+        </div>
+        <div class="field">
+          <label for="cltv-lifespan">Avg Customer Lifespan (years)</label>
+          <input type="number" id="cltv-lifespan" value="3.5" min="0" step="any" required>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="calc-btn" id="btn-calc-simple">Calculate lifetime revenue</button>
+      </div>
+
+      <p class="tool-desc" id="simple-cltv-status" role="status"></p>
+      <div class="results-panel" id="simple-cltv-results">
+        <h3 id="results">Results</h3>
+        <div class="formula-display" id="simple-cltv-formula"></div>
+        <div id="simple-cltv-metrics"></div>
+      </div>
+    </div>
+
+    <!-- Panel 2: RFM Scoring -->
+    <div class="cltv-panel" id="cltv-panel-1">
+      <h2>RFM scoring</h2>
+      <p class="panel-desc">Enter recency, frequency, and monetary scores from 1 to 5. The example uses fixed cutoffs for the sum, with higher scores representing more recent or frequent purchases and higher spend.</p>
+
+      <div class="formula-display">RFM Score <span class="op">=</span> <span class="hl">R</span> <span class="op">+</span> <span class="hl">F</span> <span class="op">+</span> <span class="hl">M</span>
+Thresholds: <span class="hl">3–7</span> <span class="op">=</span> Low score  |  <span class="hl">8–11</span> <span class="op">=</span> Mid score  |  <span class="hl">12–15</span> <span class="op">=</span> High score</div>
+
+      <div class="input-row" style="margin-top:14px;">
+        <div class="field">
+          <label for="rfm-r">Recency Score (1–5)</label>
+          <input type="number" id="rfm-r" value="4" min="1" max="5" required>
+          <small>5 = purchased very recently, 1 = long ago</small>
+        </div>
+        <div class="field">
+          <label for="rfm-f">Frequency Score (1–5)</label>
+          <input type="number" id="rfm-f" value="3" min="1" max="5" required>
+          <small>5 = purchases very often, 1 = rarely</small>
+        </div>
+        <div class="field">
+          <label for="rfm-m">Monetary Score (1–5)</label>
+          <input type="number" id="rfm-m" value="3" min="1" max="5" required>
+          <small>5 = highest spender, 1 = lowest</small>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="calc-btn" id="btn-calc-rfm">Calculate RFM Score</button>
+      </div>
+
+      <p class="tool-desc" id="rfm-status" role="status"></p>
+      <div class="results-panel" id="rfm-results">
+        <h3 id="results-2">Results</h3>
+        <div class="formula-display" id="rfm-formula"></div>
+        <div id="rfm-metrics"></div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Discounted CLV (SaaS) -->
+    <div class="cltv-panel" id="cltv-panel-2">
+      <h2>Discounted subscription CLV</h2>
+      <p class="panel-desc">Assume constant gross profit while active, a full first month, and a constant chance of churn at the end of each month. Discount each month’s gross profit back to the start of the subscription. Acquisition cost is excluded from the calculation.</p>
+      <div class="formula-display">CLV <span class="op">=</span> Monthly gross profit <span class="op">÷</span> (Monthly churn + monthly discount rate)</div>
+
+      <div class="input-row" style="margin-top:14px;">
+        <div class="field">
+          <label for="saas-arpu">Monthly ARPU ($)</label>
+          <input type="number" id="saas-arpu" value="99" min="0" step="any" required>
+          <small>Average Revenue Per User per month</small>
+        </div>
+        <div class="field">
+          <label for="saas-margin">Gross Margin (%)</label>
+          <input type="number" id="saas-margin" value="75" min="0" max="100" step="any" required>
+        </div>
+        <div class="field">
+          <label for="saas-churn">Monthly Churn Rate (%)</label>
+          <input type="number" id="saas-churn" value="5" min="0" max="100" step="any" required>
+          <small>Percentage of customers lost per month</small>
+        </div>
+        <div class="field">
+          <label for="saas-discount">Monthly Discount Rate (%)</label>
+          <input type="number" id="saas-discount" value="1" min="0" step="any" required>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="calc-btn" id="btn-calc-saas">Calculate discounted CLV</button>
+      </div>
+
+      <p class="tool-desc" id="saas-cltv-status" role="status"></p>
+      <div class="results-panel" id="saas-cltv-results">
+        <h3 id="results-3">Results</h3>
+        <div class="formula-display" id="saas-cltv-formula"></div>
+        <div id="saas-cltv-metrics"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  function fmt(n, decimals) {
+    if (typeof decimals === 'undefined') decimals = 2;
+    return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+  function fmtDollar(n) { return '$' + fmt(n); }
+  function showResults(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('visible');
+  }
+  function metricsHTML(pairs) {
+    return pairs.map(function(pair) {
+      return '<div class="result-metric"><span class="label">' + pair[0] + '</span><span class="value">' + pair[1] + '</span></div>';
+    }).join('');
+  }
+
+  /* CLV sub-tab switching */
+  var cltvTabBtns = document.querySelectorAll('.cltv-tab-btn');
+  var cltvPanels = document.querySelectorAll('.cltv-panel');
+  for (var t = 0; t < cltvTabBtns.length; t++) {
+    cltvTabBtns[t].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-panel'));
+      for (var j = 0; j < cltvTabBtns.length; j++) cltvTabBtns[j].classList.toggle('active', j === idx);
+      for (var k = 0; k < cltvPanels.length; k++) cltvPanels[k].classList.toggle('active', k === idx);
+    });
+  }
+
+  document.querySelectorAll('#cltv-aov, #cltv-freq, #cltv-lifespan').forEach(function(field) {
+    field.addEventListener('input', function() {
+      document.getElementById('simple-cltv-results').classList.remove('visible');
+      document.getElementById('simple-cltv-status').textContent = 'Inputs changed. Recalculate to see updated results.';
+      field.removeAttribute('aria-invalid');
+    });
+  });
+
+  document.querySelectorAll('#rfm-r, #rfm-f, #rfm-m').forEach(function(field) {
+    field.addEventListener('input', function() {
+      document.getElementById('rfm-results').classList.remove('visible');
+      document.getElementById('rfm-status').textContent = 'Inputs changed. Recalculate to see updated results.';
+      field.removeAttribute('aria-invalid');
+    });
+  });
+
+  document.querySelectorAll('#saas-arpu, #saas-margin, #saas-churn, #saas-discount').forEach(function(field) {
+    field.addEventListener('input', function() {
+      document.getElementById('saas-cltv-results').classList.remove('visible');
+      document.getElementById('saas-cltv-status').textContent = 'Inputs changed. Recalculate to see updated results.';
+      field.removeAttribute('aria-invalid');
+    });
+  });
+
+  function validatedFields(ids, resultId, statusId) {
+    const fields = ids.map(id => document.getElementById(id));
+    const result = document.getElementById(resultId);
+    const status = document.getElementById(statusId);
+    result.classList.remove('visible');
+    status.textContent = '';
+    const invalid = fields.find(field => !field.validity.valid || !Number.isFinite(field.valueAsNumber));
+    if (invalid) {
+      invalid.setAttribute('aria-invalid', 'true');
+      status.textContent = 'Check ' + invalid.labels[0].textContent.trim() + '. ' + invalid.validationMessage;
+      invalid.reportValidity();
+      return null;
+    }
+    fields.forEach(field => field.removeAttribute('aria-invalid'));
+    return fields.map(field => field.valueAsNumber);
+  }
+
+  /* Simple Historical CLV */
+  document.getElementById('btn-calc-simple').addEventListener('click', function() {
+    const values = validatedFields(['cltv-aov', 'cltv-freq', 'cltv-lifespan'], 'simple-cltv-results', 'simple-cltv-status');
+    if (!values) return;
+    const [aov, freq, lifespan] = values;
+    if (!Number.isFinite(aov * freq) || !Number.isFinite(aov * freq * lifespan)) {
+      document.getElementById('simple-cltv-status').textContent = 'The entered values exceed the supported revenue range.';
+      return;
+    }
+    var cltv = aov * freq * lifespan;
+    var annualValue = aov * freq;
+
+    document.getElementById('simple-cltv-formula').innerHTML =
+      'Lifetime revenue <span class="op">=</span> <span class="hl">$' + fmt(aov) + '</span> <span class="op">\u00D7</span> <span class="hl">' + fmt(freq) + '</span> <span class="op">\u00D7</span> <span class="hl">' + fmt(lifespan) + '</span> <span class="op">=</span> <span class="res">' + fmtDollar(cltv) + '</span>';
+
+    document.getElementById('simple-cltv-metrics').innerHTML = metricsHTML([
+      ['Estimated lifetime revenue', fmtDollar(cltv)],
+      ['Annual Customer Value', fmtDollar(annualValue)],
+      ['Avg Order Value', fmtDollar(aov)],
+      ['Purchase Frequency / year', fmt(freq, 1)],
+      ['Avg Lifespan', fmt(lifespan, 1) + ' years']
+    ]);
+
+    showResults('simple-cltv-results');
+  });
+
+  /* RFM Scoring */
+  document.getElementById('btn-calc-rfm').addEventListener('click', function() {
+    const values = validatedFields(['rfm-r', 'rfm-f', 'rfm-m'], 'rfm-results', 'rfm-status');
+    if (!values) return;
+    const [r, f, m] = values;
+
+    var total = r + f + m;
+    var code = '' + r + f + m;
+
+    var segment = total >= 12 ? 'High score' : total >= 8 ? 'Mid score' : 'Low score';
+
+    document.getElementById('rfm-formula').innerHTML =
+      'RFM Score <span class="op">=</span> <span class="hl">' + r + '</span> <span class="op">+</span> <span class="hl">' + f + '</span> <span class="op">+</span> <span class="hl">' + m + '</span> <span class="op">=</span> <span class="res">' + total + '/15</span> &nbsp;&nbsp; Code: <span class="res">' + code + '</span>';
+
+    document.getElementById('rfm-metrics').innerHTML = metricsHTML([
+      ['RFM Composite Score', total + ' / 15'],
+      ['RFM Code', code],
+      ['Score band', segment]
+    ]);
+
+    showResults('rfm-results');
+  });
+
+  document.getElementById('btn-calc-saas').addEventListener('click', function() {
+    const values = validatedFields(['saas-arpu', 'saas-margin', 'saas-churn', 'saas-discount'], 'saas-cltv-results', 'saas-cltv-status');
+    if (!values) return;
+    const [arpu, marginPercent, churnPercent, discountPercent] = values;
+    const margin = marginPercent / 100;
+    const churn = churnPercent / 100;
+    const discount = discountPercent / 100;
+    var monthlyGrossProfit = arpu * margin;
+    var denominator = churn + discount;
+    var clv = denominator > 0 ? monthlyGrossProfit / denominator : (monthlyGrossProfit === 0 ? 0 : Infinity);
+    var clvDisplay = Number.isFinite(clv) ? fmtDollar(clv) : 'Unbounded under these assumptions';
+
+    document.getElementById('saas-cltv-formula').textContent =
+      'CLV = ' + fmtDollar(monthlyGrossProfit) + ' ÷ (' +
+      fmt(churn * 100, 2) + '% + ' + fmt(discount * 100, 2) + '%) = ' + clvDisplay;
+    document.getElementById('saas-cltv-metrics').innerHTML = metricsHTML([
+      ['Discounted lifetime gross profit', clvDisplay],
+      ['Monthly gross profit per active customer', fmtDollar(monthlyGrossProfit)],
+      ['Expected paid months', churn > 0 ? fmt(1 / churn, 1) : 'Unbounded under these assumptions']
+    ]);
+    showResults('saas-cltv-results');
+  });
+});
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>t-distribution | Marketing Measurement Science</title>
+  <meta name="description" content="Look up critical values and one- or two-tail probabilities.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/reference/t-distribution/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/reference/t-distribution/">
+  <meta property="og:title" content="t-distribution | Marketing Measurement Science">
+  <meta property="og:description" content="Look up critical values and one- or two-tail probabilities.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="t-distribution | Marketing Measurement Science">
+  <meta name="twitter:description" content="Look up critical values and one- or two-tail probabilities.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/math.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson math">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Reference &amp; Tools</a></li><li aria-current="page">t-distribution</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>t-distribution</h1></header><div class="mg-source"><div class="page">
+
+
+
+<p class="problem-statement">
+Critical values for the Student’s t-distribution. Look up the t-value for 1 to 500 degrees of freedom and significance levels from 0.001 to 0.50.
+</p>
+
+<div class="tab-selector" data-guide-tablist="t-distribution views">
+<button class="tab-btn active" data-tab="table" type="button" data-guide-tab="tt-panel-table">The Table</button>
+<button class="tab-btn" data-tab="howto" type="button" data-guide-tab="tt-panel-howto">How to Read It</button>
+<button class="tab-btn" data-tab="lookup" type="button" data-guide-tab="tt-panel-lookup">Custom Lookup</button>
+</div>
+
+<!-- Tab 1: The Table -->
+<div class="tab-panel active" id="tt-panel-table">
+<div class="content-card">
+<h2 id="critical-values-of-the-t-distribution">Critical values of the t-distribution</h2>
+
+<p>Each cell shows the <strong>t-critical value</strong> for the given degrees of freedom (df) and significance level (α). The <em>α = 0.05</em> two-tailed column is highlighted as the most commonly used threshold.</p>
+
+<p class="mg-scroll-hint">Scroll the table to see more columns on narrow screens.</p>
+<div class="reg-table-wrap" tabindex="0" role="region" aria-label="t critical values">
+<table class="reg-table" id="tt-table">
+<thead id="tt-thead"></thead>
+<tbody id="tt-tbody"></tbody>
+</table>
+</div>
+
+<div class="callout">
+<div class="callout-title">Reading the Values</div>
+All values are <strong>positive</strong>. For a two-tailed test, the critical region is |t| &gt; t-critical (both tails). For a one-tailed test, use the one-tailed α row and apply the cutoff in the prespecified direction. Values are computed from the inverse t-distribution.
+</div>
+</div>
+</div>
+
+<!-- Tab 2: How to Read It -->
+<div class="tab-panel" id="tt-panel-howto">
+<div class="content-card">
+<h2 id="how-to-use-this-table">How to use this table</h2>
+
+<ol class="steps-list">
+<li><strong>Find your degrees of freedom (df)</strong> in the leftmost column. For a pooled-variance two-sample t-test: df = n<sub>1</sub> + n<sub>2</sub> − 2. Welch’s test uses Welch–Satterthwaite degrees of freedom. The lookup rounds fractional df down to use a conservative critical value. For a one-sample test: df = n − 1. For regression coefficients: df = n − k − 1 (where k is the number of predictors).</li>
+<li><strong>Choose your significance level (α)</strong> across the top. The standard in most fields is α = 0.05 (two-tailed), which corresponds to a 95% confidence level.</li>
+<li><strong>Read the intersection.</strong> The value at (df, α) is the critical t-value. For a two-sided test, reject if |t| exceeds this value. For a prespecified upper-tail test, reject if t exceeds it. For a lower-tail test, reject if t is below its negative.</li>
+</ol>
+
+<h3 id="two-tailed-vs-one-tailed">Two-tailed vs. one-tailed</h3>
+
+<p>The table shows <strong>two rows of alpha values</strong> in the header:</p>
+
+<div class="key-definition">
+<p><strong>Two-tailed α:</strong> Used when your alternative hypothesis is “μ ≠ μ<sub>0</sub>” (the effect could go either direction). The critical region is split across both tails. This is the default in most research.<br><br>
+<strong>One-tailed α/2:</strong> Used when your alternative hypothesis specifies a direction (“μ &gt; μ<sub>0</sub>” or “μ &lt; μ<sub>0</sub>”). The entire rejection region is in one tail. A two-tailed α = 0.05 corresponds to a one-tailed α = 0.025.</p>
+</div>
+
+<p>If you are running a <strong>one-tailed test at α = 0.05</strong>, look at the column where the one-tailed row says 0.05—which is the two-tailed α = 0.10 column.</p>
+
+<h3 id="what-happens-as-df-grows">What happens as df grows?</h3>
+
+<p>As degrees of freedom increase, the t-distribution converges toward the standard normal (Z) distribution. The last row of the table (∞) shows the Z-critical values. For df ≥ 120, the difference between t and Z is negligible.</p>
+
+<div class="callout warning">
+<div class="callout-title">Related pages</div>
+See how t-critical values connect to sample size calculation → <a href="../../effects/sample-size-and-power/" class="ref-link">Sample Size &amp; Power</a><br><br>
+See how t-statistics and p-values work in regression output → <a href="../../models/reading-regressions/" class="ref-link">Reading Regressions</a>
+</div>
+</div>
+</div>
+
+<!-- Tab 3: Custom Lookup -->
+<div class="tab-panel" id="tt-panel-lookup">
+<div class="content-card">
+<h2 id="find-a-critical-value">Find a critical value</h2>
+
+<p>Enter your degrees of freedom and significance level to get the exact t-critical value.</p>
+
+<div class="input-group">
+<label for="tt-dfInput">Degrees of freedom</label>
+<input type="number" id="tt-dfInput" min="1" max="500" step="1" value="30">
+</div>
+
+<div class="input-group">
+<label for="tt-alphaInput">Alpha (α)</label>
+<input type="number" id="tt-alphaInput" min="0.001" max="0.50" step="0.001" value="0.05">
+</div>
+
+<div class="radio-row">
+<label class="radio-label">Test type</label>
+<label class="radio-option">
+<input type="radio" name="tt-testtype" value="two" checked>
+Two-tailed
+</label>
+<label class="radio-option">
+<input type="radio" name="tt-testtype" value="one">
+One-tailed
+</label>
+</div>
+
+<div id="tt-critNote" role="status"></div>
+<div class="stat-grid" id="tt-critResults">
+<div class="stat-item highlight-card">
+<div class="stat-value" id="tt-critValue">—</div>
+<div class="stat-label">t-Critical Value</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-critDf">—</div>
+<div class="stat-label">Degrees of freedom</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-critAlpha">—</div>
+<div class="stat-label">Alpha (α)</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-critTails">—</div>
+<div class="stat-label">Test type</div>
+</div>
+</div>
+</div>
+
+<hr class="section-divider">
+
+<div class="content-card">
+<h2 id="find-a-p-value-from-a-t-statistic">Find a p-value from a t-statistic</h2>
+
+<p>Enter a t-statistic and degrees of freedom to compute the corresponding p-value.</p>
+
+<div class="input-group">
+<label for="tt-tstatInput">t-statistic</label>
+<input type="number" id="tt-tstatInput" min="-100" max="100" step="0.001" value="2.042">
+</div>
+
+<div class="input-group">
+<label for="tt-tstatDfInput">Degrees of freedom</label>
+<input type="number" id="tt-tstatDfInput" min="1" max="500" step="1" value="30">
+</div>
+
+<div id="tt-pvalNote" role="status"></div>
+<div class="stat-grid" id="tt-pvalResults">
+<div class="stat-item highlight-card">
+<div class="stat-value" id="tt-pvalTwo">—</div>
+<div class="stat-label">Two-tailed p-value</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-pvalOne">—</div>
+<div class="stat-label">Upper-tail p (alternative &gt; 0)</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-pvalLower">—</div>
+<div class="stat-label">Lower-tail p (alternative &lt; 0)</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-pvalTstat">—</div>
+<div class="stat-label">Signed t-statistic</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="tt-pvalDf">—</div>
+<div class="stat-label">Degrees of freedom</div>
+</div>
+</div>
+
+<div class="callout">
+<div class="callout-title">Interpreting the p-value</div>
+The <strong>two-tailed p-value</strong> is the probability of observing a t-statistic at least as extreme as yours (in either direction) under the null hypothesis. If p &lt; α, you reject H<sub>0</sub>. Choose the alternative before looking at the data. Its one-sided p-value is half the two-sided value when the statistic points in that direction, and the complement of that half when it points the other way.
+</div>
+</div>
+</div>
+
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../">Reference &amp; Tools</a></div></footer>
+  <script type="module">
+import { tInv, tTail, formatTail } from '../../assets/reference-stats.js';
+(function(){
+'use strict';
+
+function $(id) { return document.getElementById(id); }
+
+/* ================================================================
+   TAB 1: BUILD THE TABLE
+   ================================================================ */
+var dfRows = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,40,50,60,80,100,120];
+var alphasTwoTailed = [0.20, 0.10, 0.05, 0.02, 0.01, 0.001];
+var highlightCol = 2;
+
+function buildTable() {
+  var thead = $('tt-thead');
+  var tbody = $('tt-tbody');
+
+  var headerRow1 = document.createElement('tr');
+  var dfTh1 = document.createElement('th');
+  dfTh1.className = 'df-header';
+  dfTh1.rowSpan = 2;
+  dfTh1.textContent = 'df';
+  headerRow1.appendChild(dfTh1);
+
+  for (var c = 0; c < alphasTwoTailed.length; c++) {
+    var th = document.createElement('th');
+    th.textContent = '\u03B1 = ' + alphasTwoTailed[c];
+    if (c === highlightCol) th.className = 'col-highlight';
+    headerRow1.appendChild(th);
+  }
+  thead.appendChild(headerRow1);
+
+  var headerRow2 = document.createElement('tr');
+  for (var c2 = 0; c2 < alphasTwoTailed.length; c2++) {
+    var th2 = document.createElement('th');
+    th2.className = 'sub-header';
+    if (c2 === highlightCol) th2.className += ' col-highlight';
+    th2.textContent = 'one-tail: ' + (alphasTwoTailed[c2] / 2);
+    headerRow2.appendChild(th2);
+  }
+  thead.appendChild(headerRow2);
+
+  for (var r = 0; r < dfRows.length; r++) {
+    var tr = document.createElement('tr');
+    var dfCell = document.createElement('td');
+    dfCell.className = 'row-header';
+    dfCell.textContent = dfRows[r];
+    tr.appendChild(dfCell);
+
+    for (var col = 0; col < alphasTwoTailed.length; col++) {
+      var td = document.createElement('td');
+      var alpha2t = alphasTwoTailed[col];
+      var tVal = tInv(1 - alpha2t / 2, dfRows[r]);
+      td.textContent = tVal.toFixed(3);
+      if (col === highlightCol) {
+        td.className = 'col-highlight highlight';
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+
+  /* Infinity row (Z approx) */
+  var trInf = document.createElement('tr');
+  var dfCellInf = document.createElement('td');
+  dfCellInf.className = 'row-header';
+  dfCellInf.innerHTML = '&infin;';
+  trInf.appendChild(dfCellInf);
+
+  for (var colInf = 0; colInf < alphasTwoTailed.length; colInf++) {
+    var tdInf = document.createElement('td');
+    var zVal = tInv(1 - alphasTwoTailed[colInf] / 2, Infinity);
+    tdInf.textContent = zVal.toFixed(3);
+    if (colInf === highlightCol) {
+      tdInf.className = 'col-highlight highlight';
+    }
+    trInf.appendChild(tdInf);
+  }
+  tbody.appendChild(trInf);
+}
+
+buildTable();
+
+/* ================================================================
+   TAB 3: CUSTOM LOOKUP — Critical Value Calculator
+   ================================================================ */
+var dfInput = $('tt-dfInput');
+var alphaInput = $('tt-alphaInput');
+
+function getLookupTestType() {
+  var radios = document.querySelectorAll('input[name="tt-testtype"]');
+  for (var i = 0; i < radios.length; i++) {
+    if (radios[i].checked) return radios[i].value;
+  }
+  return 'two';
+}
+
+function lookupValue(input, symbol, notes) {
+  var low = Number(input.min), high = Number(input.max);
+  var entered = input.valueAsNumber;
+  if (!Number.isFinite(entered) || entered < low) {
+    notes.push('Using ' + symbol + ' = ' + input.min + ', the smallest supported value.');
+    return low;
+  }
+  if (entered > high) {
+    notes.push('Using ' + symbol + ' = ' + input.max + ', the largest supported value.');
+    return high;
+  }
+  if (symbol === 'df' && !Number.isInteger(entered)) {
+    notes.push('Using df = ' + Math.floor(entered) + ', rounded down to a whole number.');
+    return Math.floor(entered);
+  }
+  return entered;
+}
+
+function updateCritLookup() {
+  var notes = [];
+  var df = lookupValue(dfInput, 'df', notes);
+  var alpha = lookupValue(alphaInput, 'α', notes);
+  $('tt-critNote').textContent = notes.join(' ');
+  var twoSided = getLookupTestType() === 'two';
+
+
+  var p = twoSided ? (1 - alpha / 2) : (1 - alpha);
+  var tCrit = tInv(p, df);
+
+  $('tt-critValue').textContent = tCrit.toFixed(4);
+  $('tt-critDf').textContent = df;
+  $('tt-critAlpha').textContent = alpha;
+  $('tt-critTails').textContent = twoSided ? 'Two-tailed' : 'One-tailed';
+}
+
+dfInput.addEventListener('input', updateCritLookup);
+alphaInput.addEventListener('input', updateCritLookup);
+
+var critRadios = document.querySelectorAll('input[name="tt-testtype"]');
+for (var cr = 0; cr < critRadios.length; cr++) {
+  critRadios[cr].addEventListener('change', updateCritLookup);
+}
+
+updateCritLookup();
+
+/* ================================================================
+   TAB 3: CUSTOM LOOKUP — p-value from t-statistic
+   ================================================================ */
+var tstatInput = $('tt-tstatInput');
+var tstatDfInput = $('tt-tstatDfInput');
+
+function updatePvalLookup() {
+  var tStat = parseFloat(tstatInput.value);
+  if (isNaN(tStat)) {
+    clearPvalResults();
+    $('tt-pvalNote').textContent = '';
+    return;
+  }
+  var notes = [];
+  var df = lookupValue(tstatDfInput, 'df', notes);
+  $('tt-pvalNote').textContent = notes.join(' ');
+
+  const tail = tTail(tStat, df);
+  $('tt-pvalTwo').textContent = formatTail(2 * tail);
+  $('tt-pvalOne').textContent = formatTail(tStat < 0 ? 1 - tail : tail);
+  $('tt-pvalLower').textContent = formatTail(tStat > 0 ? 1 - tail : tail);
+  $('tt-pvalTstat').textContent = tStat.toFixed(4).replace('-', '−');
+  $('tt-pvalDf').textContent = df;
+}
+
+function clearPvalResults() {
+  $('tt-pvalTwo').textContent = '\u2014';
+  $('tt-pvalOne').textContent = $('tt-pvalLower').textContent = '—';
+  $('tt-pvalTstat').textContent = '\u2014';
+  $('tt-pvalDf').textContent = '\u2014';
+}
+
+tstatInput.addEventListener('input', updatePvalLookup);
+tstatDfInput.addEventListener('input', updatePvalLookup);
+
+updatePvalLookup();
+
+/* ================================================================
+   TAB SWITCHING
+   ================================================================ */
+var tabBtns = document.querySelectorAll('.tab-btn');
+var tabPanels = document.querySelectorAll('.tab-panel');
+
+function activateTab(tabId) {
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+  }
+  for (var j = 0; j < tabPanels.length; j++) {
+    tabPanels[j].classList[tabPanels[j].id === 'tt-panel-' + tabId ? 'add' : 'remove']('active');
+  }
+  if (tabId === 'lookup') {
+    setTimeout(function() { updateCritLookup(); updatePvalLookup(); }, 30);
+  }
+}
+
+for (var ti = 0; ti < tabBtns.length; ti++) {
+  tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+}
+})();
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

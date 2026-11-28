@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Offer Experiment | Marketing Measurement Science</title>
+  <meta name="description" content="Follow a randomized offer test from assignment to a decision against break-even.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/randomized-experiment/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/randomized-experiment/">
+  <meta property="og:title" content="Offer Experiment | Marketing Measurement Science">
+  <meta property="og:description" content="Follow a randomized offer test from assignment to a decision against break-even.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Offer Experiment | Marketing Measurement Science">
+  <meta name="twitter:description" content="Follow a randomized offer test from assignment to a decision against break-even.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="./">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Offer Experiment</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Offer Experiment</h1></header><div class="ex-content" id="offer-experiment">
+  <section class="ex-card" id="define-comparison">
+    <h2>Who was eligible and what counted</h2>
+    <p>Historically, 34% of accounts that took a promotion converted within 30 days, compared with 20% of nontakers. For a new promotion, the eligible population is active accounts without a recent promotion. Assign each enrolled account an offer or no offer and measure whether it converts within 30 days of assignment. Break-even requires a five-point increase.</p>
+    <p>Activity in the previous month defines the randomization blocks. Opening happens after assignment. The primary analysis follows the assigned groups, including accounts that never opened an offer.</p>
+    <details>
+      <summary>What could explain the historical gap?</summary>
+      <p>The observed 14 points equal the effect of taking the promotion on historical takers (ATT) plus the difference between takers’ and nontakers’ average untreated potential outcomes. If takers would have converted at 29% without taking it, the decomposition would be 5 points of effect and 9 points of selection. The 29% is hypothetical.</p>
+      <svg class="ex-diagram" viewBox="0 0 440 156" role="img" aria-labelledby="case-diagram-title case-diagram-description">
+        <title id="case-diagram-title">Possible paths from baseline traits and offer assignment to conversion</title>
+        <desc id="case-diagram-description">Baseline traits can affect opening and conversion. Assignment affects opening and may affect conversion directly. Opening could also affect conversion.</desc>
+        <defs><marker id="case-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" stroke="#0284C7" fill="none"/></marker></defs>
+        <g fill="#EEF2F8" stroke="#8592BE">
+          <rect x="5" y="10" width="130" height="34" rx="6"/><rect x="5" y="89" width="130" height="34" rx="6"/>
+          <rect x="165" y="89" width="110" height="34" rx="6"/><rect x="315" y="52" width="120" height="34" rx="6"/>
+        </g>
+        <g fill="#282A36" font-size="16" text-anchor="middle">
+          <text x="70" y="32">Baseline traits</text><text x="70" y="111">Offer assignment</text>
+          <text x="220" y="111">Uptake</text><text x="375" y="74">Conversion</text>
+        </g>
+        <g stroke="#0284C7" stroke-width="1.7" fill="none" marker-end="url(#case-arrow)">
+          <path d="M104 44 L191 86"/><path d="M136 28 L314 65"/><path d="M136 106 L164 106"/><path d="M276 102 L314 77"/>
+        </g>
+        <path d="M136 116 Q255 174 354 88" stroke="#0284C7" stroke-width="1.7" stroke-dasharray="5 4" fill="none" marker-end="url(#case-arrow)"/>
+      </svg>
+      <p>Why does an offer-to-all decision need the effect of assignment? The policy reaches every eligible enrolled account, including those who decline. Define <em>Y</em><sub>i</sub>(1) and <em>Y</em><sub>i</sub>(0) under offer and no offer. The enrolled intention-to-treat effect (ITT) averages <em>Y</em><sub>i</sub>(1) − <em>Y</em><sub>i</sub>(0) across that pool.</p>
+      <p>The dashed arrow allows a direct offer-to-conversion path. Opening and conversion are generated separately in this trial, so the records alone leave mediation through opening unestablished. Use the <a href="../causal-graphs-and-identification/#graph-and-adjustment">Graph and adjustment exercise</a> to trace the corresponding selection paths in historical records.</p>
+    </details>
+  </section>
+
+  <section class="ex-card" id="commit-design">
+    <h2>Experiment design</h2>
+    <p>The MDE sets planned sensitivity against zero. Break-even defines the business threshold. To support clearing five points, the lower interval limit must exceed five. Assignment is 1:1 within baseline activity bands, with 30-day follow-up for every account.</p>
+    <p>A comparison across baseline activity bands is a secondary, exploratory targeting question.</p>
+    <details>
+      <summary>Chance of clearing break-even</summary>
+      <p>This planning approximation uses independent binomial rates and a two-sided normal interval for the unadjusted difference. It uses the planned observed counts and holds the standard error at each assumed true lift. Realized Newcombe and block-adjusted intervals can differ.</p>
+      <div id="case-decision-power"></div>
+    </details>
+    <form id="case-design">
+      <div class="ex-fields"><label>Control conversion (%)<input name="baseline" type="number" value="20" min="0" max="100" step="any" required></label><label>MDE (percentage points)<input name="mde" type="number" value="5" min="-100" max="100" step="any" required></label><label>Two-sided alpha per comparison (%)<input name="alpha" type="number" value="5" min="0" max="100" step="any" required></label><label>Target power (%)<input name="power" type="number" value="80" min="0" max="100" step="any" required></label><label>Offer accounts per control<input name="ratio" type="number" value="1" min="0" step="any" readonly required></label><label>Expected missing outcomes (%)<input name="loss" type="number" value="0" min="0" max="100" step="any" required></label><label>Eligible accounts per day<input name="daily" type="number" value="150" min="1" step="1" required></label><label>Follow-up per account (days)<input name="followup" type="number" value="30" min="0" step="1" readonly required></label></div>
+      <div class="ex-fields">
+        <label>Break-even lift (percentage points) <input name="threshold" type="number" value="5" min="-100" max="100" step="any" required></label>
+        <label>Primary analysis
+          <select name="primary"><option value="block">Block-adjusted (HC2 robust standard errors)</option><option value="crude">Unadjusted (Newcombe)</option></select>
+        </label>
+      </div>
+      <p class="ex-status" role="status" data-size-status></p>
+      <div data-size-result></div>
+      <div class="ex-actions">
+        <button class="ex-primary" id="lock-design" type="submit">Run simulated trial</button>
+        <button type="reset" id="reset-case">Reset to the worked trial</button>
+      </div>
+    </form>
+    <p class="ex-status" id="design-feedback" role="status"></p>
+    <div id="locked-design"></div>
+    <p class="ex-note">The worked defaults replay one fixed trial. Running with changed inputs generates a new simulated trial.</p>
+  </section>
+
+  <section class="ex-card" data-case-gate>
+    <h2>Trial results</h2>
+    <p>Run the simulated trial to see the assignment ledger, conversion estimates, offer experiment results, and threats to the estimate.</p>
+  </section>
+
+  <section class="ex-card" id="assign-and-audit" data-case-content hidden>
+    <h2>Assignment ledger</h2>
+    <p>Offer and control assignments were randomized separately within each baseline activity band. Reconcile the assignment log against the allocation ledger to verify that all assignments were recorded. Treatment assignment and analysis denominators are determined from the ledger.</p>
+    <div class="ex-fields">
+      <label>Assignment-log view
+        <select id="case-log"><option value="intact">Complete assignment log</option><option value="dropped">Assignment log with missing records</option></select>
+      </label>
+    </div>
+    <p class="ex-status" id="case-audit-summary" role="status"></p>
+    <div id="case-audit-table"></div>
+    <div id="case-ledger"></div>
+    <h3>Baseline balance</h3>
+    <p>Continuous baseline characteristics can differ between assigned groups by chance, even when allocation is balanced within randomization blocks.</p>
+    <div id="case-balance"></div>
+  </section>
+
+  <section class="ex-card" id="estimate-effect" data-case-content hidden>
+    <h2>Conversion estimates</h2>
+    <p>Analyze the accounts as assigned, including unopened offers. For the worked defaults the linear probability model regresses conversion on assignment and a higher-activity indicator. Its uncertainty uses HC2 standard errors, which adjust for unequal outcome variance and observation leverage, with a large-sample normal reference. Equal allocation fractions give the same point estimate as the crude difference.</p>
+    <div id="case-conversions"></div>
+    <p class="ex-status" id="case-analysis-summary" role="status"></p>
+    <div id="case-estimates"></div>
+    <p>The pooled z-test and the Newcombe interval are separate unadjusted procedures. Compare the reported intervals to see how accounting for prognostic activity bands changes precision in this run. See <a href="../analyzing-ab-tests/#estimate-and-interval">A/B estimates and intervals</a> for the individual rate intervals.</p>
+    <details>
+      <summary>Compare the effects in the two baseline activity bands</summary>
+      <div id="case-band-effects"></div>
+      <p>The difference between band-specific effects has its own uncertainty. This exploratory comparison can motivate a separate targeting evaluation.</p>
+    </details>
+  </section>
+
+  <section class="ex-card" id="report-decision" data-case-content hidden>
+    <h2>Offer experiment results</h2>
+    <p>Compare the primary interval with zero and break-even. An interval spanning or touching a benchmark leaves that comparison unresolved. When follow-up is incomplete, also compare full-cohort bounds with both benchmarks.</p>
+    <div id="case-report-chart"><div class="ex-chart"><canvas id="case-interval" role="img" aria-label="Primary difference interval with separate markers for zero and the break-even threshold"></canvas></div></div>
+    <p id="case-benchmarks" class="ex-note"></p>
+    <div id="case-report-facts"></div>
+    <p class="ex-status ex-report" id="case-report-draft"></p>
+  </section>
+
+  <section class="ex-card" id="challenge-conclusion" data-case-content hidden>
+    <h2>Threats to the estimate</h2>
+    <div class="ex-fields"><label>Comparison or threat to inspect
+      <select id="case-challenge">
+        <option value="assigned">Assignment and uptake</option><option value="takers">Compare offer takers with controls</option>
+        <option value="missing">Hide outcomes based on conversion</option><option value="spillover">Allow offer sharing with controls</option>
+      </select>
+    </label></div>
+    <p class="ex-status" id="case-challenge-summary" role="status"></p>
+    <div id="case-challenge-result"></div>
+    <div class="ex-actions" id="case-replay-actions" hidden>
+      <button type="button" id="case-report-replay">Show missing-outcome results in report</button>
+      <button type="button" id="case-report-original" hidden>Restore complete trial report</button>
+      <a href="#report-decision">Go to Offer experiment results</a>
+    </div>
+    <p class="ex-status" id="case-replay-status" role="status"></p>
+    <details>
+      <summary>What assumptions would a complier effect require?</summary>
+      <p>A complier effect using assignment as an instrumental variable needs relevance, random assignment, exclusion of direct effects outside uptake, and monotonicity. The trial’s generator sets conversion by assignment and activity and generates openings separately. The assignment effect remains the policy contrast. Try <a href="../randomized-assignment/#encouragement-and-uptake">Encouragement and uptake</a> for a synthetic design with receipt driving outcomes.</p>
+    </details>
+  </section>
+
+  <section class="ex-card" id="rollout-transfer">
+    <h2>If stores adopted at different dates</h2>
+    <p>Compare each adoption cohort with stores still untreated over the same calendar period. An already-treated store can have a changing offer effect and make a poor comparison. The <a href="../difference-in-differences/#cohort-comparisons">DiD cohort grid</a> shows which estimates remain supported when you remove the never-treated stores.</p>
+    <section id="media-transfer">
+  <h3>Related example: Search geo experiment</h3>
+  <p>The offer test estimates 30-day conversion lift for enrolled accounts. A Search spending decision needs evidence about a different intervention and outcome. The <a href="../../models/marketing-mix/calibration/#geo-test">paired Search geo study</a> compares assigned spend schedules and measures six-week incremental revenue per market.</p>
+</section>
+
+  </section>
+</div>
+
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/experiment-case.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

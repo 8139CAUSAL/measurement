@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>P-Values | Marketing Measurement Science</title>
+  <meta name="description" content="Interpret a p-value alongside effect size and uncertainty.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/p-values/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/p-values/">
+  <meta property="og:title" content="P-Values | Marketing Measurement Science">
+  <meta property="og:description" content="Interpret a p-value alongside effect size and uncertainty.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="P-Values | Marketing Measurement Science">
+  <meta name="twitter:description" content="Interpret a p-value alongside effect size and uncertainty.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/math.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson math">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="./">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">P-Values</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>P-Values</h1></header><div class="mg-source"><div class="page">
+
+
+
+<p class="problem-statement">A p-value measures how unusual a test statistic is under the null model. Read it with the effect estimate and its uncertainty.</p>
+
+<div class="tab-selector" data-guide-tablist="P-Values views">
+<button class="tab-btn active" data-tab="nhst" type="button" data-guide-tab="panel-nhst">NHST</button>
+<button class="tab-btn" data-tab="misread" type="button" data-guide-tab="panel-misread">Misinterpretations</button>
+<button class="tab-btn" data-tab="convert" type="button" data-guide-tab="panel-convert">Bayes Factor Approximation</button>
+<button class="tab-btn" data-tab="interpret" type="button" data-guide-tab="panel-interpret">Reading Results</button>
+</div>
+
+<!-- Tab 1: NHST Framework -->
+<div class="tab-panel active" id="panel-nhst">
+<div class="content-card">
+<h2 id="null-hypothesis-significance-testing">Null Hypothesis Significance Testing</h2>
+<p>NHST is the common framework that tests data against a null hypothesis (H<sub>0</sub>). A conventional cutoff is p ≤ 0.05 to reject H<sub>0</sub>.</p>
+
+<h3 id="what-a-p-value-actually-is">What a p-value actually is</h3>
+<div class="key-definition">
+<p>The p-value is the probability of getting results as extreme as, or more extreme than, what we observed — <strong>assuming the null hypothesis is true</strong>.</p>
+</div>
+<p>A probability for the null given the data requires a model for the alternative and prior odds between the hypotheses.</p>
+
+<h3 id="how-extreme-is-measured">How "extreme" is measured</h3>
+<p>"Extreme" means far in the test statistic's null distribution. For z/t-based tests we standardize by the standard error. For other tests (e.g., χ², F), extremeness is on those statistics' own scales.</p>
+</div>
+</div>
+
+<!-- Tab 2: Common Misinterpretations -->
+<div class="tab-panel" id="panel-misread">
+<div class="content-card">
+<h2 id="common-misinterpretations">Common Misinterpretations</h2>
+<p>From Goodman's <strong>"A Dirty Dozen"</strong> — four mistakes that persist across research and industry:</p>
+<ol class="misinterpretation-list">
+<li>"If p = .05, the null has a 5% chance of being true."</li>
+<li>"A non-significant p (&gt; .05) means no difference."</li>
+<li>"p = .05 means these exact data would occur only 5% of the time under H<sub>0</sub>."</li>
+<li>"If you reject at p = .05, the Type I error probability for this decision is 5%."</li>
+</ol>
+<p class="mg-context">Use the interval and the planned sensitivity to see which lifts remain plausible. See <a href="../analyzing-ab-tests/#nonsignificant-interval">the A/B interval example</a>.</p></div>
+</div>
+
+<!-- Tab 3: The Conversion -->
+<div class="tab-panel" id="panel-convert">
+<div class="content-card">
+<h2 id="approximate-evidence-for-a-regression-coefficient">Approximate evidence for a regression coefficient</h2>
+<p>Compare two nested Gaussian linear regressions fitted to the same data. The null fixes one coefficient at zero. The alternative estimates it freely, while both models include the same other predictors. The formula below uses the difference in Bayesian information criterion (BIC) to approximate the Bayes factor in favor of the null.</p>
+<div class="formula-box">
+<span class="label">Approximate Bayes factor (BF<sub>01</sub>)</span>
+=SQRT(n) * (1 + (T_Stat^2 / df)) ^ (-n / 2)
+</div>
+<p>Use the ordinary least-squares t-statistic based on the full model’s residual variance, the number of observations <em>n</em>, and the full model’s residual degrees of freedom <em>df</em>. BIC is a large-sample approximation. A Bayes factor computed from a specified prior for the alternative can give a different result.</p>
+<div class="formula-box">
+<span class="label">Approximate posterior null probability with equal prior odds</span>
+=BF / (1 + BF)
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="panel-interpret">
+<div class="content-card">
+<h2 id="read-the-estimate-with-its-assumptions">Read the estimate with its assumptions</h2>
+<p>For 100 observations, 98 residual degrees of freedom, and a t-statistic of 1.60, the formula gives BF<sub>01</sub> ≈ 2.75. Equal prior odds give an approximate null probability of 0.73 under the BIC approximation. Other prior odds change that number. To assess whether a result is large enough to act on, compare the estimated effect and interval with a threshold that matters to the decision.</p>
+</div>
+</div>
+
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+(function(){
+'use strict';
+var btns = document.querySelectorAll('.tab-btn');
+var panels = document.querySelectorAll('.tab-panel');
+
+function activate(tabId) {
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList[btns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+  }
+  for (var j = 0; j < panels.length; j++) {
+    panels[j].classList[panels[j].id === 'panel-' + tabId ? 'add' : 'remove']('active');
+  }
+}
+
+for (var k = 0; k < btns.length; k++) {
+  btns[k].addEventListener('click', function() { activate(this.dataset.tab); });
+}
+})();
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

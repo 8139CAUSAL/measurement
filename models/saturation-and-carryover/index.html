@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saturation &amp; Carryover | Marketing Measurement Science</title>
+  <meta name="description" content="Explore marginal return, delayed effects, and reach at a fixed impression count.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/saturation-and-carryover/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/saturation-and-carryover/">
+  <meta property="og:title" content="Saturation &amp; Carryover | Marketing Measurement Science">
+  <meta property="og:description" content="Explore marginal return, delayed effects, and reach at a fixed impression count.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Saturation &amp; Carryover | Marketing Measurement Science">
+  <meta name="twitter:description" content="Explore marginal return, delayed effects, and reach at a fixed impression count.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Saturation Page Styles === */
+    .page { text-align: center; }
+    .app-content { min-height: 500px; overflow: hidden; }
+    .view-selector { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .view-button { padding: .6rem 1.2rem; border: 1px solid var(--brand-border); border-radius: 9999px; background: transparent; color: var(--brand-text-muted); font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s; font-family: inherit; }
+    .view-button:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .view-button.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+    .visualization-wrapper { position: relative; width: 100%; max-width: 800px; height: 280px; margin: 0 auto; }
+    .chart-svg { width: 100%; height: 100%; }
+    .chart-grid-line { stroke: rgba(98,114,164,0.2); stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-axis-label { fill: var(--brand-text-muted); font-size: 14px; text-anchor: middle; }
+    .chart-tick-label { fill: var(--brand-text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .chart-curve { stroke: var(--brand-accent); stroke-width: 3; fill: none; }
+    .chart-marker-line { stroke: var(--brand-text-muted); stroke-width: 1; stroke-dasharray: 4 4; }
+    .chart-marker-point { fill: var(--brand-accent); }
+    .chart-bar { fill: var(--brand-accent); }
+    .sat-controls { margin: 10px auto 0; max-width: 520px; display: grid; gap: 10px; }
+    .control-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .control-row label { width: 160px; text-align: right; font-size: 14px; font-weight: 600; }
+    .control-row input[type=range] { flex: 1; max-width: 320px; cursor: pointer; }
+    .value-display { width: 110px; text-align: left; font-size: 16px; font-weight: 700; font-family: "SF Mono", Monaco, "Cascadia Code", monospace; }
+    .results-section { margin-top: 10px; }
+    .results-section .results-header { border-top: 1px solid var(--brand-border); padding-top: 8px; }
+    .results-section h2 { font-size: 16px; margin: 0 0 4px 0; }
+    .results-section .explainer { font-size: 14px; color: var(--brand-text-muted); max-width: 720px; margin: 0 auto; line-height: 1.5; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 10px; }
+    .results-grid .value { font-size: 16px; font-weight: 700; color: var(--brand-accent); white-space: nowrap; }
+    .results-grid .label { font-size: 14px; color: var(--brand-text-muted); margin-top: .25rem; }
+    .is-hidden { display: none !important; }
+    @media (max-width: 36rem) {
+      .control-row { flex-wrap: wrap; justify-content: flex-start; gap: 6px 12px; }
+      .control-row label { width: 100%; text-align: left; }
+      .control-row input[type=range] { flex: 1 1 10rem; max-width: none; }
+      .value-display { width: auto; }
+    }
+  </style><link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="../path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media Response</a><ul class="mg-links"><li><a href="./">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="../retention/">Retention</a></li><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li><a href="../media-response/">Media Response</a></li><li aria-current="page">Saturation &amp; Carryover</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Saturation &amp; Carryover</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">See where extra spend starts returning less on a saturating response curve and how quickly an ad’s effect decays under carryover (the adstock half-life).</p>
+
+    <div class="app-content">
+      <div class="view-selector" id="sat-view-selector" data-guide-tablist="Lesson views"></div>
+      <div class="visualization-wrapper">
+        <svg class="chart-svg" id="sat-chart-svg" role="img" aria-label="Response to spend or the retained exposure after a spend pulse. The current values appear below."></svg>
+      </div>
+      <div class="sat-controls">
+        <div id="row-spend" class="control-row">
+          <label for="spend-slider">Channel Spend:</label>
+          <input id="spend-slider" type="range" min="0" max="2000000" step="10000" value="500000">
+          <span id="spend-value" class="value-display">$500K</span>
+        </div>
+        <div id="row-decay" class="control-row is-hidden">
+          <label for="decay-slider">Carryover rate λ</label>
+          <input id="decay-slider" type="range" min="0.1" max="0.9" step="0.05" value="0.5">
+          <span id="decay-value" class="value-display">0.50</span>
+        </div>
+      </div>
+      <section class="results-section" id="sat-results">
+        <div class="results-header">
+          <h2 id="diminishing-returns">Diminishing Returns</h2>
+          <p class="explainer">This Hill curve has exponent 1.8. Marginal return rises first, peaks, and then declines. Compare marginal ROAS (the local slope) with average ROAS at the current spend.</p>
+        </div>
+        <div class="results-grid">
+          <div><div class="value" id="m1v">$693K</div><div class="label">Modeled Revenue</div></div>
+          <div><div class="value" id="m2v">1.39x</div><div class="label">Average ROAS</div></div>
+          <div><div class="value" id="m3v">1.12x</div><div class="label">Marginal ROAS</div></div>
+        </div>
+      <section class="ex-extension ex-card" id="reach-and-frequency">
+  <h2 id="one-million-impressions-different-audiences">One million impressions, different audiences</h2>
+  <p>Hold impressions at 1,000,000 and CPM at $10 ($10,000 total). Compare 500,000 people reached twice with 100,000 reached ten times. The grid uses quarter-point steps and caps reach at the eligible market population.</p>
+  <div class="ex-actions"><button type="button" id="rf-two">500,000 people × 2</button><button type="button" id="rf-ten">100,000 people × 10</button></div>
+  <div class="ex-fields">
+    <label>Eligible market population
+      <select id="rf-population"><option value="600000">600,000 people</option><option value="300000">300,000 people</option></select>
+    </label>
+    <label>Average exposures per reached person
+      <input type="range" id="rf-frequency" min="1.75" max="10" step=".25" value="2">
+    </label>
+  </div>
+  <p class="ex-status" id="rf-result" role="status"></p>
+  <div class="ex-chart"><canvas id="rf-chart" role="img" aria-label="Hill response per person and the selected frequency"></canvas></div>
+  <details><summary>Frequency, reach and modeled response table</summary><div id="rf-table"></div></details>
+  <p>This single-period example multiplies reach by a Hill response at the selected frequency. The chart shows the response per person. At fixed impressions, reaching more people lowers average frequency. Reach counts people once within the channel and period. An average can hide variation in how often different people see the ad.</p>
+</section></section>
+      <section class="results-section is-hidden" id="decay-results">
+        <div class="results-header">
+          <h2 id="carryover-effect">Carryover Effect</h2>
+          <p class="explainer">The carryover rate λ is the fraction of exposure retained each week. The half-life is the time it takes the remaining exposure from a single spend pulse to fall by half.</p>
+        </div>
+        <div class="results-grid">
+          <div><div class="value" id="d1v">0.50</div><div class="label">Carryover rate</div></div>
+          <div><div class="value" id="d2v">1.0 weeks</div><div class="label">Marketing Half-Life</div></div>
+          <div><div class="value" id="d3v">35%</div><div class="label">Impact after 4 Weeks</div></div>
+        </div>
+      <section class="ex-extension ex-card" id="transformation-order">
+  <h2 id="apply-saturation-before-or-after-adstock">Apply saturation before or after adstock</h2>
+  <p>Move the carryover slider above to compare the same $2,000 pulse and $0 follow-up with a zero pre-period. These examples use normalized adstock and the same illustrative tanh saturation <code>$4,000 × tanh(exposure / $2,000)</code>.</p>
+  <div id="carryover-table"></div>
+  <p>In the unnormalized recursion <code>A[t] = x[t] + αA[t−1]</code>, identical previous histories give a first difference of exactly Δx. A sustained change builds toward Δx/(1−α) for 0 ≤ α &lt; 1. Finite lags use the finite sum of weights. Multiplying the new input by (1−α) gives the normalized recursion, whose steady-state gain is one. Start each geography with its own history and apply the same scaling and lags to both schedules.</p>
+</section></section>
+    </div>
+  </div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function(){
+  'use strict';
+  var svg = document.getElementById('sat-chart-svg');
+  var viewSelector = document.getElementById('sat-view-selector');
+  var spendSlider = document.getElementById('spend-slider');
+  var spendValue = document.getElementById('spend-value');
+  var decaySlider = document.getElementById('decay-slider');
+  var decayValue = document.getElementById('decay-value');
+  var satResults = document.getElementById('sat-results');
+  var decayResults = document.getElementById('decay-results');
+  var rowSpend = document.getElementById('row-spend');
+  var rowDecay = document.getElementById('row-decay');
+  var P = { alpha: 800000, theta: 400000, k: 1.8 };
+  var state = { view: 'saturation', spend: +spendSlider.value, decay: +decaySlider.value };
+  var VIEWS = { saturation: 'Saturation Curve', decay: 'Adstock & Decay' };
+
+  function hill(x) { return (P.alpha * Math.pow(x, P.k)) / (Math.pow(P.theta, P.k) + Math.pow(x, P.k)); }
+  function dhill(x) {
+    var t = Math.max(x, 1e-6), thk = Math.pow(P.theta, P.k), sk1 = Math.pow(t, P.k - 1), sk = t * sk1;
+    return (P.alpha * P.k * thk * sk1) / Math.pow(thk + sk, 2);
+  }
+  function halfLife(r) { return (r <= 0 || r >= 1) ? 999 : Math.log(0.5) / Math.log(r); }
+  function money(n) { if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M'; if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'K'; return '$' + Math.round(n); }
+
+  function buildTabs() {
+    viewSelector.innerHTML = '';
+    var ids = Object.keys(VIEWS);
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      var b = document.createElement('button');
+      b.className = 'view-button' + (state.view === id ? ' active' : '');
+      b.textContent = VIEWS[id];
+      b.setAttribute('data-view', id);
+      b.setAttribute('data-guide-tab', id === 'saturation' ? 'sat-results' : 'decay-results');
+      b.addEventListener('click', function() {
+        state.view = this.getAttribute('data-view');
+        viewSelector.querySelectorAll('button').forEach(function(button) {
+          button.classList.toggle('active', button.getAttribute('data-view') === state.view);
+        });
+        togglePanels(); renderChart(); renderMetrics();
+      });
+      viewSelector.appendChild(b);
+    }
+  }
+
+  function togglePanels() {
+    rowSpend.classList.toggle('is-hidden', state.view !== 'saturation');
+    rowDecay.classList.toggle('is-hidden', state.view !== 'decay');
+    satResults.classList.toggle('is-hidden', state.view !== 'saturation');
+    decayResults.classList.toggle('is-hidden', state.view !== 'decay');
+  }
+
+  function renderMetrics() {
+    if (state.view === 'saturation') {
+      var rev = hill(state.spend);
+      document.getElementById('m1v').textContent = money(rev);
+      document.getElementById('m2v').textContent = state.spend ? (rev / state.spend).toFixed(2) + 'x' : 'Undefined';
+      document.getElementById('m3v').textContent = dhill(state.spend).toFixed(2) + 'x';
+    } else {
+      document.getElementById('d1v').textContent = state.decay.toFixed(2);
+      document.getElementById('d2v').textContent = halfLife(state.decay).toFixed(1) + ' weeks';
+      document.getElementById('d3v').textContent = Math.round(Math.pow(state.decay, 4) * 100) + '%';
+    }
+  }
+
+  function renderChart() {
+    svg.innerHTML = '';
+    var svgW = svg.clientWidth || 800;
+    var svgH = svg.clientHeight || 280;
+    var m = { top: 20, right: 30, bottom: 52, left: 78 };
+    function tick(x, y, text, anchor) {
+      var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('class', 'chart-tick-label');
+      t.setAttribute('text-anchor', anchor); t.textContent = text; return t;
+    }
+    var W = svgW - m.left - m.right;
+    var H = svgH - m.top - m.bottom;
+    var NS = 'http://www.w3.org/2000/svg';
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', 'translate(' + m.left + ',' + m.top + ')');
+    svg.appendChild(g);
+    for (var i = 0; i <= 4; i++) {
+      var y = H * (i / 4);
+      var ln = document.createElementNS(NS, 'line');
+      ln.setAttribute('x1', 0); ln.setAttribute('y1', y);
+      ln.setAttribute('x2', W); ln.setAttribute('y2', y);
+      ln.setAttribute('class', 'chart-grid-line');
+      g.appendChild(ln);
+    }
+    if (state.view === 'saturation') {
+      var pts = [];
+      for (var j = 0; j <= 100; j++) {
+        var s = (j / 100) * 2000000;
+        var r = hill(s);
+        var x = (s / 2000000) * W;
+        var cy = H - (r / P.alpha) * H;
+        pts.push(x + ',' + cy);
+      }
+      var pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('points', pts.join(' '));
+      pl.setAttribute('class', 'chart-curve');
+      g.appendChild(pl);
+      var mx = (state.spend / 2000000) * W;
+      var my = H - (hill(state.spend) / P.alpha) * H;
+      var v = document.createElementNS(NS, 'line');
+      v.setAttribute('x1', mx); v.setAttribute('y1', my); v.setAttribute('x2', mx); v.setAttribute('y2', H);
+      v.setAttribute('class', 'chart-marker-line'); g.appendChild(v);
+      var h = document.createElementNS(NS, 'line');
+      h.setAttribute('x1', 0); h.setAttribute('y1', my); h.setAttribute('x2', mx); h.setAttribute('y2', my);
+      h.setAttribute('class', 'chart-marker-line'); g.appendChild(h);
+      var dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', mx); dot.setAttribute('cy', my); dot.setAttribute('r', 6);
+      dot.setAttribute('class', 'chart-marker-point'); g.appendChild(dot);
+      var lx = document.createElementNS(NS, 'text');
+      for (var tx = 0; tx <= 4; tx++) g.appendChild(tick(W * tx / 4, H + 17, money(tx * 500000), 'middle'));
+      for (var ty = 0; ty <= 4; ty++) g.appendChild(tick(-8, H - H * ty / 4 + 4, money(P.alpha * ty / 4), 'end'));
+      lx.setAttribute('x', W / 2); lx.setAttribute('y', H + 42);
+      lx.setAttribute('class', 'chart-axis-label'); lx.textContent = 'Spend'; g.appendChild(lx);
+      var ly = document.createElementNS(NS, 'text');
+      ly.setAttribute('transform', 'rotate(-90)'); ly.setAttribute('x', -H / 2); ly.setAttribute('y', -62);
+      ly.setAttribute('class', 'chart-axis-label'); ly.textContent = 'Revenue'; g.appendChild(ly);
+    } else {
+      var weeks = 12, band = W / weeks, bw = band * 0.7, gap = band * 0.3;
+      for (var k = 0; k < weeks; k++) {
+        var impact = 100 * Math.pow(state.decay, k);
+        var bh = (impact / 100) * H;
+        var bx = k * (bw + gap) + gap / 2, by = H - bh;
+        var rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', bx); rect.setAttribute('y', by);
+        rect.setAttribute('width', bw); rect.setAttribute('height', bh);
+        rect.setAttribute('class', 'chart-bar');
+        g.appendChild(rect);
+      }
+      var lx2 = document.createElementNS(NS, 'text');
+      for (var wk = 0; wk < weeks; wk += 2) g.appendChild(tick(wk * (bw + gap) + gap / 2 + bw / 2, H + 17, String(wk), 'middle'));
+      for (var tp = 0; tp <= 4; tp++) g.appendChild(tick(-8, H - H * tp / 4 + 4, (25 * tp) + '%', 'end'));
+      lx2.setAttribute('x', W / 2); lx2.setAttribute('y', H + 42);
+      lx2.setAttribute('class', 'chart-axis-label'); lx2.textContent = 'Weeks Since Ad Exposure'; g.appendChild(lx2);
+      var ly2 = document.createElementNS(NS, 'text');
+      ly2.setAttribute('transform', 'rotate(-90)'); ly2.setAttribute('x', -H / 2); ly2.setAttribute('y', -52);
+      ly2.setAttribute('class', 'chart-axis-label'); ly2.textContent = 'Effective Impact (%)'; g.appendChild(ly2);
+    }
+  }
+
+  spendSlider.addEventListener('input', function() { state.spend = +spendSlider.value; spendValue.textContent = money(state.spend); renderChart(); renderMetrics(); });
+  decaySlider.addEventListener('input', function() { state.decay = +decaySlider.value; decayValue.textContent = state.decay.toFixed(2); renderChart(); renderMetrics(); });
+  window.addEventListener('resize', function() { renderChart(); });
+
+  buildTabs();
+  togglePanels();
+  spendValue.textContent = money(state.spend);
+  decayValue.textContent = state.decay.toFixed(2);
+  renderChart();
+  renderMetrics();
+  })();
+  </script><script type="module" src="../../assets/media-panels.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

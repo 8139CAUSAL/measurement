@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Propensity Scores, Matching, and Weighting | Marketing Measurement Science</title>
+  <meta name="description" content="Estimate treatment probabilities, check overlap, and build a comparison group by matching or weighting.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/matching/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/matching/">
+  <meta property="og:title" content="Propensity Scores, Matching, and Weighting | Marketing Measurement Science">
+  <meta property="og:description" content="Estimate treatment probabilities, check overlap, and build a comparison group by matching or weighting.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Propensity Scores, Matching, and Weighting | Marketing Measurement Science">
+  <meta name="twitter:description" content="Estimate treatment probabilities, check overlap, and build a comparison group by matching or weighting.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson ex-lesson">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="./">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Propensity Scores, Matching, and Weighting</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Propensity Scores, Matching, and Weighting</h1></header><div class="ex-content">
+  <p>Customers who join a loyalty program often spent more and ordered more frequently before joining. Matching and weighting use measured characteristics from before treatment to build a more comparable group, and balance diagnostics show how much of the measured differences remain. Unmeasured confounders can still bias the estimate.</p>
+  <nav aria-label="On this page">
+    <ul class="ex-steps">
+      <li><a href="#propensity-scores">Propensity scores</a></li>
+      <li><a href="#overlap">Overlap</a></li>
+      <li><a href="#matching-covariates">What to match on</a></li>
+      <li><a href="#worked-match">Worked match</a></li>
+      <li><a href="#match-the-cohort">Match the cohort</a></li>
+      <li><a href="#weighting">Weighting</a></li>
+      <li><a href="#missing-outcomes">Missing outcomes</a></li>
+      <li><a href="#uncertainty">Uncertainty</a></li>
+    </ul>
+  </nav>
+
+  <section class="ex-card" id="propensity-scores">
+    <h2>Propensity scores</h2>
+    <p>A <strong>propensity score</strong> is the probability that a unit receives treatment given its observed covariates. Here, <i>T</i> indicates treatment and <i>X</i> represents the observed characteristics.</p>
+    <p class="ex-formula">e(X) = P(T = 1 | X)</p>
+    <p>In observational studies, a model such as logistic regression or gradient-boosted trees estimates these probabilities. <em>Matching</em> pairs treated and comparison units with similar scores, <em>stratification</em> groups units into score ranges, <em>weighting</em> reweights units using their treatment probabilities, and <em>regression adjustment</em> includes the score as a covariate.</p>
+    <p>A score of 0.7 means the model estimates a 70% chance that a unit with those characteristics receives treatment. Similar scores indicate similar estimated chances of treatment. Check <a href="#overlap">overlap</a> and <a href="#match-the-cohort">balance on the measured covariates</a> before relying on the comparison.</p>
+  </section>
+
+  <section class="ex-card" id="overlap">
+    <h2>Overlap</h2>
+    <p><strong>Common support</strong> means units in the target population have a meaningful chance of appearing in either the treated or comparison group. This simulated box plot illustrates what poor and good overlap can look like.</p>
+    <div class="ex-actions" role="group" aria-label="Overlap scenario">
+      <button type="button" class="active" data-overlap="poor" aria-pressed="true">Poor overlap</button>
+      <button type="button" data-overlap="good" aria-pressed="false">Good overlap</button>
+    </div>
+    <div class="ex-chart overlap-chart" role="region" aria-label="Propensity score distributions" tabindex="0">
+      <svg id="overlap-plot" viewBox="0 0 600 300" width="100%" role="img" aria-label="Box plot comparing treated and comparison propensity score distributions">
+        <text x="12" y="73" font-size="13">Treated</text>
+        <text x="12" y="178" font-size="13">Comparison</text>
+        <line x1="172" y1="60" x2="172" y2="265" class="guide-line"></line>
+        <line x1="274" y1="60" x2="274" y2="265" class="guide-line"></line>
+        <line x1="376" y1="60" x2="376" y2="265" class="guide-line"></line>
+        <line x1="478" y1="60" x2="478" y2="265" class="guide-line"></line>
+        <line x1="70" y1="265" x2="580" y2="265" class="axis-line"></line>
+        <g font-size="11" text-anchor="middle">
+          <text x="70" y="282">0.0</text>
+          <text x="172" y="282">0.2</text>
+          <text x="274" y="282">0.4</text>
+          <text x="376" y="282">0.6</text>
+          <text x="478" y="282">0.8</text>
+          <text x="580" y="282">1.0</text>
+          <text x="325" y="298">Propensity score</text>
+        </g>
+        <g id="overlap-treated"></g>
+        <g id="overlap-comparison"></g>
+      </svg>
+    </div>
+    <p class="ex-note overlap-scroll-note">Scroll the plot to see the full score range.</p>
+    <p>With poor overlap, the <a href="#match-the-cohort">matching caliper</a> can leave treated units without a comparison, and <a href="#weighting">weighting</a> can give a few units very large weights. The matching tool below reports how many loyalty members had no non-member within the selected caliper.</p>
+  </section>
+
+  <section class="ex-card" id="matching-covariates">
+    <h2>What to match on</h2>
+    <p>Use characteristics measured before the index date, when the comparison starts. The program can change spending or ordering after that date, so matching on those later measures could remove part of the effect you want to estimate.</p>
+    <p>In real data, members join on different dates. A control must have been eligible to join and still a non-member on the matched member’s index date. Use the same baseline and follow-up windows for both. Otherwise, a seasonal swing or a longer follow-up for one group can show up as a spending difference.</p>
+    <p>Some controls will join later. Decide in advance whether to end their control follow-up when they join or keep them in the original group, and report that choice. If they stay in, the estimate compares joining on that date with not having joined yet, and some of the comparison group will be members by the end of follow-up. Choosing controls based on whether they eventually join uses information from after the index date.</p>
+    <p>This simulated cohort has 3,000 customers. Every member joined in the same month. Every non-member was eligible and had not joined by then, and nobody joined during the six-month follow-up. The recorded characteristics are six-month average spend, spend in the last of those months, orders per month, months as a customer, and whether the customer is in the West region. Joining was more likely after an unusually high month of spending.</p>
+  </section>
+
+  <section class="ex-card" id="worked-match">
+    <h2>Worked match with four candidates</h2>
+    <div class="ex-table ex-stack">
+      <table>
+        <thead>
+          <tr><th scope="col">Customer</th><th scope="col">Six-month spend ($/mo)</th><th scope="col">Orders per month</th><th scope="col">Months as a customer</th><th scope="col">Spend gap only</th><th scope="col">Standardized distance</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Member</th><td data-label="Six-month spend ($/mo)">120</td><td data-label="Orders per month">3.0</td><td data-label="Months as a customer">30</td><td data-label="Spend gap only">—</td><td data-label="Standardized distance">—</td></tr>
+          <tr><th scope="row">Candidate A</th><td data-label="Six-month spend ($/mo)">118</td><td data-label="Orders per month">1.0</td><td data-label="Months as a customer">8</td><td data-label="Spend gap only"><strong>$2</strong></td><td data-label="Standardized distance">2.22</td></tr>
+          <tr><th scope="row">Candidate B</th><td data-label="Six-month spend ($/mo)">95</td><td data-label="Orders per month">2.6</td><td data-label="Months as a customer">34</td><td data-label="Spend gap only">$25</td><td data-label="Standardized distance">0.76</td></tr>
+          <tr><th scope="row">Candidate C</th><td data-label="Six-month spend ($/mo)">131</td><td data-label="Orders per month">3.3</td><td data-label="Months as a customer">27</td><td data-label="Spend gap only">$11</td><td data-label="Standardized distance"><strong>0.42</strong></td></tr>
+          <tr><th scope="row">Candidate D</th><td data-label="Six-month spend ($/mo)">160</td><td data-label="Orders per month">3.0</td><td data-label="Months as a customer">31</td><td data-label="Spend gap only">$40</td><td data-label="Standardized distance">1.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The standard deviations in this hand calculation are chosen for easy arithmetic ($40 for monthly spend, 1.2 orders per month and 15 months of tenure). Divide each gap by its standard deviation, square the three results, and take the square root of their sum. For C, that gives √[(11/40)² + (0.3/1.2)² + (3/15)²] ≈ 0.42. The cohort tool calculates its own standard deviations from all members and non-members.</p>
+    <p>Candidate A spends almost the same amount as the member, but orders once a month and has been a customer for eight months. On spend alone, A is closest. Once orders and tenure count, A is farthest and C is closest. The Mahalanobis option below also accounts for correlations among characteristics.</p>
+    <p>To compare spending changes after forming a matched group, use the <a href="../difference-in-differences/#difference-in-differences-lift-calculator">loyalty DiD calculator</a>.</p>
+  </section>
+
+  <section class="ex-card" id="match-the-cohort">
+    <h2>Match the cohort</h2>
+    <p>In the simulated 3,000-customer loyalty cohort, members are matched one at a time, starting with those with the highest estimated probability of joining. Customer ID breaks ties. Each member gets the nearest non-members the settings allow. A member who gets at least one control stays in the analysis, even if the setting asks for three.</p>
+    <div class="ex-fields" id="matching-fields">
+      <label>Distance
+        <select id="matching-distance">
+          <option value="propensity">Propensity score (logit)</option>
+          <option value="mahalanobis">Mahalanobis on the covariates</option>
+        </select>
+      </label>
+      <label>Caliper on the logit score
+        <select id="matching-caliper">
+          <option value="none">None</option>
+          <option value="0.2" selected>0.2 SD</option>
+          <option value="0.05">0.05 SD</option>
+        </select>
+      </label>
+      <label>Controls per member
+        <select id="matching-controls">
+          <option value="without-replacement">1 without replacement</option>
+          <option value="with-replacement">1 with replacement</option>
+          <option value="three-with-replacement">3 with replacement</option>
+        </select>
+      </label>
+      <label>Baseline spend
+        <select id="matching-baseline">
+          <option value="six-month">Six-month average</option>
+          <option value="month-before">Month before the index date</option>
+        </select>
+      </label>
+    </div>
+    <p class="ex-status" id="matching-status" role="status"></p>
+    <p>The Love plot shows standardized mean differences (SMDs) for each characteristic before and after matching.</p>
+    <div class="ex-chart matching-chart">
+      <canvas id="matching-love" role="img" aria-label="Love plot of standardized mean differences before and after matching. All values are in the balance table below."></canvas>
+    </div>
+    <p>The dashed lines at ±0.1 are a common rule of thumb for flagging imbalance. They are not a statistical test. A characteristic inside the lines can still differ in spread, which the variance ratio column shows. Balance on measured characteristics says nothing about unmeasured ones.</p>
+    <div id="matching-balance"></div>
+    <details>
+      <summary>How balance is calculated</summary>
+      <p id="matching-smd-definition">Each standardized mean difference (SMD) divides the member-minus-non-member mean difference by the pooled standard deviation. The pooled standard deviation is the square root of the average of the two full groups’ sample variances. The same denominator is used before and after matching. Only the logit-score denominator changes with the baseline setting, because that setting refits the score model.</p>
+      <p>The variance ratio divides the matched members’ variance by the matched non-members’ weighted variance. Both are mean squared deviations within the matched group. Ratios are shown for continuous measures only.</p>
+      <div id="matching-pooled-sd"></div>
+    </details>
+    <div id="matching-estimates"></div>
+    <p>ATT is the average effect of the program on all members. ATT<sub>M</sub> is the average effect on the members matched under the current settings, so it can change when the settings change who gets a match. The simulation knows both because it records each member’s spend with and without the program. In real data, only one of those is observed.</p>
+    <details>
+      <summary>How the matched estimates are calculated</summary>
+      <p>With membership denoted by <i>T</i> and receiving at least one control by <i>M</i>, ATT is E[Y(1) − Y(0) | T = 1] and ATT<sub>M</sub> is E[Y(1) − Y(0) | T = 1, M = 1].</p>
+      <p>For each matched member, subtract the average change among that member’s controls from the member’s change. Then average those differences, giving each matched member equal weight.</p>
+      <p class="ex-formula">ATT̂<sub>M</sub><sup>DiD</sup> = (1 / N<sub>M</sub>) Σ<sub>i∈M</sub> [ΔY<sub>i</sub> − (1 / k<sub>i</sub>) Σ<sub>j∈C<sub>i</sub></sub> ΔY<sub>j</sub>]</p>
+      <p><i>N</i><sub>M</sub> is the number of matched members, <i>C</i><sub>i</sub> is the set of controls for member <i>i</i>, and <i>k</i><sub>i</sub> is the number in that set. ΔY is average monthly spend after the index date minus the selected baseline. For the matched post-join difference, use post-index spend in place of ΔY. The before-matching estimates are differences of simple means over all members and all non-members.</p>
+      <p id="matching-ess-definition">Each time a non-member is chosen for member <i>i</i>, it receives weight 1/<i>k</i><sub>i</sub>. Add those shares across members to get that non-member’s total weight <i>w</i><sub>j</sub>. The balance table uses these weights for the matched non-member means and variances. The effective sample size (ESS) of the controls is (Σw)² / Σw².</p>
+    </details>
+    <p>A post-join comparison can still reflect differences in how much the groups would have spent without the program. DiD subtracts the baseline gap. If the matched groups would have changed by different amounts without the program, that difference in changes still enters the estimate. See <a href="../difference-in-differences/#parallel-trends">parallel trends</a>.</p>
+
+    <h3>What each setting changes</h3>
+    <p><strong>Distance.</strong> The propensity option matches on the log odds (logit) of the score estimated from baseline spend, orders, tenure and West region. Mahalanobis distance matches directly on those characteristics using their pooled within-group covariance. It works best with a few characteristics, because with many of them close matches become rare.</p>
+    <p><strong>Caliper.</strong> With either distance, a caliper rules out controls whose logit score differs from the member’s by more than the chosen number of pooled standard deviations. The pooled SD comes from all members and non-members before matching. A tighter caliper can change which controls are chosen and which members get a match. Compare the known ATT<sub>M</sub> across settings to see whether the target moved. The last column shows how far the estimate is from that target.</p>
+    <p id="matching-caliper-example"></p>
+    <p><strong>Controls per member and replacement.</strong> Without replacement, each control is used once. Members matched later can get farther-away controls as the closest ones are taken. Reusing a close control can improve balance. When a few controls carry much of the weight, the effective sample size falls below the number of distinct controls. Taking three controls can improve precision, but the additional controls are at least as far away and may worsen balance.</p>
+    <p><strong>Baseline spend.</strong> This setting changes the spend measure used for matching and the baseline subtracted in DiD. Spending after an unusually high month tends to fall back toward the customer’s usual level. If members had the larger spike, using that month as the baseline can pull the estimate down. If controls had the larger spike, it can push the estimate up. In this cohort, the decision to join depended more on usual spending than on a single high month. Two customers can have similar spending in the last month even if it reflects a one-time purchase for one customer and typical spending for the other.</p>
+    <p id="matching-spend-example"></p>
+    <details>
+      <summary>Separate the matching and DiD baselines</summary>
+      <p>Read across a row to change the DiD baseline while keeping the same matches. Read down a column to change the spend measure used for matching while keeping the DiD baseline fixed. Each row uses the known effect for the members it matched.</p>
+      <div id="matching-baseline-breakdown"></div>
+      <p id="matching-six-month-example"></p>
+      <p id="matching-month-before-example"></p>
+    </details>
+  </section>
+
+  <section class="ex-card" id="weighting">
+    <h2>Weighting</h2>
+    <p>In this synthetic cohort of 200 units split equally between two baseline strata, treatment is more common in the high stratum. Reweight each arm toward the same target mix. For propensity <em>e</em>, the ATE weights are 1/<em>e</em> for treatment and 1/(1−<em>e</em>) for control. The ATT uses 1 for treatment and <em>e</em>/(1−<em>e</em>) for control.</p>
+    <div class="ex-fields">
+      <label>Target population
+        <select id="weight-target"><option value="ate">All eligible units (ATE)</option><option value="att">Treated units (ATT)</option></select>
+      </label>
+      <label>Clip weights above
+        <select id="weight-cutoff"><option value="Infinity">Leave weights unchanged</option><option value="5">5</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+      </label>
+    </div>
+    <p id="weight-summary" class="ex-status" role="status"></p>
+    <div id="weight-cohort"></div>
+    <div id="weight-diagnostics"></div>
+    <p>Normalize within each arm for the Hájek mean and apply the same <a href="#matching-ess-definition">effective sample size formula</a> to each arm’s weights. As in the <a href="#matching-smd-definition">matching balance calculation</a>, divide the mean difference by a pooled, unweighted standard deviation that stays fixed before and after adjustment. Here the pooled standard deviation comes from the unweighted high-stratum proportions in the two arms.</p>
+    <p>Check <a href="#overlap">overlap</a> before weighting and use the <a href="#match-the-cohort">balance guidance</a> to interpret the weighted diagnostics. Clipping changes weights and can bias the target estimate. Trimming excludes units and changes the supported target. A missing treatment arm still requires a restriction or a different design.</p>
+    <p>Continue to <a href="#missing-outcomes">Missing outcomes</a> to add selective follow-up to this cohort.</p>
+  </section>
+
+  <section class="ex-card" id="missing-outcomes">
+    <h2>Missing outcomes</h2>
+    <p>Compare measured-baseline loss with loss driven by an unseen outcome. The cohort, treatment and conversion totals come from a simulation. The true effect is visible here for checking what each estimator recovers. Missing outcome values would be unknown in a real cohort.</p>
+    <div class="ex-fields">
+      <label>Outcome follow-up
+        <select id="weight-followup"><option value="complete">Complete outcomes</option><option value="mar">Missing outcomes · baseline-driven</option><option value="mnar">Missing outcomes · outcome-driven</option></select>
+      </label>
+    </div>
+    <div id="weight-missing"></div>
+    <p id="weight-missing-status" class="ex-status" role="status"></p>
+    <details>
+      <summary>Joint weighting and the augmented arm mean</summary>
+      <p>Use treatment exchangeability and missing at random within treatment and baseline strata, with treatment and observation support and a well-defined outcome for all target units. Equal attrition rates are compatible with outcome-dependent selection.</p>
+      <p>For arm <em>d</em>, joint weights divide the treatment weight by the observed fraction π<sub>d</sub> in that arm and baseline stratum. For the ATE this is 1/(p<sub>d</sub>π<sub>d</sub>). The augmented ATE arm mean averages the working outcome regression μ<sub>d</sub>(X) across everyone and adds the full-cohort average of observed arm residuals divided by p<sub>d</sub>π<sub>d</sub>. Other units contribute zero to that correction. For ATT, this example standardizes target predictions and corrections to the treated baseline mix.</p>
+      <p>Under identification, a correct outcome regression or a correct joint probability can give a consistent ATE estimate. Efficiency and inference also depend on estimation rates and other regularity conditions. These two-stratum estimates use empirical cell probabilities, so the untruncated joint weighting and augmentation agree algebraically.</p>
+    </details>
+    <p>For an outcome-dependent loss replay, see <a href="../randomized-experiment/#challenge-conclusion">Threats to the offer estimate</a>. Binary bounds cover possible values of the realized full-cohort contrast. Population inference also needs sampling uncertainty. <a href="../heckman-selection/">Heckman Selection Correction</a> models selection under a different set of assumptions.</p>
+  </section>
+
+  <section class="ex-card" id="uncertainty">
+    <h2>Uncertainty</h2>
+    <p><strong>Matching.</strong> With replacement, matched sets that share a control are dependent. For nearest-neighbor matching with replacement and a fixed number of controls per member, the ordinary bootstrap does not give valid standard errors in general. The Abadie–Imbens variance estimator accounts for reused controls. After matching without replacement, regression standard errors clustered on matched sets can be valid when there is overlap and the matches get closer as the sample grows, as shown by Abadie and Spiess.</p>
+    <p><strong>Weighting.</strong> Estimated propensities can improve precision in some designs. Standard errors that treat weights as fixed can be conservative or anticonservative. In a bootstrap, resample independent units or clusters and refit the full procedure. A regression that residualizes treatment adequately can implicitly weight heterogeneous effects by treatment variance.</p>
+  </section>
+
+  <p class="mg-context">Explore spending changes after matching in the <a href="../difference-in-differences/#difference-in-differences-lift-calculator">loyalty DiD calculator</a>.</p>
+</div>
+
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module" src="../../assets/causal-matching.js"></script><script type="module" src="../../assets/causal-weighting.js"></script><script type="module" src="../../assets/causal-overlap.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

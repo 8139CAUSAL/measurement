@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Difference-in-Differences | Marketing Measurement Science</title>
+  <meta name="description" content="Compare changes in treated and comparison groups over time.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/difference-in-differences/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/difference-in-differences/">
+  <meta property="og:title" content="Difference-in-Differences | Marketing Measurement Science">
+  <meta property="og:description" content="Compare changes in treated and comparison groups over time.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Difference-in-Differences | Marketing Measurement Science">
+  <meta name="twitter:description" content="Compare changes in treated and comparison groups over time.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><link rel="stylesheet" href="../../assets/experiments.css"><script src="../../assets/vendor/chart-4.4.1.min.js"></script>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../uplift-modeling/">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="./">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Difference-in-Differences</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Difference-in-Differences</h1></header><div class="mg-source"><div class="page"><section class="content-card" id="parallel-trends"><h2>Subtract the comparison trend</h2><div class="accordion-body">
+          <p>Compare the <span class="highlight">change in spending</span> for members vs. matched non-members from pre- to post-period.</p>
+          <ul>
+            <li>Controls for time-invariant differences between groups</li>
+            <li>Accounts for external trends affecting everyone equally</li>
+            <li>Estimated program lift = (Member post − Member pre) − (Control post − Control pre)</li>
+          </ul>
+        </div><div class="ex-chart did-gap-chart"><canvas id="did-gap-chart" role="img" aria-label="Line chart of average monthly spend. Members go from $130 before joining to $170 after. The comparison group goes from $100 to $115. A dashed line shows members without the program, going from $130 to $145. The $25 gap after joining is the lift."></canvas></div><p>The average treatment effect on the treated (ATT) is the average difference between the treated group’s outcome with treatment and its potential outcome without treatment. Here it is measured in dollars per member per month. Parallel trends means the groups would have experienced the same average dollar change without the program. The four-mean contrast identifies the ATT under parallel trends, no anticipation of the program, controls that stay unexposed, and member and control populations whose composition stays comparable over time.</p></section>
+
+  <div class="tool-section">
+    <h2 id="difference-in-differences-lift-calculator">Difference-in-Differences Lift Calculator</h2>
+    <p class="tool-desc">Enter average monthly spend for members and matched controls before and after the join date. The default values come from the simulated cohort at the <a href="../matching/#match-the-cohort">default Matching settings</a>. <span id="did-default-example"></span> An interval also requires information about sampling variation and dependence.</p>
+
+    <div class="input-row">
+      <div class="field">
+        <label for="did-member-pre">Members — pre-join spend ($/mo)</label>
+        <input type="number" id="did-member-pre" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="did-member-post">Members — post-join spend ($/mo)</label>
+        <input type="number" id="did-member-post" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="did-control-pre">Matched control — pre-period ($/mo)</label>
+        <input type="number" id="did-control-pre" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="did-control-post">Matched control — post-period ($/mo)</label>
+        <input type="number" id="did-control-post" min="0" step="0.01">
+      </div>
+    </div>
+
+    <div class="status-msg" id="did-status" role="status"></div>
+
+    <div class="results-panel" id="did-results" aria-live="polite">
+      <h3 id="program-lift-decomposition">Program Lift Decomposition</h3>
+      <div id="did-metrics"></div>
+      <p id="did-interp" style="font-size:13px;line-height:1.6;color:var(--mg-secondary);margin:12px 0 0;"></p>
+    </div>
+  </div>
+
+</div></div><div class="ex-content">
+  <section class="ex-card" id="adjusting-for-baseline">
+    <h2>Adjusting for baseline</h2>
+    <p>The same paired pretest and posttest observations can support different comparisons. Ask how units entered each group and which counterfactual mean the design makes credible. These examples are synthetic and use the same measurement scale before and after treatment.</p>
+    <div class="ex-fields">
+      <label>How do the groups differ at enrollment?
+        <select id="baseline-design">
+          <option value="pretest">Assignment depends on the recorded pretest</option>
+          <option value="stable">Groups have stable differences and a noisy pretest</option>
+        </select>
+      </label>
+    </div>
+    <p id="baseline-status" class="ex-status" role="status"></p>
+    <div class="causal-chart-pair">
+      <div class="ex-chart"><canvas id="baseline-chart" role="img" aria-label="Baseline and follow-up scatterplot by group with common-slope regression fits, group means and overlap markers. Values are available in the tables."></canvas></div>
+      <div id="baseline-means"></div>
+    </div>
+    <div id="baseline-effects"></div>
+    <details>
+      <summary>Inspect the paired observations</summary>
+      <div id="baseline-pairs"></div>
+    </details>
+    <p>With two periods, the difference in mean changes subtracts the baseline gap from the posttest gap. That imposes a slope of one in the regression calculation. Common-slope ANCOVA subtracts the fitted within-group slope times the baseline gap.</p>
+    <p>DiD needs parallel group-average untreated trends and no anticipation to identify the usual two-group ATT. Individual trajectories may differ. ANCOVA needs conditional exchangeability at baseline, overlap and a credible outcome model. If slopes differ, allow an interaction and standardize predictions to a named target population. Measurement noise, regression to the mean and weak overlap can all change the comparison.</p>
+    <details>
+      <summary>Worked Bayesian baseline adjustment</summary>
+      <p>Use the recorded-pretest example. To isolate the interval interpretation, fix the common slope at 0.60 and the individual residual standard deviation at 2. The adjusted group gap of 4 has a Gaussian likelihood with variance 2² × (1/8 + 1/8) = 1. A Normal(0, 5²) prior for the gap gives a posterior with mean 3.85 and a central 95% credible interval from 1.92 to 5.77 units.</p>
+      <p>For an independent replicate with the same design and eight units per arm, the posterior predictive 95% interval for the adjusted sample gap is 1.10 to 6.59 units. The observed gap of 4 is inside. In a fitted analysis, compare replicated and observed group spreads and trends as well.</p>
+      <p>A credible interval assigns probability to parameters under the likelihood and priors. A frequentist confidence procedure targets repeated-sample coverage under its assumptions. This conjugate example needs no sampler. For sampled posteriors, inspect R-hat, bulk and tail chain effective sample size, divergences, and predictive checks.</p>
+    </details>
+    <p>The <a href="#difference-in-differences-lift-calculator">calculator above</a> uses the four group means. Estimating the within-group slope requires paired unit-level observations like these.</p>
+  </section>
+  <section class="ex-card">
+    <h2>Who can serve as a control?</h2>
+    <details id="cohort-comparisons">
+      <summary>Explore common and staggered adoption</summary>
+      <h3>Start with one adoption date</h3>
+      <p>With two groups and two periods, subtract the control change from the treated change. In a balanced panel this is also the coefficient on treated-group × post with unit and date fixed effects. With one common adoption date and more periods, the single interaction pools pre and post dates. An event study instead reports the gap at each relative date minus the gap at the last untreated date.</p>
+      <p>In this example, compare early to never-treated stores. Their gaps are 5, 5, 10 and 11 points. Equal date weights give a pooled contrast of (10 + 11)/2 − (5 + 5)/2 = 5.5 points. Putting three quarters of post weight on month 0 gives 5.25 points. Changing sample sizes or panel balance can also change the implicit weights. Against month −1, the event-study contrasts at months 0 and 1 are +5 and +6 points.</p>
+      <h3>Choose a cohort and calendar date</h3>
+      <p>Early stores adopt in month 0, late stores in month 1. Event time is <em>e</em> = <em>t</em> − <em>g</em> for calendar date <em>t</em> and adoption date <em>g</em>. The baseline is <em>e</em> = −1 under no anticipation. If effects can start <em>a</em> periods early, use a baseline before <em>g</em> − <em>a</em> and screen controls for anticipated exposure through the follow-up.</p>
+      <form id="cohort-grid-form">
+        <div class="ex-fields">
+          <label>Treated cohort <select name="cohort"><option value="early">Early</option><option value="late">Late</option></select></label>
+          <label>Follow-up date <select name="date"><option value="0">Month 0</option><option value="1">Month 1</option></select></label>
+          <label>Comparison pool <select name="pool"><option value="untreated">All untreated through follow-up</option><option value="never">Never treated only</option></select></label>
+        </div>
+        <label><input type="checkbox" name="omitNever"> Remove the never-treated cohort</label>
+      </form>
+      <div class="ex-table">
+  <table data-rollout-table>
+    <caption>Illustrative store cohorts · 30-day conversion rates</caption>
+    <thead><tr><th scope="col">Store cohort</th><th scope="col" data-period="-2">Month −2</th><th scope="col" data-period="-1">Month −1</th><th scope="col" data-period="0">Month 0</th><th scope="col" data-period="1">Month 1</th></tr></thead>
+    <tbody>
+      <tr data-cohort="early" data-adoption="0"><th scope="row">Early</th><td>18%</td><td>20%</td><td>27%</td><td>30%</td></tr>
+      <tr data-cohort="late" data-adoption="1"><th scope="row">Late</th><td>16%</td><td>18%</td><td>20%</td><td>26%</td></tr>
+      <tr data-cohort="never"><th scope="row">Never treated</th><td>13%</td><td>15%</td><td>17%</td><td>19%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+      <p class="ex-status" id="cohort-grid-status" role="status">At the defaults, early stores gain 7 points and the two untreated cohorts gain 2 points each. The estimated early-cohort effect at adoption is +5 percentage points.</p>
+      <div class="causal-chart-pair" id="cohort-grid-output" hidden>
+        <div class="ex-chart"><canvas id="cohort-grid-chart" role="img" aria-label="Cohort-specific contrasts by event time. Unsupported periods are listed in the table."></canvas></div>
+        <div id="cohort-grid-comparisons"></div>
+      </div>
+      <p>The grid gives each available comparison cohort equal weight. It shows point contrasts from aggregate rates. To combine several treated cohorts at a horizon, specify the target and its weights. For example, equal weight per treated unit gives larger adoption cohorts more weight. A fixed set of contributing cohorts supports a comparison of effects across horizons for the same population.</p>
+      <p>Already-treated cohorts may have evolving treatment effects, so their observed changes can contaminate a staggered comparison. In the canonical Goodman–Bacon decomposition of a static two-way fixed effects estimate, the two-by-two comparison weights are nonnegative. The implied weights on treated cohort-date effects can be negative. See the <a href="#staggered-adoption">staggered-adoption methods</a> below and the <a href="../randomized-experiment/#rollout-transfer">offer rollout example</a>.</p>
+    </details>
+  </section>
+  <section class="ex-card">
+    <h2>What can pre-trends tell us?</h2>
+    <details id="pre-trends-and-sensitivity">
+      <summary>Explore pre-trend tests and sensitivity</summary>
+      <p>Earlier outcomes can reveal an implausible comparison. A true null can be rejected by chance, and noisy estimates can miss a consequential violation. With one pre-period there is no earlier change to test. Selecting a method or publication because a test passed can distort subsequent effect estimates and intervals. A fitted trend requires its own justification.</p>
+      <p>This separate synthetic event study uses three leads, two post-period estimates and a common reference at event time −1. It assumes 80 independent assignment clusters and an asymptotic Gaussian distribution with the fixed covariance shown below. Use the drift control to ask how often a true linear violation would be detected. The sensitivity control applies to the same fixed estimates and targets the effect at event time 0.</p>
+      <div class="ex-fields">
+        <label>Drift in outcome units per period
+          <select id="pretrend-drift"><option value="0">0</option><option value=".25">0.25</option><option value=".5" selected>0.50</option><option value=".75">0.75</option><option value="1">1.00</option><option value="1.5">1.50</option></select>
+        </label>
+        <label>Pre-trend test
+          <select id="pretrend-test"><option value="screen">Any individually significant lead</option><option value="joint">Joint Wald test</option></select>
+        </label>
+        <label>Smoothness bound (outcome units per period²)
+          <select id="pretrend-bound"><option value="0">0 · linear violation</option><option value="0.25" selected>0.25</option><option value="0.5">0.50</option><option value="1">1.00</option></select>
+        </label>
+      </div>
+      <p class="ex-status" id="pretrend-status" role="status">At 0.50 outcome units of drift per period, the individual-lead screen detects the violation about 85% of the time. The 80% minimum detectable violation is 0.466 units per period.</p>
+      <div class="ex-chart"><canvas id="pretrend-chart" role="img" aria-label="Event-study estimates, pointwise intervals, simultaneous bands and the proposed pre-treatment drift. See the event-study table."></canvas></div>
+      <div id="pretrend-event-table"></div>
+      <p class="ex-status" id="sensitivity-status" role="status">At smoothness bound M = 0.25, the robust 95% interval for the event-time 0 effect is 0.22 to 3.08 outcome units.</p>
+      <div id="sensitivity-table"></div>
+      <p>The individual screen rejects if any single unadjusted 5% lead test rejects, so its overall false-positive rate can exceed 5%. The joint Wald test uses the full lead covariance and a 5% joint critical value. Detection probability and the 80% minimum detectable violation are specific to the proposed drift and test. This asks a different question from <a href="../sample-size-and-power/#pw-panel-paired-did">planning power to detect a treatment effect</a>.</p>
+      <p>The smoothness restriction bounds changes in the slope of the underlying untreated-gap path, including the first post-period. A relative-magnitude restriction instead bounds post-period first differences by a multiple of the largest absolute underlying pre-period first difference. Sampled leads have uncertainty. Use a common reference and carry the full covariance, including when converting adjacent contrasts. The identified range below plugs in the pre-period path and omits sampling error. The HonestDiD fixed-length confidence interval (FLCI) uses a fixed half-width to account for sampling uncertainty and the largest bias allowed by the selected restriction. It was computed with the HonestDiD R package, version 0.2.8.</p>
+      <details>
+        <summary>Inspect the estimates, covariance and calculation</summary>
+        <div id="pretrend-covariance"></div>
+        <p>The example compares two group means of baseline-referenced outcomes, with 40 independent clusters per group. The cluster outcome vector has covariance equal to 20 times the displayed matrix in each arm. The covariance of the difference of means then equals the displayed matrix. Pointwise intervals target each coefficient separately. Simultaneous bands use a Bonferroni critical value across all five estimated coefficients. The omitted baseline is zero by construction.</p>
+        <p>The lead screen averages rejection over 250,000 fixed Gaussian draws. Its percentages are shown to one decimal place. The joint test uses the noncentral chi-squared distribution under the hypothesized drift.</p>
+      </details>
+      <p>Cluster at the level of assignment and relevant dependence. With few treated clusters, ordinary and bootstrap intervals may give unreliable coverage. Randomization inference needs a defensible assignment mechanism.</p>
+    </details>
+  </section>
+</div>
+<div class="ex-content">
+  <section class="ex-card">
+    <h2>Extensions and alternatives</h2>
+    <p>These designs extend the two-group comparison to staggered adoption, eligibility subgroups, spillovers, varying treatment intensity, and quantile or exit outcomes. Panel-based counterfactual methods are an alternative when no comparison group has a parallel untreated trend. Cutoff designs apply when eligibility follows a documented score threshold.</p>
+    <details id="staggered-adoption">
+      <summary>Adoption by cohort</summary>
+      <p id="common-adoption">One shared start with outcomes before and after? Start with <a href="#parallel-trends">the 2×2 contrast and common-adoption fixed effects</a>. With multiple starts, keep calendar dates and event time separate. The <a href="#cohort-comparisons">cohort grid</a> shows an unadjusted effect for one cohort and date.</p>
+      <article id="callaway-santanna">
+        <h3>Callaway–Sant’Anna</h3>
+        <p>Estimate effects by adoption cohort and calendar date using never-treated or not-yet-treated comparisons outside their anticipation window. Inspect overlap and cohort counts before aggregating.</p>
+      </article>
+      <article id="sun-abraham">
+        <h3>Sun–Abraham</h3>
+        <p>Estimate cohort-by-event-time effects in a panel using an untreated reference. Report which cohorts contribute at each horizon. A changing cohort mix can look like a changing effect.</p>
+      </article>
+      <article id="stacked-did">
+        <h3>Stacked DiD</h3>
+        <p>Build a window for each adoption cohort with controls untreated throughout it. Keep cohort composition comparable, weight each stack for the target effect, and account for controls reused across stacks.</p>
+      </article>
+      <article id="local-projection-did">
+        <h3>Local-projection DiD</h3>
+        <p>For each horizon, compare changes from the last untreated date using controls still untreated through that horizon. Check the sample and weights at each horizon.</p>
+      </article>
+      <article id="dml-did">
+        <h3>Double/debiased machine learning (DML)</h3>
+        <p>Use a score whose expected value is locally insensitive to small errors in the outcome and treatment models, under conditional parallel trends and overlap. In panels, estimate the untreated outcome change and treatment propensity from baseline covariates. Adjusting for treatment-affected covariates can introduce bias. Split folds by independent unit or cluster. <a href="../matching/#weighting">propensity weighting</a> · <a href="../uplift-modeling/#panel-observational-targeting">cross-fitting</a></p>
+      </article>
+    </details>
+    <details id="untreated-outcomes">
+      <summary>Untreated-outcome models</summary>
+      <p>Pooling earlier untreated dates can improve precision when they support the same counterfactual model.</p>
+      <article id="imputation-did"><h3>Borusyak–Jaravel–Spiess imputation</h3>
+        <p>Fit an outcome model on untreated observations. Predict what treated outcomes would have been at supported dates, then average the observed-minus-predicted differences with target weights.</p></article>
+      <article id="two-stage-did"><h3>Gardner two-stage DiD</h3>
+        <p>Fit unit or group and date effects using untreated observations. Regress the residualized outcomes on the treatment indicators. Carry first-stage uncertainty into inference.</p></article>
+      <article id="efficient-did"><h3>Chen–Sant’Anna–Xie efficient DiD</h3>
+        <p>Combine pre-period contrasts when their moment restrictions are credible. Additional pre-periods can improve precision, and invalid restrictions can introduce bias.</p></article>
+      <article id="extended-twfe"><h3>Wooldridge extended TWFE</h3>
+        <p>Use a separate cohort-by-calendar-date treatment indicator for each supported cell. With nonlinear models, report the average difference in predicted outcomes on the outcome scale.</p></article>
+      <article id="rolling-did"><h3>Lee–Wooldridge rolling DiD</h3>
+        <p>Update the comparison set at each adoption horizon. If you detrend using earlier periods, check whether the estimated trends are stable and the remaining comparisons have support.</p></article>
+      <p><strong>Hausman comparison.</strong> Compare estimates of the same effect on the same sample. Account for their covariance when estimating the uncertainty of their difference. <a href="#pre-trends-and-sensitivity">Pre-trend sensitivity</a></p>
+    </details>
+    <details id="panel-counterfactual-methods">
+      <summary>Panel-based counterfactual methods</summary>
+      <p>Synthetic control, synthetic DiD and TROP use repeated outcomes from untreated comparison units to estimate what would have happened to the treated units without the intervention. Unlike two-group DiD, synthetic control does not require a comparison group with a parallel untreated trend. It assumes that the weighted blend of comparison units that reproduces the treated unit’s pre-treatment outcomes would have continued to track its untreated outcomes after treatment. The comparison units available for this are often called the donor pool. The methods differ in how they build the counterfactual: unit weights, time weights, and an outcome model.</p>
+      <figure class="causal-figure" id="synthetic-counterfactual">
+        <ul class="causal-legend" aria-hidden="true">
+          <li><svg viewBox="0 0 40 16"><line x1="2" y1="8" x2="38" y2="8" stroke="#8592BE" stroke-width="2.5" stroke-dasharray="3 6" stroke-linecap="round"/><path d="M15.5 3.5h9v9h-9z" fill="#8592BE"/></svg>Comparison Store A</li>
+          <li><svg viewBox="0 0 40 16"><line x1="2" y1="8" x2="38" y2="8" stroke="#4E5B83" stroke-width="2.5" stroke-dasharray="3 6" stroke-linecap="round"/><path d="M20 1 26.1 11.5h-12.2z" fill="#4E5B83"/></svg>Comparison Store B</li>
+          <li><svg viewBox="0 0 40 16"><line x1="2" y1="8" x2="38" y2="8" stroke="#B83F8D" stroke-width="2.5" stroke-dasharray="10 6"/><path d="M20 .5 27.5 8 20 15.5 12.5 8z" fill="#B83F8D"/></svg>Synthetic Counterfactual</li>
+          <li><svg viewBox="0 0 40 16"><line x1="2" y1="8" x2="38" y2="8" stroke="#0284C7" stroke-width="2.5"/><circle cx="20" cy="8" r="5" fill="#0284C7"/></svg>Campaign Store</li>
+        </ul>
+        <div class="ex-chart causal-synthetic-chart">
+          <svg id="synthetic-history" class="causal-synthetic-svg" role="img" aria-labelledby="synthetic-history-description">
+            <desc id="synthetic-history-description">Weekly sales for four weeks before and three weeks after a campaign launch. Comparison Store A sells 8, 10, 9 and 12 units before launch and 12, 14 and 15 units after. Comparison Store B sells 12, 10, 14 and 14 units before launch and 16, 16 and 17 units after. Before launch, the synthetic counterfactual, 0.75 times Comparison Store A plus 0.25 times Comparison Store B plus 1 unit, matches the Campaign Store exactly: 10, 11, 11.25 and 13.5 units. After launch the Campaign Store sells 16, 18 and 20 units, while the synthetic counterfactual is 14, 15.5 and 16.5 units.</desc>
+            <defs>
+              <path id="causal-mark-square" d="M-4.5 -4.5h9v9h-9z"/>
+              <path id="causal-mark-triangle" d="M0 -7 6.1 3.5h-12.2z"/>
+              <path id="causal-mark-diamond" d="M0 -8.5 8.5 0 0 8.5 -8.5 0z"/>
+            </defs>
+            <g class="causal-grid">
+              <line x1="0" x2="100%" y1="85.714%" y2="85.714%"/>
+              <line x1="0" x2="100%" y1="71.429%" y2="71.429%"/>
+              <line x1="0" x2="100%" y1="57.143%" y2="57.143%"/>
+              <line x1="0" x2="100%" y1="42.857%" y2="42.857%"/>
+              <line x1="0" x2="100%" y1="28.571%" y2="28.571%"/>
+              <line x1="0" x2="100%" y1="14.286%" y2="14.286%"/>
+              <line x1="0" x2="100%" y1="0%" y2="0%"/>
+            </g>
+            <g class="causal-axis">
+              <line x1="0" x2="0" y1="0" y2="100%"/>
+              <line x1="0" x2="100%" y1="100%" y2="100%"/>
+            </g>
+            <g class="causal-ticks" aria-hidden="true">
+              <text x="0" y="100%" dx="-8" dy=".35em" text-anchor="end">8</text>
+              <text x="0" y="85.714%" dx="-8" dy=".35em" text-anchor="end">10</text>
+              <text x="0" y="71.429%" dx="-8" dy=".35em" text-anchor="end">12</text>
+              <text x="0" y="57.143%" dx="-8" dy=".35em" text-anchor="end">14</text>
+              <text x="0" y="42.857%" dx="-8" dy=".35em" text-anchor="end">16</text>
+              <text x="0" y="28.571%" dx="-8" dy=".35em" text-anchor="end">18</text>
+              <text x="0" y="14.286%" dx="-8" dy=".35em" text-anchor="end">20</text>
+              <text x="0" y="0%" dx="-8" dy=".35em" text-anchor="end">22</text>
+              <text x="3.846%" y="100%" dy="20" text-anchor="middle">−4</text>
+              <text x="19.231%" y="100%" dy="20" text-anchor="middle">−3</text>
+              <text x="34.615%" y="100%" dy="20" text-anchor="middle">−2</text>
+              <text x="50%" y="100%" dy="20" text-anchor="middle">−1</text>
+              <text x="65.385%" y="100%" dy="20" text-anchor="middle">0</text>
+              <text x="80.769%" y="100%" dy="20" text-anchor="middle">1</text>
+              <text x="96.154%" y="100%" dy="20" text-anchor="middle">2</text>
+            </g>
+            <text class="causal-axis-title" x="0" y="0" dx="-30" dy="-16" aria-hidden="true">Weekly Sales (Units)</text>
+            <text class="causal-axis-title" x="50%" y="100%" dy="44" text-anchor="middle" aria-hidden="true">Weeks Relative to Campaign Launch</text>
+            <line class="causal-launch" x1="65.385%" x2="65.385%" y1="0" y2="100%"/>
+            <text class="causal-launch-label" x="65.385%" y="0" dy="-16" text-anchor="middle" aria-hidden="true">Campaign Launch</text>
+            <g class="causal-series" stroke="#8592BE" fill="#8592BE">
+              <g class="causal-line-dotted">
+                <line x1="3.846%" y1="100%" x2="19.231%" y2="85.714%"/>
+                <line x1="19.231%" y1="85.714%" x2="34.615%" y2="92.857%"/>
+                <line x1="34.615%" y1="92.857%" x2="50%" y2="71.429%"/>
+                <line x1="50%" y1="71.429%" x2="65.385%" y2="71.429%"/>
+                <line x1="65.385%" y1="71.429%" x2="80.769%" y2="57.143%"/>
+                <line x1="80.769%" y1="57.143%" x2="96.154%" y2="50%"/>
+              </g>
+              <g class="causal-marks">
+                <use href="#causal-mark-square" x="3.846%" y="100%"/>
+                <use href="#causal-mark-square" x="19.231%" y="85.714%"/>
+                <use href="#causal-mark-square" x="34.615%" y="92.857%"/>
+                <use href="#causal-mark-square" x="50%" y="71.429%"/>
+                <use href="#causal-mark-square" x="65.385%" y="71.429%"/>
+                <use href="#causal-mark-square" x="80.769%" y="57.143%"/>
+                <use href="#causal-mark-square" x="96.154%" y="50%"/>
+              </g>
+            </g>
+            <g class="causal-series" stroke="#4E5B83" fill="#4E5B83">
+              <g class="causal-line-dotted">
+                <line x1="3.846%" y1="71.429%" x2="19.231%" y2="85.714%"/>
+                <line x1="19.231%" y1="85.714%" x2="34.615%" y2="57.143%"/>
+                <line x1="34.615%" y1="57.143%" x2="50%" y2="57.143%"/>
+                <line x1="50%" y1="57.143%" x2="65.385%" y2="42.857%"/>
+                <line x1="65.385%" y1="42.857%" x2="80.769%" y2="42.857%"/>
+                <line x1="80.769%" y1="42.857%" x2="96.154%" y2="35.714%"/>
+              </g>
+              <g class="causal-marks">
+                <use href="#causal-mark-triangle" x="3.846%" y="71.429%"/>
+                <use href="#causal-mark-triangle" x="19.231%" y="85.714%"/>
+                <use href="#causal-mark-triangle" x="34.615%" y="57.143%"/>
+                <use href="#causal-mark-triangle" x="50%" y="57.143%"/>
+                <use href="#causal-mark-triangle" x="65.385%" y="42.857%"/>
+                <use href="#causal-mark-triangle" x="80.769%" y="42.857%"/>
+                <use href="#causal-mark-triangle" x="96.154%" y="35.714%"/>
+              </g>
+            </g>
+            <g class="causal-series" stroke="#B83F8D" fill="#B83F8D">
+              <g class="causal-line-dashed">
+                <line x1="3.846%" y1="85.714%" x2="19.231%" y2="78.571%"/>
+                <line x1="19.231%" y1="78.571%" x2="34.615%" y2="76.786%"/>
+                <line x1="34.615%" y1="76.786%" x2="50%" y2="60.714%"/>
+                <line x1="50%" y1="60.714%" x2="65.385%" y2="57.143%"/>
+                <line x1="65.385%" y1="57.143%" x2="80.769%" y2="46.429%"/>
+                <line x1="80.769%" y1="46.429%" x2="96.154%" y2="39.286%"/>
+              </g>
+              <g class="causal-marks causal-marks-under">
+                <use href="#causal-mark-diamond" x="3.846%" y="85.714%"/>
+                <use href="#causal-mark-diamond" x="19.231%" y="78.571%"/>
+                <use href="#causal-mark-diamond" x="34.615%" y="76.786%"/>
+                <use href="#causal-mark-diamond" x="50%" y="60.714%"/>
+                <use href="#causal-mark-diamond" x="65.385%" y="57.143%"/>
+                <use href="#causal-mark-diamond" x="80.769%" y="46.429%"/>
+                <use href="#causal-mark-diamond" x="96.154%" y="39.286%"/>
+              </g>
+            </g>
+            <g class="causal-series" stroke="#0284C7" fill="#0284C7">
+              <g>
+                <line x1="3.846%" y1="85.714%" x2="19.231%" y2="78.571%"/>
+                <line x1="19.231%" y1="78.571%" x2="34.615%" y2="76.786%"/>
+                <line x1="34.615%" y1="76.786%" x2="50%" y2="60.714%"/>
+                <line x1="50%" y1="60.714%" x2="65.385%" y2="42.857%"/>
+                <line x1="65.385%" y1="42.857%" x2="80.769%" y2="28.571%"/>
+                <line x1="80.769%" y1="28.571%" x2="96.154%" y2="14.286%"/>
+              </g>
+              <g class="causal-marks">
+                <circle cx="3.846%" cy="85.714%" r="5"/>
+                <circle cx="19.231%" cy="78.571%" r="5"/>
+                <circle cx="34.615%" cy="76.786%" r="5"/>
+                <circle cx="50%" cy="60.714%" r="5"/>
+                <circle cx="65.385%" cy="42.857%" r="5"/>
+                <circle cx="80.769%" cy="28.571%" r="5"/>
+                <circle cx="96.154%" cy="14.286%" r="5"/>
+              </g>
+            </g>
+            <g class="causal-hover">
+              <rect x="0%" y="0" width="11.538%" height="100%"><title>Week −4 · Campaign Store: 10 units; Synthetic Counterfactual: 10 units; Comparison Store B: 12 units; Comparison Store A: 8 units</title></rect>
+              <rect x="11.538%" y="0" width="15.385%" height="100%"><title>Week −3 · Campaign Store: 11 units; Synthetic Counterfactual: 11 units; Comparison Store B: 10 units; Comparison Store A: 10 units</title></rect>
+              <rect x="26.923%" y="0" width="15.385%" height="100%"><title>Week −2 · Campaign Store: 11.25 units; Synthetic Counterfactual: 11.25 units; Comparison Store B: 14 units; Comparison Store A: 9 units</title></rect>
+              <rect x="42.308%" y="0" width="15.385%" height="100%"><title>Week −1 · Campaign Store: 13.5 units; Synthetic Counterfactual: 13.5 units; Comparison Store B: 14 units; Comparison Store A: 12 units</title></rect>
+              <rect x="57.692%" y="0" width="15.385%" height="100%"><title>Week 0 · Campaign Store: 16 units; Synthetic Counterfactual: 14 units; Comparison Store B: 16 units; Comparison Store A: 12 units</title></rect>
+              <rect x="73.077%" y="0" width="15.385%" height="100%"><title>Week 1 · Campaign Store: 18 units; Synthetic Counterfactual: 15.5 units; Comparison Store B: 16 units; Comparison Store A: 14 units</title></rect>
+              <rect x="88.462%" y="0" width="11.538%" height="100%"><title>Week 2 · Campaign Store: 20 units; Synthetic Counterfactual: 16.5 units; Comparison Store B: 17 units; Comparison Store A: 15 units</title></rect>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Illustrative retail example. Weights of 0.75 and 0.25 on two comparison stores, plus a level adjustment of 1 unit, reproduce the campaign store's weekly sales before launch. After launch, the gap between the campaign store and the synthetic counterfactual (2, 2.5 and 3.5 units) estimates the campaign's effect. The unit weights and level adjustment are the part of synthetic DiD shown here; its time weights are not.</figcaption>
+      </figure>
+      <article id="synthetic-control"><h3>Synthetic control</h3>
+        <p>Compare the treated unit with a weighted blend of untreated comparison units chosen to match its pre-treatment outcome path. Check pre-treatment fit, weight concentration, and placebo gaps under the same fitting rules.</p></article>
+      <article id="synthetic-did"><h3>Synthetic DiD</h3>
+        <p>Weight comparison units to match the treated pre-period path up to a level offset. Weight pre-period dates to match the comparison units’ later level. Inspect both sets of weights.</p></article>
+      <article id="trop"><h3>Triply robust panel (TROP)</h3>
+        <p>Combine unit and time weighting with additive effects and a latent factor model. Check prediction on untreated cells held out of fitting and sensitivity to the factor specification.</p></article>
+    </details>
+    <details id="eligibility-and-exposure">
+      <summary>Eligibility and spillovers</summary>
+      <figure class="causal-figure ex-table">
+        <table><caption>Eight cells for a triple difference</caption><thead><tr><th scope="col">Area and date</th><th scope="col">Eligible</th><th scope="col">Ineligible</th></tr></thead><tbody>
+          <tr><th scope="row">Program area · before</th><td>Eligible baseline</td><td>Subgroup baseline</td></tr>
+          <tr><th scope="row">Program area · after</th><td>Exposed</td><td>Must be unaffected</td></tr>
+          <tr><th scope="row">Comparison area · before</th><td>Eligible baseline</td><td>Subgroup baseline</td></tr>
+          <tr><th scope="row">Comparison area · after</th><td>Unexposed comparison</td><td>Unexposed subgroup</td></tr>
+        </tbody></table>
+        <figcaption>Form the eligible-minus-ineligible gap in each row. Compare its change across areas.</figcaption>
+      </figure>
+      <article id="common-ddd"><h3>Common-adoption triple differences (DDD)</h3>
+        <p>Compare changes in the eligibility gap across areas. Require an unaffected subgroup and parallel untreated changes in those gaps. Use a common target covariate distribution when adjusting.</p></article>
+      <article id="staggered-ddd"><h3>Staggered triple differences</h3>
+        <p>Form a triple difference for each supported cohort and date using an untreated comparison cohort with both eligibility groups. Aggregate using weights for the target population.</p></article>
+      <article id="spillover-did"><h3>Spatial spillover DiD</h3>
+        <figure class="causal-figure">
+          <ol class="causal-exposure" aria-label="Exposure map from the treatment location to an unexposed area">
+            <li><strong>Program area</strong><span>Own adoption at month 0</span></li>
+            <li><strong>Neighbor</strong><span>First exposure at month 0</span></li>
+            <li><strong>Outside radius</strong><span>Clean comparison while unexposed</span></li>
+          </ol>
+          <figcaption>Define the exposure radius from how the intervention travels. Record own adoption and first neighbor exposure separately.</figcaption>
+        </figure>
+        <p>Record own treatment and nearby exposure separately. A direct effect holds nearby exposure fixed. A spillover effect varies nearby exposure among untreated units. Check support for the chosen contrast.</p>
+      </article>
+    </details>
+    <details id="dose-and-switching">
+      <summary>Treatment intensity and switching</summary>
+      <p>In marketing data, treatment intensity can be measured by weekly advertising spend, impressions or gross rating points in a market. Markets can launch at different budgets, and spend can later rise, fall, pause or resume. Which comparison is available depends on whether some markets stay at zero spend, whether spend changes come close to zero, and whether some markets hold their starting spend.</p>
+      <figure class="causal-figure ex-table"><table>
+        <caption>Illustrative weekly advertising spend by market ($&nbsp;thousands)</caption>
+        <thead><tr><th scope="col">Market</th><th scope="col">Baseline</th><th scope="col">Week 1</th><th scope="col">Week 2</th><th scope="col">Week 3</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Market A<span class="causal-path-note">No paid media</span></th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><th scope="row">Market B<span class="causal-path-note">Small launch budget</span></th><td>0</td><td>0.5</td><td>0.5</td><td>0.5</td></tr>
+          <tr><th scope="row">Market C<span class="causal-path-note">Large launch budget</span></th><td>0</td><td>8</td><td>8</td><td>8</td></tr>
+          <tr><th scope="row">Market D<span class="causal-path-note">Raises, pauses, resumes</span></th><td>20</td><td>40</td><td>0</td><td>30</td></tr>
+          <tr><th scope="row">Market E<span class="causal-path-note">Holds its starting spend</span></th><td>20</td><td>20</td><td>20</td><td>20</td></tr>
+        </tbody>
+      </table><figcaption>Market A stays dark, so it is the zero-spend comparison for Markets B and C. Market B’s launch budget sits close to zero. Market D doubles its spend, goes dark in week 2 and resumes above its starting level, so its path crosses its baseline. Market E holds its starting spend throughout. Group markets by starting spend and by the week and direction of their first spend change before building horizon comparisons.</figcaption></figure>
+      <article id="continuous-dose"><h3>DiD with continuous treatment intensity</h3>
+        <p>Compare markets that launch at a given weekly spend with markets that stay at zero spend, such as Market C against Market A. Under parallel trends in untreated outcomes, this identifies the average effect of that spend level for the markets that chose it. Comparing effects across spend levels, such as Market B’s budget against Market C’s, requires additional comparability assumptions: markets that chose larger budgets may have responded differently to the same spend.</p></article>
+      <article id="didhad"><h3>Heterogeneous adoption without stayers (DIDHAD)</h3>
+        <p>Sometimes every market starts spending in the same week and none stays at zero, so no market can play Market A’s role. Markets whose spend rises only slightly, like Market B, can then identify the untreated change in outcomes under continuity at zero spend and common trends. Check whether enough markets launch with budgets near zero to support that boundary. If every launch budget is far from zero, the untreated change requires extrapolation or additional comparisons.</p></article>
+      <article id="intertemporal-did"><h3>Intertemporal DiD</h3>
+        <p>Compare switchers, markets whose spend changes, with stayers that hold the same starting spend through follow-up, such as Market D against Market E. The effect compares Market D’s sales under its observed spend path with its sales had it held its starting spend. Advertising effects can carry over into later weeks, so check earlier spend histories. Inspect increases and cuts separately: Market D’s increase in week 1 and its pause in week 2 can move sales in opposite directions.</p></article>
+    </details>
+    <details id="quantile-did">
+      <summary>Quantiles and exit</summary>
+      <figure class="causal-figure">
+        <ol class="causal-exposure" aria-label="Changes-in-changes rank transport">
+          <li><strong>Treated pre-quantile</strong><span>Locate its outcome value.</span></li>
+          <li><strong>Control pre-rank</strong><span>Find the percentile of that value among controls.</span></li>
+          <li><strong>Control post-quantile</strong><span>Read the outcome at that percentile.</span></li>
+        </ol>
+        <figcaption>The transported outcome is the treated group’s counterfactual post quantile. Subtract it from the observed treated post quantile.</figcaption>
+      </figure>
+      <article id="changes-in-changes"><h3>Changes-in-changes (CiC)</h3>
+        <p>Find the treated pre-period outcome’s rank in the control distribution. Read the control post-period outcome at that rank. Check shared support and stable composition under a common monotone outcome transformation.</p></article>
+      <article id="additive-quantile-did"><h3>Additive quantile DiD</h3>
+        <p>Apply the control group’s change in a specified quantile to the treated group’s pre-treatment quantile. This assumes parallel untreated quantile shifts on the chosen outcome scale.</p></article>
+      <article id="duration-did"><h3>Duration DiD</h3>
+        <p>For contract exit, compare cumulative exit by a specified duration. Align the start date and risk sets. Check censoring before comparing outcomes.</p>
+        <div class="ex-table"><table>
+          <caption>Illustrative survival and cumulative hazards</caption>
+          <thead><tr><th scope="col">Group</th><th scope="col">Survival at month 1</th><th scope="col">Survival at month 2</th><th scope="col">ΔH</th><th scope="col">Interval exit probability among month-1 survivors</th></tr></thead>
+          <tbody><tr><th scope="row">Comparison</th><td>0.80</td><td>0.72</td><td>0.105</td><td>10%</td></tr>
+          <tr><th scope="row">Treated, observed</th><td>0.75</td><td>0.60</td><td>0.223</td><td>20%</td></tr></tbody>
+        </table></div>
+        <p>The interval exit probability is 1 − exp(−Δ<i>H</i>), where <i>H</i> = −log(survival). Use an additive or proportional hazard restriction to reconstruct counterfactual survival, then report cumulative exit as one minus survival. <a href="../../models/retention/">Retention</a></p>
+      </article>
+    </details>
+    <details id="cutoff-designs">
+      <summary>Cutoff designs</summary>
+      <p>Does a documented score threshold change eligibility, with outcome data just above and below it? Go to <a href="../regression-discontinuity/#eligibility-rule">sharp and fuzzy Regression Discontinuity</a> to choose between an eligibility effect and a local receipt effect, and use the <a href="../regression-discontinuity/#cutoff-explorer">cutoff explorer</a> to inspect both sides.</p>
+    </details>
+  </section>
+  <section class="ex-card" id="design-chooser">
+    <h2>Choose a design</h2>
+    <p>This chooser covers designs that use outcome histories or a documented cutoff. Choose the outcome, timing and comparisons you observe. For a post-only study, see the <a href="#post-only-designs">assignment and adjustment routes</a>.</p>
+    <details id="post-only-designs">
+      <summary>Post-only studies</summary>
+      <p>Random assignment can identify an effect using follow-up outcomes alone. See <a href="../randomized-assignment/">randomized assignment</a> and the <a href="../randomized-experiment/">Offer Experiment</a>. In observational data, <a href="../matching/#propensity-scores">propensity-based adjustment</a> can support a comparison if measured pre-treatment covariates account for confounding and there is adequate overlap.</p>
+    </details>
+    <form id="causal-chooser-form">
+      <div class="ex-fields causal-fields">
+        <label>Target effect
+          <select name="target"><option value="mean">Mean outcome</option><option value="quantile">Outcome quantile</option><option value="exit">Cumulative exit probability</option><option value="cutoff">Local effect at an eligibility cutoff</option></select>
+        </label>
+        <label>Outcome observations
+          <select name="waves"><option value="panel">Panel · same units over time</option><option value="repeated">Comparable repeated cross-sections</option><option value="post">Post-treatment outcomes only</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="timing">Treatment timing and history
+          <select name="timing"><option value="common">One shared start, treatment stays on</option><option value="staggered" selected>Different starts, treatment stays on</option><option value="dose">Treatment intensity varies</option><option value="switching">Treatment switches on or off</option><option value="mixed">Treatment intensity varies and treatment switches repeatedly</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="pool">Available comparisons
+          <select name="pool"><option value="never">Unexposed, never-treated units</option><option value="later">Later-treated, still unexposed</option><option value="donors">Untreated comparison units with long histories</option><option value="none">No credible unexposed comparisons</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="cutoff">Documented eligibility cutoff and outcomes on both sides?
+          <select name="cutoff"><option value="unknown">Unknown</option><option value="no">No</option><option value="sharp">Yes · receipt follows the rule</option><option value="fuzzy">Yes · receipt varies around it</option></select>
+        </label>
+        <label data-choose="exposure">Neighbor exposure
+          <select name="exposure"><option value="none">No suspected spillovers</option><option value="known">Exposure varies and is mapped</option><option value="all">Every candidate is exposed</option><option value="unknown">Exposure is unknown</option></select>
+        </label>
+        <label data-choose="independent">Can own treatment and neighbor exposure vary separately?
+          <select name="independent"><option value="unknown">Unknown</option><option value="yes">Yes · observed combinations overlap</option><option value="no">No · they move together</option></select>
+        </label>
+        <label data-choose="eligibility">Unaffected ineligible subgroup in both groups?
+          <select name="eligibility"><option value="no">No subgroup needed for this comparison</option><option value="yes">Yes · compare eligibility gaps</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="dose">Treatment intensity support near adoption
+          <select name="dose"><option value="zero">Observed untreated units</option><option value="near-zero">No untreated units, changes approach zero</option><option value="far">All positive changes bounded away from zero</option><option value="unknown">Unknown</option></select>
+        </label>
+        <label data-choose="stayers">Stayers with the same initial treatment?
+          <select name="stayers"><option value="yes">Yes · stay at baseline through follow-up</option><option value="no">No same-baseline stayers</option><option value="unknown">Unknown</option></select>
+        </label>
+      </div>
+    </form>
+    <div class="ex-status" id="causal-chooser-result" role="status" aria-atomic="true">
+      <p><strong>Staggered DiD.</strong> Compare each adoption cohort with unexposed, untreated observations at the same dates. Verify parallel untreated changes, no anticipation, and stable composition. See <a href="#staggered-adoption">staggered-adoption methods</a>.</p>
+    </div>
+    <p>Before fitting, check who remains untreated and unexposed at each horizon. Tabulate missing outcomes and check whether group composition changes.</p>
+  </section>
+</div>
+
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script type="module">
+import { matchingExample } from "../../assets/causal-matching-data.js";
+
+document.addEventListener('DOMContentLoaded', function() {
+  /* Difference-in-Differences calculator */
+  const fields = ['did-member-pre', 'did-member-post', 'did-control-pre', 'did-control-post']
+    .map(id => document.getElementById(id));
+  function money(n) {
+    var sign = n < 0 ? '−$' : '$';
+    return sign + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function calcDiD() {
+    var status = document.getElementById('did-status');
+    var results = document.getElementById('did-results');
+    status.className = 'status-msg';
+    status.textContent = '';
+
+    const [mPre, mPost, cPre, cPost] = fields.map(field => field.valueAsNumber);
+
+    if ([mPre, mPost, cPre, cPost].some(function(v) { return !Number.isFinite(v) || v < 0; })) {
+      status.className = 'status-msg error';
+      status.textContent = 'Enter four nonnegative spend values.';
+      results.classList.remove('visible');
+      return;
+    }
+
+    var naive = mPost - mPre;
+    var trend = cPost - cPre;
+    var lift = naive - trend;
+    var liftPct = mPre > 0 ? ((lift / mPre) * 100).toFixed(1) + '%' : 'Undefined (zero pre-join spend)';
+
+    document.getElementById('did-metrics').innerHTML = [
+      ['Member change (post − pre)', money(naive)],
+      ['Matched control change (post − pre)', money(trend)],
+      ['Estimated program lift (DiD)', money(lift) + ' / member / mo'],
+      ['Lift as % of pre-join baseline', liftPct]
+    ].map(function(pair) {
+      return '<div class="result-metric"><span class="label">' + pair[0] + '</span><span class="value">' + pair[1] + '</span></div>';
+    }).join('');
+
+    var interp;
+    if (lift > 0) {
+      interp = 'The estimated program lift is positive at ' + money(lift) + ' per member per month.';
+    } else if (lift < 0) {
+      interp = 'The estimated program lift is negative at ' + money(lift) + ' per member per month.';
+    } else {
+      interp = 'Members and matched controls changed by the same amount. The estimated program lift is zero.';
+    }
+    document.getElementById('did-interp').textContent = interp +
+      ' A causal interpretation requires parallel untreated changes, no anticipation, unexposed controls, and comparable composition.';
+    results.classList.add('visible');
+  }
+
+  fields.forEach((field, index) => { field.value = matchingExample.defaultSpend[index].toFixed(2); });
+  const [memberPre, memberPost, controlPre, controlPost] = fields.map(field => field.valueAsNumber);
+  document.getElementById('did-default-example').textContent =
+    `Members go from ${money(memberPre)} to ${money(memberPost)}, and matched controls go from ${money(controlPre)} to ${money(controlPost)}.`;
+  fields.forEach(field => {
+    field.addEventListener('input', calcDiD);
+  });
+  calcDiD();
+});
+</script><script type="module" src="../../assets/causal-did.js"></script><script type="module" src="../../assets/causal-baseline.js"></script><script type="module" src="../../assets/causal-rollout.js"></script><script type="module" src="../../assets/causal-pretrends.js"></script><script type="module" src="../../assets/causal-comparison.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F-distribution | Marketing Measurement Science</title>
+  <meta name="description" content="Look up F critical values and right-tail probabilities for ANOVA and joint tests.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/reference/f-distribution/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/reference/f-distribution/">
+  <meta property="og:title" content="F-distribution | Marketing Measurement Science">
+  <meta property="og:description" content="Look up F critical values and right-tail probabilities for ANOVA and joint tests.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="F-distribution | Marketing Measurement Science">
+  <meta name="twitter:description" content="Look up F critical values and right-tail probabilities for ANOVA and joint tests.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/math.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson math">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Reference &amp; Tools</a></li><li aria-current="page">F-distribution</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>F-distribution</h1></header><div class="mg-source"><div class="page mg-f-reference">
+
+
+
+<p class="problem-statement">Look up upper-tail F critical values and probabilities for ANOVA and joint regression tests.</p>
+
+<div class="tab-selector" data-guide-tablist="F-distribution views">
+<button class="tab-btn active" data-tab="table" type="button" data-guide-tab="ft-panel-table">The Table</button>
+<button class="tab-btn" data-tab="howto" type="button" data-guide-tab="ft-panel-howto">How to Read It</button>
+<button class="tab-btn" data-tab="lookup" type="button" data-guide-tab="ft-panel-lookup">Custom Lookup</button>
+</div>
+
+<!-- Tab 1: The Table -->
+<div class="tab-panel active" id="ft-panel-table">
+<div class="content-card">
+<h2 id="f-critical-values">F-critical values</h2>
+
+<p>Select a significance level, then find your <strong>df<sub>1</sub></strong> (numerator, columns) and <strong>df<sub>2</sub></strong> (denominator, rows). The cell value is the critical F-value—if your F-statistic exceeds it, reject H<sub>0</sub> at that α.</p>
+
+<div class="alpha-selector">
+<label>Significance level (α):</label>
+<button class="alpha-pill" aria-pressed="false" data-alpha="0.10" type="button">0.10</button>
+<button class="alpha-pill active" aria-pressed="true" data-alpha="0.05" type="button">0.05</button>
+<button class="alpha-pill" aria-pressed="false" data-alpha="0.025" type="button">0.025</button>
+<button class="alpha-pill" aria-pressed="false" data-alpha="0.01" type="button">0.01</button>
+</div>
+
+<p class="mg-scroll-hint">Scroll the table to see more columns on narrow screens.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="F critical values">
+<table class="f-table" id="ft-table">
+<thead id="ft-thead"></thead>
+<tbody id="ft-tbody"></tbody>
+</table>
+</div>
+
+<div class="callout">
+<div class="callout-title">How to Use</div>
+Your F-statistic comes from an ANOVA or regression output. Compare it to the critical value at the intersection of your df<sub>1</sub> (numerator degrees of freedom) and df<sub>2</sub> (denominator degrees of freedom). If <strong>F<sub>obs</sub> &gt; F<sub>crit</sub></strong>, the result is statistically significant at the chosen α.
+</div>
+</div>
+</div>
+
+<!-- Tab 2: How to Read It -->
+<div class="tab-panel" id="ft-panel-howto">
+<div class="content-card">
+<h2 id="understanding-the-f-table">Understanding the F-table</h2>
+
+<h3 id="the-two-degrees-of-freedom">The two degrees of freedom</h3>
+<p>Unlike the t-distribution (which has one df), the F-distribution has <strong>two</strong> degrees-of-freedom parameters:</p>
+
+<div class="key-definition">
+<p><strong>df<sub>1</sub> (numerator):</strong> In one-way ANOVA, this is <em>k − 1</em>, where k is the number of groups. In regression, it is the number of predictors.<br><br>
+<strong>df<sub>2</sub> (denominator):</strong> In one-way ANOVA, this is <em>N − k</em>, where N is the total number of observations. In regression, it is <em>N − p − 1</em>.</p>
+</div>
+
+<h3 id="what-the-f-test-is-used-for">What the F-test is used for</h3>
+<ol class="steps-list">
+<li><strong>ANOVA (Analysis of Variance):</strong> Tests whether the means of two or more groups are all equal. The F-statistic compares between-group variance to within-group variance.</li>
+<li><strong>Overall regression significance:</strong> Tests whether at least one predictor in a regression model has a non-zero coefficient. This is the F-statistic reported at the bottom of regression output.</li>
+<li><strong>Comparing variances:</strong> For two independent normal samples, the ratio of their sample variances follows an F-distribution under equal population variances. A two-sided alternative rejects unusually small or unusually large ratios.</li>
+</ol>
+
+<h3 id="relationship-to-the-t-distribution">Relationship to the t-distribution</h3>
+<div class="formula-box">
+<span class="label">F and t Connection</span>
+F = t²   (when df<sub>1</sub> = 1)
+</div>
+
+<p>When comparing exactly <strong>two groups</strong>, a one-way ANOVA with df<sub>1</sub> = 1 gives the same p-value as the two-sided pooled-variance t-test. The F-statistic is the square of the t-statistic, and the p-values are the same. This means an F-table with df<sub>1</sub> = 1 gives you the square of the corresponding t-critical value.</p>
+
+<div class="callout warning">
+<div class="callout-title">Relation to the t-distribution</div>
+Like the <a href="../t-distribution/" class="ref-link">t-distribution</a>, the F-distribution has a CDF that can be written using the regularized incomplete beta function. If you are doing a simple two-group comparison, you can use either table—t is more natural for directional hypotheses, F for omnibus tests. See our <a href="../../effects/sample-size-and-power/" class="ref-link">Sample Size &amp; Power</a> page for how these distributions feed into study design.
+</div>
+
+
+</div>
+</div>
+
+<!-- Tab 3: Custom Lookup -->
+<div class="tab-panel" id="ft-panel-lookup">
+<div class="content-card">
+<h2 id="f-critical-value-lookup">F-critical value lookup</h2>
+
+<p>Enter your degrees of freedom and significance level to calculate the upper-tail F critical value. You can also enter an observed F-statistic to compute its p-value.</p>
+
+<h3 id="find-f-critical">Find an F-critical value</h3>
+<p id="ft-lookupNote" role="status"></p>
+
+<div class="input-row">
+<label for="ft-df1Input">df<sub>1</sub> (numerator)</label>
+<input type="number" id="ft-df1Input" min="1" max="500" step="1" value="3">
+</div>
+
+<div class="input-row">
+<label for="ft-df2Input">df<sub>2</sub> (denominator)</label>
+<input type="number" id="ft-df2Input" min="1" max="500" step="1" value="30">
+</div>
+
+<div class="input-row">
+<label for="ft-alphaInput">α (significance)</label>
+<input type="number" id="ft-alphaInput" min="0.001" max="0.50" step="0.001" value="0.05">
+</div>
+
+<div class="stat-grid">
+<div class="stat-item highlight-card">
+<div class="stat-value" id="ft-critResult">—</div>
+<div class="stat-label">F-critical value</div>
+</div>
+</div>
+
+<hr class="section-divider">
+
+<h3 id="find-p-value-from-f-statistic">Find a p-value from an F-statistic</h3>
+
+<p>Enter an observed F-statistic along with the degrees of freedom above to calculate its upper-tail p-value.</p>
+
+<div class="input-row">
+<label for="ft-fstatInput">F-statistic</label>
+<input type="number" id="ft-fstatInput" min="0" max="99999" step="0.001" value="">
+</div>
+
+<div class="stat-grid">
+<div class="stat-item">
+<div class="stat-value" id="ft-pvalResult">—</div>
+<div class="stat-label">p-value (upper tail)</div>
+</div>
+<div class="stat-item" id="ft-sigCard">
+<div class="stat-value" id="ft-sigResult">—</div>
+<div class="stat-label">Significant at α?</div>
+</div>
+</div>
+
+<div class="callout">
+<div class="callout-title">Tip</div>
+This lookup returns an upper-tail probability. For a two-sided equality-of-variances test, use both tails. Compare the variance ratio against the lower and upper critical values with α/2 in each tail.
+</div>
+</div>
+</div>
+
+</div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../">Reference &amp; Tools</a></div></footer>
+  <script type="module">
+import { fCritical, fTail, formatTail } from '../../assets/reference-stats.js';
+import { fTable } from '../../assets/f-table-data.js';
+(function(){
+'use strict';
+
+function $(id) { return document.getElementById(id); }
+
+var df1Cols = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30, 60, 120];
+var df2Labels = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','40','50','60','80','100','120','\u221E'];
+
+var currentAlpha = 0.05;
+
+/* ================================================================
+   BUILD TABLE
+   ================================================================ */
+function buildTable() {
+  var thead = $('ft-thead');
+  var tbody = $('ft-tbody');
+
+  var headerHTML = '<tr><th class="corner-label">df\u2082 \\ df\u2081</th>';
+  for (var c = 0; c < df1Cols.length; c++) {
+    headerHTML += '<th scope="col">' + df1Cols[c] + '</th>';
+  }
+  headerHTML += '</tr>';
+  thead.innerHTML = headerHTML;
+
+  var bodyHTML = fTable[currentAlpha].map(function(row, index) {
+    return '<tr><th scope="row">' + df2Labels[index] + '</th>'
+      + row.map(value => '<td>' + value + '</td>').join('') + '</tr>';
+  }).join('');
+  tbody.innerHTML = bodyHTML;
+}
+
+/* ================================================================
+   ALPHA PILL SWITCHING
+   ================================================================ */
+var alphaPills = document.querySelectorAll('.alpha-pill');
+for (var ai = 0; ai < alphaPills.length; ai++) {
+  alphaPills[ai].addEventListener('click', function() {
+    for (var j = 0; j < alphaPills.length; j++) {
+      alphaPills[j].classList.remove('active');
+      alphaPills[j].setAttribute('aria-pressed', 'false');
+    }
+    this.classList.add('active');
+    this.setAttribute('aria-pressed', 'true');
+    currentAlpha = parseFloat(this.dataset.alpha);
+    buildTable();
+  });
+}
+
+/* ================================================================
+   TAB 3: CUSTOM LOOKUP
+   ================================================================ */
+var df1Input = $('ft-df1Input');
+var df2Input = $('ft-df2Input');
+var alphaInput = $('ft-alphaInput');
+var fstatInput = $('ft-fstatInput');
+
+function updateLookup() {
+  const d1 = df1Input.valueAsNumber;
+  const d2 = df2Input.valueAsNumber;
+  const alpha = alphaInput.valueAsNumber;
+  const fStat = fstatInput.valueAsNumber;
+  const dfValid = value => Number.isInteger(value) && value >= 1 && value <= 500;
+  const alphaValid = alpha >= .001 && alpha <= .50;
+  const statValid = fStat >= 0 && fStat <= 99999;
+  const crit = $('ft-critResult');
+  const p = $('ft-pvalResult');
+  const sig = $('ft-sigResult');
+  const note = $('ft-lookupNote');
+  crit.textContent = p.textContent = sig.textContent = '—';
+  sig.style.color = '';
+  const errors = [];
+  for (const [field, valid, message] of [
+    [df1Input, dfValid(d1), 'Numerator df must be a whole number from 1 to 500.'],
+    [df2Input, dfValid(d2), 'Denominator df must be a whole number from 1 to 500.'],
+    [alphaInput, alphaValid, 'Enter α from 0.001 to 0.50.'],
+    [fstatInput, statValid || (!fstatInput.value && !fstatInput.validity.badInput), 'Enter an F statistic from 0 to 99,999.'],
+  ]) {
+    field.setAttribute('aria-invalid', String(!valid));
+    if (!valid) errors.push(message);
+  }
+  note.textContent = errors.join(' ');
+  if (!dfValid(d1) || !dfValid(d2) || !alphaValid) return;
+  const critical = fCritical(alpha, d1, d2);
+  if (!Number.isFinite(critical)) {
+    note.textContent += ' The critical value could not be calculated to the required precision.';
+    return;
+  }
+  crit.textContent = critical.toFixed(4);
+  if (statValid) {
+    const tail = fTail(fStat, d1, d2);
+    p.textContent = formatTail(tail);
+    sig.textContent = tail < alpha ? 'Yes' : 'No';
+    sig.style.color = tail < alpha ? 'var(--brand-success)' : 'var(--brand-danger)';
+  }
+}
+
+df1Input.addEventListener('input', updateLookup);
+df2Input.addEventListener('input', updateLookup);
+alphaInput.addEventListener('input', updateLookup);
+fstatInput.addEventListener('input', updateLookup);
+
+/* ================================================================
+   TAB SWITCHING
+   ================================================================ */
+var tabBtns = document.querySelectorAll('.tab-btn');
+var tabPanels = document.querySelectorAll('.tab-panel');
+
+function activateTab(tabId) {
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+  }
+  for (var j = 0; j < tabPanels.length; j++) {
+    tabPanels[j].classList[tabPanels[j].id === 'ft-panel-' + tabId ? 'add' : 'remove']('active');
+  }
+  if (tabId === 'table') {
+    setTimeout(function() { buildTable(); }, 30);
+  }
+  if (tabId === 'lookup') {
+    setTimeout(function() { updateLookup(); }, 30);
+  }
+}
+
+for (var ti = 0; ti < tabBtns.length; ti++) {
+  tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+}
+
+/* Initial render */
+buildTable();
+updateLookup();
+})();
+</script><script src="../../assets/guide.js"></script>
+</body>
+</html>

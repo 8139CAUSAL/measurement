@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uplift Modeling | Marketing Measurement Science</title>
+  <meta name="description" content="Estimate how average treatment effects vary across customer profiles.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/effects/uplift-modeling/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/effects/uplift-modeling/">
+  <meta property="og:title" content="Uplift Modeling | Marketing Measurement Science">
+  <meta property="og:description" content="Estimate how average treatment effects vary across customer profiles.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Uplift Modeling | Marketing Measurement Science">
+  <meta name="twitter:description" content="Estimate how average treatment effects vary across customer profiles.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Uplift Modeling Page Styles === */
+
+    /* Segment Grid */
+    .seg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .seg-box {
+      background: var(--bg-card);
+      border: 2px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .seg-box:hover { transform: translateY(-2px); }
+    .seg-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .seg-action {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .seg-desc {
+      font-size: 14px;
+      color: var(--brand-text-muted);
+      margin: 6px 0 0;
+      line-height: 1.5;
+    }
+
+    /* Chart Wrapper */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .chart-wrapper svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .chart-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .chart-btn {
+      padding: 6px 16px;
+      border: 1px solid var(--brand-border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--brand-text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .chart-btn:hover { border-color: var(--brand-text); color: var(--brand-text); }
+    .chart-btn.active { background: var(--brand-accent); color: var(--brand-background); border-color: var(--brand-accent); }
+
+    /* SVG Styles */
+    .axis-line { stroke: #4E5B83; stroke-width: 1; shape-rendering: crispEdges; }
+    .grid-line { stroke: rgba(98,114,164,0.2); stroke-width: 1; shape-rendering: crispEdges; }
+    .axis-label { fill: var(--brand-text-muted); font-size: 12px; }
+    .axis-title { fill: var(--brand-text-muted); font-size: 13px; font-weight: 600; }
+    .guide-line { stroke: rgba(98,114,164,0.55); stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .dot {
+      opacity: 0;
+      transition: opacity 0.4s ease, r 0.2s ease;
+    }
+    .dot.visible { opacity: 0.85; }
+    .dot.dimmed { opacity: 0.08; }
+    .qini-path {
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .qini-fill { opacity: 0.15; }
+    .random-line {
+      stroke: rgba(98,114,164,0.55);
+      stroke-width: 1.5;
+      stroke-dasharray: 6 4;
+      fill: none;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--brand-text-muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Explainer */
+    .explainer {
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--brand-text-muted);
+      line-height: 1.6;
+    }
+    .explainer strong { color: var(--brand-text); }
+    .explainer-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+    }
+    .explainer-list li {
+      padding: 4px 0;
+      padding-left: 18px;
+      position: relative;
+    }
+    .explainer-list li::before {
+      content: "\2022";
+      position: absolute;
+      left: 4px;
+      color: var(--brand-accent);
+      font-weight: 700;
+    }
+
+    /* Steps */
+    .method-step {
+      background: var(--bg-card);
+      border: 1px solid var(--brand-border-dim);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .method-step h3 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+
+    @media (max-width: 600px) {
+      .seg-grid { grid-template-columns: 1fr; }
+      .legend { gap: 12px; font-size: 12px; }
+      .chart-controls { gap: 6px; }
+      .chart-btn { font-size: 12px; padding: 5px 12px; }
+    }
+    .qini-scroll { overflow-x: auto; max-width: 620px; }
+    #qini-svg { min-width: 600px; }
+  </style><link rel="stylesheet" href="../../assets/experiments.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../incrementality/">Incrementality</a></li><li><a href="../randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../p-values/">P-Values</a></li><li><a href="../sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../randomized-experiment/">Offer Experiment</a></li><li><a href="../incremental-lift-report/">Incremental Lift Report</a></li><li><a href="./">Uplift Modeling</a></li><li><a href="../causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../difference-in-differences/">Difference-in-Differences</a></li><li><a href="../regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Estimate Effects</a></li><li aria-current="page">Uplift Modeling</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Uplift Modeling</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">Estimate how much an intervention changes average conversion for customers with similar traits measured before treatment.</p>
+
+    <!-- Tabs -->
+    <div class="tab-selector" id="tab-selector" data-guide-tablist="Uplift Modeling views">
+      <button class="tab-btn active" data-tab="method" data-guide-tab="panel-method">Method</button>
+      <button class="tab-btn" data-tab="segments" data-guide-tab="panel-segments">Segments</button>
+      <button class="tab-btn" data-tab="propensity" data-guide-tab="panel-propensity">Predicted Conversion</button>
+      <button class="tab-btn" data-tab="qini" data-guide-tab="panel-qini">Qini curve</button>
+    <button class="tab-btn" data-tab="observational-targeting" type="button" data-guide-tab="panel-observational-targeting">Observational targeting</button></div>
+
+    <!-- Tab 1: Method -->
+    <div class="tab-panel active" id="panel-method">
+      <div class="method-step">
+        <h2 id="randomized-experiment"><span class="step-number">1</span> Randomized experiment</h2>
+        <p class="prose">
+          Randomly assign customers to the campaign or a defined control. Compare outcomes by assignment, using traits measured before the campaign to describe how the average effect varies.
+        </p>
+        <div class="key-definition">
+          <div class="callout-title">Key Definition</div>
+          <p style="margin:0;"><strong>Uplift</strong> is the difference between conversion probabilities under treatment and control for a baseline profile. Only one outcome is observed for each customer.</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <h2 id="target-transformation"><span class="step-number">2</span> Target transformation</h2>
+        <p class="prose">
+          Two ways to estimate conversion lift by baseline profile are shown below.
+        </p>
+        <p class="prose">
+          <strong>T-Learner:</strong> Train separate models for treatment and control, then subtract predictions.
+        </p>
+        <p class="prose">
+          <strong>Class Transformation:</strong> Combine assignment and the observed outcome into a target whose conditional expectation can estimate uplift under the known randomization probabilities.
+        </p>
+      </div>
+
+      <div class="method-step">
+        <h2 id="scoring"><span class="step-number">3</span> Scoring</h2>
+        <p class="prose">
+          Score a profile using its predicted conversion rates under the two assignments.
+        </p>
+        <div class="formula-box" style="text-align:center; font-size:16px; margin-top:12px;">
+          Predicted uplift = predicted conversion under treatment − predicted conversion under control
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Segments -->
+    <div class="tab-panel" id="panel-segments">
+      <div class="content-card">
+        <p class="prose" style="text-align:center; margin-bottom:20px;">
+          These four hypothetical response types describe what a customer would do under both assignments. A model can estimate the average lift for a profile, even when its individual response types are unknown.
+        </p>
+        <div class="seg-grid">
+          <div class="seg-box" style="border-color: #8A5700;">
+            <div class="seg-title" style="color: #8A5700;">Sleeping Dogs</div>
+            <div class="seg-desc">Would convert under control and would not convert under treatment.</div>
+          </div>
+          <div class="seg-box" style="border-color: #6941A5;">
+            <div class="seg-title" style="color: #6941A5;">Sure Things</div>
+            <div class="seg-desc">Would convert under either assignment.</div>
+          </div>
+          <div class="seg-box" style="border-color: #8592BE;">
+            <div class="seg-title" style="color: #4E5B83;">Lost Causes</div>
+            <div class="seg-desc">Would convert under neither assignment.</div>
+          </div>
+          <div class="seg-box" style="border-color: #0284C7;">
+            <div class="seg-title" style="color: var(--mg-link-hover);">Persuadables</div>
+            <div class="seg-desc">Would convert under treatment and would not convert under control.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Propensity Plot -->
+    <div class="tab-panel" id="panel-propensity">
+      <div class="content-card">
+        <h2>Predicted conversion</h2>
+        <div class="chart-controls" id="scatter-controls">
+          <button class="chart-btn active" data-filter="all" aria-pressed="true">All profiles</button>
+          <button class="chart-btn" data-filter="near-zero" aria-pressed="false">Near zero</button>
+          <button class="chart-btn" data-filter="positive" aria-pressed="false">Positive uplift</button>
+          <button class="chart-btn" data-filter="negative" aria-pressed="false">Negative uplift</button>
+        </div>
+        <div class="chart-wrapper" style="max-width:520px;">
+          <svg id="scatter-svg" viewbox="0 0 500 500" role="img" aria-label="Predicted treatment and control probabilities, colored by the difference"></svg>
+        </div>
+        <div class="legend" id="scatter-legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:#0284C7;"></span> Above +5 pp</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#8A5700;"></span> Below −5 pp</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#5E698D;"></span> Within ±5 pp</div>
+        </div>
+        <div class="explainer">
+          <strong>How to read the chart</strong>. Each synthetic point pairs a predicted conversion probability under treatment (x-axis) with one under control (y-axis). Color encodes the predicted difference in percentage points. Individual response types require both potential outcomes for one person. A profile can contain a mixture of those types.
+          <ul class="explainer-list">
+            <li>The <strong>diagonal line</strong> represents zero uplift (treatment = control).</li>
+            <li>Points <strong>below the diagonal</strong> have higher predicted conversion under treatment.</li>
+            <li>Points <strong>above the diagonal</strong> have lower predicted conversion under treatment.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Qini curve -->
+    <div class="tab-panel" id="panel-qini">
+      <div class="content-card">
+        <h2>Qini curve</h2>
+        <div class="chart-controls" id="qini-controls">
+          <button class="chart-btn active" data-curve="good">Good Model</button>
+          <button class="chart-btn" data-curve="bad">Bad Model</button>
+          <button class="chart-btn" data-curve="random">Random</button>
+        </div>
+        <p class="mg-scroll-hint">Scroll the chart to see the full targeting range on narrow screens.</p>
+        <div class="chart-wrapper qini-scroll" tabindex="0" role="region" aria-label="Qini curve plot">
+          <svg id="qini-svg" viewbox="0 0 600 350" role="img" aria-label="Cumulative incremental conversions by share targeted"></svg>
+        </div>
+        <p id="qini-summary" role="status"></p>
+        <details><summary>Read curve values</summary><div class="table-wrap" tabindex="0" role="region" aria-label="Qini curve data">
+          <table><thead><tr><th scope="col">Targeted</th><th scope="col">Model</th><th scope="col">Random</th></tr></thead><tbody id="qini-values"></tbody></table>
+        </div></details>
+        <div class="explainer">
+          <strong>Reading the Qini curve</strong>. On evaluation data, the curve summarizes cumulative estimated lift as you contact more people in score order. The curves shown here are illustrative.
+          <ul class="explainer-list">
+            <li>The <strong>diagonal</strong> is random targeting — no model, just chance.</li>
+            <li>A good ranking targets positive lift first. The example peaks at 70% and declines as it adds customers with negative predicted lift. Contact cost can move the best stopping point earlier.</li>
+            <li>A <strong>bad model</strong> dips below the diagonal, indicating less estimated lift than random targeting at that share.</li>
+            <li>The <strong>Qini coefficient</strong> is the signed area between the model and random targeting. The calculation uses the targeted fraction from 0 to 1 and divides cumulative conversions by the 100-conversion full-population lift. Area below the random line counts negatively. AUUC is the area under the model curve.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  <div class="tab-panel ex-extension" id="panel-observational-targeting">
+  <section class="ex-card">
+    <h2 id="observational-targeting">Observational targeting</h2>
+    <p>A conditional average treatment effect (CATE) averages Y(1) − Y(0) at a specified baseline profile. With observational data, justify exchangeability and overlap for the treatment and outcome before training a targeting model. This synthetic example uses separate development and policy-evaluation records.</p>
+    <h3 id="trace-out-of-fold-predictions">Trace out-of-fold predictions</h3>
+    <p>The small development example predicts mean outcome E[Y | X] and treatment probability E[T | X] by profile using the other two folds. Each row is scored only when it is held out. The table shows the training rows, scored rows, and the frozen training-only means used to score the selected fold.</p>
+    <div class="ex-fields">
+      <label>Fold to score <select id="target-fold"><option value="1">Fold 1</option><option value="2">Fold 2</option><option value="3">Fold 3</option></select></label>
+      <label>Scored unit <select id="target-unit"></select></label>
+    </div>
+    <p id="target-residual" class="ex-status" role="status"></p>
+    <details open>
+      <summary>Development folds and nuisance predictions</summary>
+      <div id="target-training"></div>
+    </details>
+    <p>Residual-on-residual fitting compares Y − m(X) with T − e(X). Cross-fitting estimates the outcome and treatment models on separate folds from the records they score. An orthogonal score makes the estimated effect locally insensitive to small errors in those models. This protection requires overlap, a suitable score and sufficiently accurate models. If effects also vary with auxiliary covariates, the residual slope within a displayed profile can weight effects by treatment variance. Specify the effect model or standardize contrasts to the target distribution.</p>
+  </section>
+  <section class="ex-card">
+    <h3 id="evaluate-a-spending-threshold-on-separate-data">Evaluate a spending threshold on separate data</h3>
+    <p>Compare two illustrative frozen models with the same ranking. Only the magnitudes differ. Held-out effects standardize treated–control risk differences over tenure within each prespecified profile. Pointwise 95% intervals use independent binomial cells and condition on the profile’s observed tenure mix. Multiple or data-selected claims require additional inference.</p>
+    <div class="ex-fields">
+      <label>Predicted uplift
+        <select id="target-model"><option value="aligned">Approximately calibrated</option><option value="inflated">Same ranking, inflated magnitudes</option></select>
+      </label>
+      <label>Intervention cost per contacted unit ($)
+        <input id="target-cost" type="number" value="6" min="0" max="100" step="any" required>
+      </label>
+    </div>
+    <p>Value per incremental conversion is $100. A policy contacts a profile when its predicted incremental value exceeds the intervention cost.</p>
+    <p id="target-policy" class="ex-status" role="status"></p>
+    <div id="target-evaluation"></div>
+    <details>
+      <summary>Inspect held-out support by baseline tenure</summary>
+      <div id="target-support"></div>
+    </details>
+    <p>The <a href="#panel-segments">Segments</a> view illustrates counterfactual response types. Held-out evaluation uses observed data and the design assumptions. Use <a href="#panel-qini">Qini and AUC</a> to explore ranking, and <a href="../../decisions/retention-interventions/">Retention Interventions</a> to connect calibrated effect estimates with contact decisions.</p>
+  </section>
+</div></div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function() {
+    /* ========== Tab Switching ========== */
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    var panels = document.querySelectorAll('.tab-panel');
+    var scatterInitialized = false;
+    var qiniInitialized = false;
+
+    function activateTab(tabId) {
+      var i;
+      for (i = 0; i < tabBtns.length; i++) {
+        tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+      }
+      for (i = 0; i < panels.length; i++) {
+        panels[i].classList.toggle('active', panels[i].id === 'panel-' + tabId);
+      }
+      if (tabId === 'propensity' && !scatterInitialized) {
+        scatterInitialized = true;
+        buildScatter();
+      }
+      if (tabId === 'qini' && !qiniInitialized) {
+        qiniInitialized = true;
+        buildQini();
+        drawQiniCurve('good');
+      }
+    }
+
+    for (var t = 0; t < tabBtns.length; t++) {
+      tabBtns[t].addEventListener('click', function() {
+        activateTab(this.getAttribute('data-tab'));
+      });
+    }
+
+    /* ========== Helpers ========== */
+    function svgEl(tag, attrs) {
+      var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      if (attrs) {
+        for (var k in attrs) {
+          if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+        }
+      }
+      return el;
+    }
+
+    function seededRandom(seed) {
+      return function() {
+        seed = (seed * 16807 + 0) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+    }
+
+    /* ========== Scatter Plot ========== */
+    var scatterPoints = [];
+    var COLORS = { positive: '#0284C7', negative: '#8A5700', 'near-zero': '#5E698D' };
+    var PAD = { top: 40, right: 30, bottom: 50, left: 55 };
+    var SW = 500, SH = 500;
+    var plotW = SW - PAD.left - PAD.right;
+    var plotH = SH - PAD.top - PAD.bottom;
+
+    function generatePoints() {
+      var rng = seededRandom(42);
+      var pts = [];
+      var i, pt;
+
+      for (i = 0; i < 100; i++) {
+        if (i < 30) {
+          pt = { x: 0.5 + rng() * 0.45, y: 0.05 + rng() * 0.4 };
+        } else if (i < 50) {
+          pt = { x: 0.05 + rng() * 0.4, y: 0.5 + rng() * 0.45 };
+        } else if (i < 75) {
+          pt = { x: 0.5 + rng() * 0.45, y: 0.5 + rng() * 0.45 };
+        } else {
+          pt = { x: 0.05 + rng() * 0.4, y: 0.05 + rng() * 0.4 };
+        }
+        const difference = pt.x - pt.y;
+        const band = difference > .05 ? 'positive' : difference < -.05 ? 'negative' : 'near-zero';
+        pts.push({ px: pt.x, py: pt.y, type: band });
+      }
+      return pts;
+    }
+
+    function buildScatter() {
+      var svg = document.getElementById('scatter-svg');
+      svg.innerHTML = '';
+      scatterPoints = generatePoints();
+
+      var g = svgEl('g', { transform: 'translate(' + PAD.left + ',' + PAD.top + ')' });
+      svg.appendChild(g);
+
+      /* Grid lines */
+      var i, tick;
+      for (i = 0; i <= 5; i++) {
+        tick = i / 5;
+        var gx = tick * plotW;
+        var gy = (1 - tick) * plotH;
+        g.appendChild(svgEl('line', { x1: gx, y1: 0, x2: gx, y2: plotH, class: 'grid-line' }));
+        g.appendChild(svgEl('line', { x1: 0, y1: gy, x2: plotW, y2: gy, class: 'grid-line' }));
+
+        var xLabel = svgEl('text', { x: gx, y: plotH + 18, class: 'axis-label', 'text-anchor': 'middle' });
+        xLabel.textContent = tick.toFixed(1);
+        g.appendChild(xLabel);
+
+        var yLabel = svgEl('text', { x: -10, y: gy + 4, class: 'axis-label', 'text-anchor': 'end' });
+        yLabel.textContent = tick.toFixed(1);
+        g.appendChild(yLabel);
+      }
+
+      /* Axes */
+      g.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: plotH, class: 'axis-line' }));
+      g.appendChild(svgEl('line', { x1: 0, y1: plotH, x2: plotW, y2: plotH, class: 'axis-line' }));
+
+      /* Axis titles */
+      var xTitle = svgEl('text', { x: plotW / 2, y: plotH + 42, class: 'axis-title', 'text-anchor': 'middle' });
+      xTitle.textContent = 'P(Buy | Treatment)';
+      g.appendChild(xTitle);
+
+      var yTitle = svgEl('text', { x: -40, y: plotH / 2, class: 'axis-title', 'text-anchor': 'middle', transform: 'rotate(-90,' + (-40) + ',' + (plotH / 2) + ')' });
+      yTitle.textContent = 'P(Buy | Control)';
+      g.appendChild(yTitle);
+
+      /* Diagonal guide (zero uplift) */
+      g.appendChild(svgEl('line', { x1: 0, y1: plotH, x2: plotW, y2: 0, class: 'guide-line' }));
+
+      /* Points with staggered fade-in */
+      for (i = 0; i < scatterPoints.length; i++) {
+        var p = scatterPoints[i];
+        var cx = p.px * plotW;
+        var cy = (1 - p.py) * plotH;
+        var dot = svgEl('circle', {
+          cx: cx,
+          cy: cy,
+          r: 5,
+          fill: COLORS[p.type],
+          class: 'dot',
+          'data-type': p.type
+        });
+        g.appendChild(dot);
+        (function(el, delay) {
+          setTimeout(function() { el.classList.add('visible'); }, delay);
+        })(dot, 30 + i * 15);
+      }
+    }
+
+    /* Filter controls */
+    var scatterControls = document.getElementById('scatter-controls');
+    scatterControls.addEventListener('click', function(e) {
+      var btn = e.target.closest('.chart-btn');
+      if (!btn) return;
+      var filter = btn.getAttribute('data-filter');
+
+      var btns = scatterControls.querySelectorAll('.chart-btn');
+      for (var b = 0; b < btns.length; b++) {
+        btns[b].classList.toggle('active', btns[b] === btn);
+        btns[b].setAttribute('aria-pressed', String(btns[b] === btn));
+      }
+
+      var dots = document.querySelectorAll('#scatter-svg .dot');
+      for (var d = 0; d < dots.length; d++) {
+        var dtype = dots[d].getAttribute('data-type');
+        if (filter === 'all') {
+          dots[d].classList.remove('dimmed');
+          dots[d].classList.add('visible');
+        } else if (filter === dtype) {
+          dots[d].classList.remove('dimmed');
+          dots[d].classList.add('visible');
+        } else {
+          dots[d].classList.add('dimmed');
+        }
+      }
+    });
+
+    /* ========== Qini Curve ========== */
+    var QW = 600, QH = 350;
+    var QP = { top: 30, right: 30, bottom: 50, left: 68 };
+    const qiniYMax = 120;
+    var qPlotW = QW - QP.left - QP.right;
+    var qPlotH = QH - QP.top - QP.bottom;
+    var qiniGroup;
+    var curvePath;
+    var fillPath;
+    var currentCurve = '';
+
+    function buildQini() {
+      var svg = document.getElementById('qini-svg');
+      svg.innerHTML = '';
+
+      qiniGroup = svgEl('g', { transform: 'translate(' + QP.left + ',' + QP.top + ')' });
+      svg.appendChild(qiniGroup);
+
+      /* Grid */
+      var i;
+      for (i = 0; i <= 5; i++) {
+        var gx = (i / 5) * qPlotW;
+        var gy = (i / 5) * qPlotH;
+        qiniGroup.appendChild(svgEl('line', { x1: gx, y1: 0, x2: gx, y2: qPlotH, class: 'grid-line' }));
+        qiniGroup.appendChild(svgEl('line', { x1: 0, y1: gy, x2: qPlotW, y2: gy, class: 'grid-line' }));
+      }
+
+      /* Axes */
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: qPlotH, class: 'axis-line' }));
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: qPlotH, x2: qPlotW, y2: qPlotH, class: 'axis-line' }));
+
+      /* Axis labels */
+      for (i = 0; i <= 5; i++) {
+        var frac = i / 5;
+        var xL = svgEl('text', { x: frac * qPlotW, y: qPlotH + 18, class: 'axis-label', 'text-anchor': 'middle' });
+        xL.textContent = (frac * 100).toFixed(0) + '%';
+        qiniGroup.appendChild(xL);
+      }
+      for (i = 0; i <= 4; i++) {
+        var fracY = i / 4;
+        var yL = svgEl('text', { x: -10, y: qPlotH - fracY * qPlotH + 4, class: 'axis-label', 'text-anchor': 'end' });
+        yL.textContent = (fracY * qiniYMax).toFixed(0);
+        qiniGroup.appendChild(yL);
+      }
+
+      var xTitle = svgEl('text', { x: qPlotW / 2, y: qPlotH + 42, class: 'axis-title', 'text-anchor': 'middle' });
+      xTitle.textContent = '% of Population Targeted';
+      qiniGroup.appendChild(xTitle);
+
+      var yTitle = svgEl('text', { x: -42, y: qPlotH / 2, class: 'axis-title', 'text-anchor': 'middle', transform: 'rotate(-90,' + (-42) + ',' + (qPlotH / 2) + ')' });
+      yTitle.textContent = 'Cumulative incremental conversions';
+      qiniGroup.appendChild(yTitle);
+
+      /* Random diagonal */
+      qiniGroup.appendChild(svgEl('line', { x1: 0, y1: qPlotH, x2: qPlotW, y2: qPlotH * (1 - 100 / qiniYMax), class: 'random-line' }));
+
+      var randLabel = svgEl('text', { x: qPlotW - 12, y: qPlotH * (1 - 100 / qiniYMax) + 17, class: 'axis-label', 'text-anchor': 'end', fill: '#4E5B83' });
+      randLabel.textContent = 'Random';
+      qiniGroup.appendChild(randLabel);
+
+      /* Fill (under curve, above diagonal) */
+      fillPath = svgEl('path', { class: 'qini-fill', fill: 'var(--brand-accent)', d: '' });
+      qiniGroup.appendChild(fillPath);
+
+      /* Curve path */
+      curvePath = svgEl('path', { class: 'qini-path', stroke: 'var(--brand-accent)', d: '' });
+      qiniGroup.appendChild(curvePath);
+    }
+
+    function getCurvePoints(type) {
+      var pts = [];
+      var steps = 50;
+      var i, x, y;
+      for (i = 0; i <= steps; i++) {
+        x = i / steps;
+        if (type === 'good') {
+          y = (532 * x - 485 * x ** 2 + 100 * x ** 3) / 147;
+        } else if (type === 'bad') {
+          y = Math.pow(x, 2.5);
+        } else {
+          y = x;
+        }
+        pts.push({ x: x, y: y });
+      }
+      return pts;
+    }
+
+    function pointsToPathD(pts) {
+      var d = 'M';
+      for (var i = 0; i < pts.length; i++) {
+        var sx = pts[i].x * qPlotW;
+        var sy = qPlotH - pts[i].y * 100 / qiniYMax * qPlotH;
+        d += (i === 0 ? '' : ' L') + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      return d;
+    }
+
+    function pointsToFillD(pts) {
+      /* Area between curve and diagonal */
+      var d = 'M0 ' + qPlotH;
+      var i, sx, sy;
+      for (i = 0; i < pts.length; i++) {
+        sx = pts[i].x * qPlotW;
+        sy = qPlotH - pts[i].y * 100 / qiniYMax * qPlotH;
+        d += ' L' + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      /* Close back along diagonal */
+      for (i = pts.length - 1; i >= 0; i--) {
+        sx = pts[i].x * qPlotW;
+        sy = qPlotH - pts[i].x * 100 / qiniYMax * qPlotH;
+        d += ' L' + sx.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      d += ' Z';
+      return d;
+    }
+
+    function drawQiniCurve(type) {
+      if (type === currentCurve) return;
+      currentCurve = type;
+
+      var pts = getCurvePoints(type);
+      const area = pts.slice(1).reduce((total, point, index) => {
+        const previous = pts[index];
+        return total + (point.x - previous.x) * (point.y + previous.y - point.x - previous.x) / 2;
+      }, 0);
+      const peak = pts.reduce((best, point) => point.y > best.y ? point : best);
+      document.getElementById('qini-summary').textContent = 'Qini coefficient ' + (area < 0 ? '−' : '')
+        + Math.abs(area).toFixed(3) + '. Peak: ' + (100 * peak.y).toFixed(0)
+        + ' incremental conversions at ' + (100 * peak.x).toFixed(0) + '% targeted.';
+      document.getElementById('qini-values').innerHTML = pts.filter((_, index) => index % 5 === 0)
+        .map(point => '<tr><th scope="row">' + (100 * point.x).toFixed(0) + '%</th><td>' + (100 * point.y).toFixed(1)
+          + '</td><td>' + (100 * point.x).toFixed(1) + '</td></tr>').join('');
+      document.querySelectorAll('#qini-controls [data-curve]').forEach(button =>
+        button.setAttribute('aria-pressed', String(button.dataset.curve === type)));
+      var pathD = pointsToPathD(pts);
+      var fD = pointsToFillD(pts);
+
+      /* Set color */
+      var color = type === 'good' ? 'var(--brand-accent)' : type === 'bad' ? 'var(--brand-danger)' : '#4E5B83';
+      curvePath.setAttribute('stroke', color);
+      fillPath.setAttribute('fill', color);
+      fillPath.setAttribute('d', fD);
+
+      /* Animate stroke */
+      curvePath.setAttribute('d', pathD);
+      var len = curvePath.getTotalLength();
+      curvePath.style.transition = 'none';
+      curvePath.style.strokeDasharray = len;
+      curvePath.style.strokeDashoffset = matchMedia("(prefers-reduced-motion: reduce)").matches ? "0" : len;
+
+      /* Force reflow then animate */
+      curvePath.getBoundingClientRect();
+      curvePath.style.transition = 'stroke-dashoffset 1s ease-out';
+      curvePath.style.strokeDashoffset = '0';
+    }
+
+    /* Qini controls */
+    var qiniControls = document.getElementById('qini-controls');
+    qiniControls.addEventListener('click', function(e) {
+      var btn = e.target.closest('.chart-btn');
+      if (!btn) return;
+      var curve = btn.getAttribute('data-curve');
+
+      var btns = qiniControls.querySelectorAll('.chart-btn');
+      for (var b = 0; b < btns.length; b++) {
+        btns[b].classList.toggle('active', btns[b] === btn);
+        btns[b].setAttribute('aria-pressed', String(btns[b] === btn));
+      }
+
+      if (qiniInitialized) {
+        currentCurve = '';
+        drawQiniCurve(curve);
+      }
+    });
+
+  })();
+  </script><script type="module" src="../../assets/causal-targeting.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

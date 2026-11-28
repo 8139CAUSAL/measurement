@@ -1,0 +1,1447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Path Analysis | Marketing Measurement Science</title>
+  <meta name="description" content="Fit relationships along specified paths and check how well they reproduce observed associations.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/models/path-analysis/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/models/path-analysis/">
+  <meta property="og:title" content="Path Analysis | Marketing Measurement Science">
+  <meta property="og:description" content="Fit relationships along specified paths and check how well they reproduce observed associations.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Path Analysis | Marketing Measurement Science">
+  <meta name="twitter:description" content="Fit relationships along specified paths and check how well they reproduce observed associations.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/customer.css"><style>
+  /* SEM workbench page-specific styles */
+  .sem-diagram-wrap { position: relative; background: rgba(98, 114, 164, 0.04); border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px; margin: 14px 0 8px; overflow-x: auto; }
+  .sem-diagram-wrap svg { display: block; width: 100%; height: auto; touch-action: none; }
+  .semb-node { cursor: pointer; }
+  .semb-edge-hit { cursor: pointer; }
+
+  .semb-canvas-btn {
+    position: absolute; top: 16px; left: 16px; z-index: 2;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    background: var(--accent); color: var(--bg); border: none; border-radius: 9999px;
+    padding: 8px 16px; cursor: pointer; transition: filter 0.15s;
+  }
+  .semb-canvas-btn:hover { filter: brightness(1.1); }
+
+  .semb-hint { font-size: 12.5px; color: var(--text-dim); margin: 0 0 12px; line-height: 1.5; }
+  .semb-none { font-size: 12.5px; color: var(--text-dim); }
+
+  .semb-editor {
+    background: var(--surface); border: 1px solid var(--accent); border-radius: 10px;
+    padding: 16px 18px; margin: 0 0 14px;
+  }
+  .semb-editor .ed-top { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+  .semb-editor .fld { display: flex; flex-direction: column; gap: 4px; }
+  .semb-editor label.fl { font-size: 11.5px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
+  .semb-editor input[type=text] {
+    background: var(--mg-background); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-family: inherit; font-size: 14px; padding: 8px 10px; min-width: 170px;
+  }
+  .semb-editor input[type=text]:focus { outline: none; border-color: var(--accent); }
+  .semb-editor .ebtn {
+    font-family: inherit; font-size: 13px; font-weight: 600; border-radius: 9999px;
+    padding: 8px 16px; cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted);
+  }
+  .semb-editor .ebtn:hover { border-color: var(--text); color: var(--text); }
+  .semb-editor .ebtn.danger { border-color: rgba(248,113,113,0.4); color: #B91C1C; }
+  .semb-editor .ebtn.danger:hover { background: rgba(248,113,113,0.1); }
+  .semb-editor .ed-section { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--border-soft); }
+  .semb-editor .ed-rows { display: flex; gap: 8px 20px; flex-wrap: wrap; margin-top: 6px; }
+  .semb-editor .ed-row { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+  .semb-editor .ed-row input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; }
+  .semb-editor .ed-note { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+
+  .semb-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+  .semb-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: 9999px;
+    padding: 5px 6px 5px 12px; font-size: 12.5px; color: var(--text); font-weight: 600;
+  }
+  .semb-chip button {
+    background: rgba(98, 114, 164, 0.11); border: none; color: var(--text-muted);
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px;
+    line-height: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .semb-chip button:hover { background: rgba(248,113,113,0.25); color: #B91C1C; }
+  .semb-chip button.flip:hover { background: rgba(2, 132, 199, 0.25); color: var(--accent); }
+  .semb-chip.flash { animation: chipflash 0.9s ease; }
+  @keyframes chipflash {
+    0% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    100% { border-color: var(--border-soft); box-shadow: none; }
+  }
+
+  .semb-pathbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: 10px;
+    padding: 10px 14px; margin: 0 0 12px;
+  }
+  .semb-pathbar .pb-label { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .semb-pathbar .pb-arrow { color: var(--accent); font-weight: 700; font-size: 16px; }
+  .semb-pathbar select {
+    background: var(--mg-background); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-family: inherit; font-size: 13px; padding: 7px 10px; min-width: 110px;
+  }
+  .semb-pathbar select:focus { outline: none; border-color: var(--accent); }
+  .semb-pathbar select:disabled, .semb-pathbar button:disabled { opacity: 0.4; }
+
+  /* data panel */
+  .semb-data-panel {
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: 10px;
+    padding: 14px 16px; margin: 10px 0 4px;
+  }
+  .semb-data-meta { display: flex; gap: 8px 22px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; }
+  .semb-data-meta strong { color: var(--accent); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+  .semb-cols { display: flex; gap: 8px; flex-wrap: wrap; }
+  .semb-col-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--border-soft); border-radius: 9999px; padding: 5px 12px;
+    font-size: 12.5px; font-weight: 600; color: var(--text-muted); background: var(--mg-background);
+  }
+  .semb-col-chip.ok { border-color: rgba(74,222,128,0.5); color: #066B4F; }
+  .semb-col-chip.bad { border-color: rgba(248,113,113,0.4); color: #B91C1C; }
+  .semb-col-chip button {
+    background: rgba(2, 132, 199, 0.15); border: none; color: var(--accent);
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; font-weight: 700;
+    line-height: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .semb-col-chip button:hover { background: rgba(2, 132, 199, 0.35); }
+  .semb-data-issues { color: #B91C1C; font-size: 12.5px; font-weight: 600; margin: 10px 0 0; line-height: 1.5; }
+
+  /* fit button */
+  .semb-fit-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 12px 0 6px; }
+  .semb-fit-btn {
+    font-family: inherit; font-size: 16px; font-weight: 800; letter-spacing: 0.3px;
+    background: var(--accent); color: var(--bg); border: none; border-radius: 12px;
+    padding: 14px 44px; cursor: pointer; box-shadow: 0 0 24px var(--accent-glow);
+    transition: filter 0.15s, transform 0.1s;
+  }
+  .semb-fit-btn:hover:not(:disabled) { filter: brightness(1.12); }
+  .semb-fit-btn:active:not(:disabled) { transform: translateY(1px); }
+  .semb-fit-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+  /* matrices (read-only outputs) */
+  .semb-grid { border-collapse: collapse; font-size: 13px; }
+  .semb-grid th, .semb-grid td { padding: 7px 12px; text-align: center; border: 1px solid var(--border-soft); }
+  .semb-grid th { color: var(--text-muted); font-weight: 700; font-size: 12px; background: rgba(98, 114, 164, 0.06); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .semb-grid td { color: var(--text); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+  .semb-grid td.diag { color: var(--text-dim); background: rgba(98, 114, 164, 0.05); }
+  .semb-grid td.induced { color: #8A5700; font-style: italic; }
+
+  .semb-status {
+    min-height: 22px; margin: 10px 0 4px; font-size: 13px; font-weight: 600;
+    color: var(--text-dim); display: flex; align-items: center;
+  }
+  .semb-status.err { color: #B91C1C; }
+  .semb-status.ok { color: #066B4F; }
+  .semb-status.warn { color: #8A5700; }
+
+  .sem-gof-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 12px 0; }
+  .sem-gof-item { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 8px; padding: 12px 14px; text-align: center; }
+  .sem-gof-item strong { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+  .sem-gof-item .gof-val { font-size: 20px; font-weight: 700; font-family: "SF Mono","Fira Code",Consolas,monospace; color: var(--text); }
+  .sem-gof-item .gof-rule { display: block; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .sem-gof-item.good .gof-val { color: #066B4F; }
+  .sem-gof-item.bad .gof-val { color: #B91C1C; }
+
+  .sem-table-wrap { overflow-x: auto; margin: 12px 0; }
+  .sem-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 420px; }
+  .sem-table th { padding: 8px 10px; text-align: left; font-size: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  .sem-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-soft); color: var(--text); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+  .sem-table td:first-child { font-family: inherit; }
+  .sem-table td.accent-cell { color: var(--accent); font-weight: 600; }
+
+  .semb-h3 { font-size: 15px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; margin: 20px 0 4px; }
+
+  .semb-verdict {
+    background: var(--surface); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 4px 0 8px;
+    font-size: 13.5px; line-height: 1.65; color: var(--text-muted);
+  }
+  .semb-verdict strong { color: var(--text); }
+  .semb-verdict .delta { font-family: "SF Mono","Fira Code",Consolas,monospace; color: var(--accent); font-weight: 700; }
+  .semb-verdict.sig { border-left-color: #B91C1C; }
+  .semb-verdict.nosig { border-left-color: #066B4F; }
+  .semb-verdict.na { border-left-color: var(--mg-supporting); }
+</style><link rel="stylesheet" href="../../assets/experiments.css">
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson customer">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../credit/">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../../credit/attribution-rules/">Attribution Rules</a></li><li><a href="../../credit/markov-attribution/">Markov Attribution</a></li><li><a href="../../credit/holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../../credit/holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../../credit/survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../reading-regressions/">Reading Regressions</a></li><li><a href="./">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../media-response/">Media Response</a><ul class="mg-links"><li><a href="../saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../churn/">Churn</a></li><li><a href="../retention/">Retention</a></li><li><a href="../customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../segmentation/">Segmentation</a></li><li><a href="../segmentation/prizm/">PRIZM</a></li><li><a href="../market-basket/">Market Basket Analysis</a></li><li><a href="../huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Model Outcomes</a></li><li><a href="../regression-and-structure/">Regression and Structure</a></li><li aria-current="page">Path Analysis</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Path Analysis</h1></header><div class="mg-source"><div class="page">
+
+  
+
+  <p class="problem-statement">Specify paths between measured variables and check how well the fitted model reproduces their observed relationships. Interpreting paths as effects requires a credible causal design and assumptions about the arrows.</p>
+
+  <section class="ex-extension ex-card" id="orient-arrows">
+  <h2 id="which-arrows-can-the-data-orient">Which arrows can the data orient?</h2>
+  <p>The Path Workbench fits the graph you draw. Here, use conditional independence to learn which arrows the three-node PC exercise can orient. The synthetic examples are jointly Gaussian, where zero partial correlation corresponds to conditional independence.</p>
+  <div class="ex-fields">
+    <label>Graph that generated the evidence
+      <select id="discovery-example">
+        <option value="chain">Chain · A → B → C</option>
+        <option value="fork">Fork · A ← B → C</option>
+        <option value="collider">Collider · A → B ← C</option>
+        <option value="finite">Collider · finite-sample replay (n = 24)</option>
+      </select>
+    </label>
+  </div>
+  <p>Start with all three possible edges. Look for evidence to remove A—C. Then ask whether B belongs to the set that separated them.</p>
+  <div id="discovery-graph" class="causal-frame"></div>
+  <div class="ex-actions">
+    <button type="button" id="discovery-condition">Condition on B</button>
+    <button type="button" id="discovery-reveal" disabled>Reveal removed edges and orientations</button>
+  </div>
+  <div id="discovery-tests"></div>
+  <p id="discovery-status" class="ex-status" role="status"></p>
+  <div id="discovery-edges"></div>
+  <details>
+    <summary>When is the equivalence class justified?</summary>
+    <p>PC assumes an acyclic data-generating graph, causal sufficiency (no unmeasured common causes among the modeled variables), the causal Markov and faithfulness conditions, and suitable independence tests. Exact cancellation between paths can create a population independence that violates faithfulness. Sampling noise can also make a real association hard to detect, even under faithfulness.</p>
+    <p>Under the assumptions, the population target is a completed partially directed acyclic graph (CPDAG). A CPDAG summarizes graphs with the same conditional-independence implications. An undirected edge can have either direction across members of the equivalence class, with directions sometimes changing together. An intervention can supply directional evidence. A null response alone can reflect poor measurement, low power, cancellation, or an absent effect.</p>
+  </details>
+  <p>Return to the <a href="#path-workbench">Path Workbench</a> to fit a specified graph, or to <a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a> to assess identification for an assumed graph.</p>
+</section><div class="tool-section">
+    <h2 id="path-workbench">Path Workbench</h2>
+    <p class="mg-context">Use <a href="../reading-regressions/">Reading Regressions</a> to review coefficients and uncertainty before fitting a path model.</p><p class="tool-desc">Draw a hypothesized graph, then fit it to data. Coefficients are estimated by maximum likelihood, and a χ² test checks whether the drawn structure can reproduce the observed covariances.</p>
+
+    <h3 class="semb-h3" id="draw-the-graph">1 · Draw the graph</h3>
+    <div class="sem-diagram-wrap">
+      <button class="semb-canvas-btn" id="semb-add" type="button">+ Add Variable</button>
+      <div id="semb-canvas"></div>
+    </div>
+    <p class="semb-hint"><strong>Draw an arrow</strong> with the From → To bar, or single-click one node then another on the canvas, or tick targets in a node’s editor (double-click the node). Reverse (⇆) or delete (×) arrows from their chips; cycles are rejected. Double-click a node to rename it (names must match your data’s column names), delete it, or mark it as the <strong>target outcome</strong>. Drag nodes to arrange the diagram.</p>
+
+    <div class="semb-editor" id="semb-editor" style="display:none;"></div>
+
+    <div class="semb-pathbar">
+      <span class="pb-label">Add a directed path:</span>
+      <select id="semb-path-from" aria-label="Path source variable"></select>
+      <span class="pb-arrow">→</span>
+      <select id="semb-path-to" aria-label="Path target variable"></select>
+      <button class="calc-btn secondary" id="semb-path-add" type="button" style="padding:8px 18px;">Draw path</button>
+    </div>
+
+    <div class="semb-chips" id="semb-chips"></div>
+
+    <div class="semb-status" id="semb-status">Click “+ Add Variable” to create your first variable.</div>
+
+    <h3 class="semb-h3" id="load-the-data">2 · Load the data</h3>
+    <p class="semb-hint">Upload a CSV with column names in the first row and numeric data, or load the built-in dataset of 400 customers with <em>satisfaction</em>, <em>convenience</em>, <em>loyalty</em>, and <em>repurchase</em>. Loading the default dataset replaces the drawing with the example graph. Click <strong style="color:var(--accent);">+</strong> on a column chip to add it to the canvas.</p>
+    <div class="btn-row" style="margin:6px 0 0;">
+      <button class="calc-btn secondary" id="semb-upload-btn" type="button">Upload CSV</button>
+      <input type="file" id="semb-file" aria-label="Upload path analysis data" accept=".csv,.tsv,.txt" style="display:none">
+      <button class="calc-btn secondary" id="semb-default-btn" type="button">Load Default Dataset</button>
+    </div>
+    <div class="semb-data-panel" id="semb-data-panel"><span class="semb-none">No data loaded yet.</span></div>
+
+    <h3 class="semb-h3" id="fit-the-model">3 · Fit the model</h3>
+    <div class="semb-fit-row">
+      <button class="semb-fit-btn" id="semb-fit" type="button" disabled>Fit Model</button>
+      <div class="semb-status" id="semb-fit-status" style="margin:0;"></div>
+    </div>
+
+    <div id="semb-results" style="display:none;">
+      <h3 class="semb-h3" id="fitted-dag">Fitted DAG</h3>
+      <p class="semb-hint" style="margin-bottom:0;">The structure you drew, with the maximum-likelihood estimate printed on each arrow: a 1-standard-deviation increase in the cause changes the effect by β standard deviations, holding its other modeled causes fixed.</p>
+      <div class="sem-diagram-wrap"><div id="semb-fitted"></div></div>
+
+      <h3 class="semb-h3" id="s-matrix-covariance">S matrix (covariance)</h3>
+      <p class="semb-hint" style="margin-bottom:8px;">Sample covariance of the modeled variables (divisor N − 1). Together with N, this is all the information the fit uses.</p>
+      <div class="sem-table-wrap" id="semb-smatrix"></div>
+
+      <h3 class="semb-h3" id="correlation-matrix">Correlation matrix</h3>
+      <p class="mg-context">If four customers have activity scores of 1, 2, 3 and 4 and valued purchases of 2, 1, 4 and 3, Pearson’s r is 0.60. It measures linear association and can miss a curved relationship. It is undefined for a constant variable. The ±2/√n guide is a rough single-pair null heuristic. Baseline traits can drive both variables, so the association alone cannot identify the effect of activity on valued purchases.</p><p class="semb-hint" style="margin-bottom:8px;">S rescaled to unit variances. <span style="color:#8A5700;font-style:italic;">Amber italic</span> cells are correlations between variables <em>with no direct arrow in your model</em> — if your DAG fits, these arise through chains and shared causes alone.</p>
+      <div class="sem-table-wrap" id="semb-rmatrix"></div>
+
+      <h3 class="semb-h3" id="fitted-path-effects">Fitted path effects</h3>
+      <div id="semb-effects"></div>
+
+      <h3 class="semb-h3" id="goodness-of-fit">Goodness of fit</h3>
+      <p class="semb-hint" style="margin-bottom:8px;">χ² = (N − 1) · F<sub>ML</sub>; df = distinct moments − free parameters. Each <em>missing</em> arrow among downstream variables is a testable constraint; exogenous variables covary freely, as in standard path analysis.</p>
+      <div class="sem-gof-grid" id="semb-gof"></div>
+      <div id="semb-verdict" class="semb-verdict"></div>
+    </div>
+
+    <details style="margin-top: 16px;">
+      <summary style="cursor:pointer;color:var(--accent);font-weight:600;font-size:14px;padding:6px 0;">Worked example with the default dataset</summary>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin:8px 0 0;">
+        Press <strong style="color:var(--text);">Load Default Dataset</strong> (400 customers) to draw the four example paths and set <em>repurchase</em> as the target outcome.
+        Press <strong style="color:var(--text);">Fit Model</strong>. The fitted coefficients are about 0.50 for <em>satisfaction → loyalty</em>, 0.35 for <em>convenience → loyalty</em>, 0.71 for <em>loyalty → repurchase</em>, and 0.18 for <em>convenience → repurchase</em>. The model gives χ²(1) ≈ 1.3 and p ≈ .26, so the global test does not reject its restrictions at α = .05.
+        The specified model places the entire satisfaction-to-repurchase path through loyalty, with a fitted path product of about 0.35.
+        Now delete <strong style="color:var(--text);">convenience → repurchase</strong> and refit: χ²(2) ≈ 30, p &lt; .001. Compare this nested specification with the original model to assess the added zero restriction.
+      </p>
+    </details>
+  </div>
+
+<section class="ex-extension ex-card" id="media-funnel">
+  <h2 id="how-much-of-advertisings-effect-runs-through-search-interest">How much of advertising’s effect runs through search interest?</h2>
+  <p>Trace the direct path advertising → sales (c = 1) and the mediated path advertising → search interest (a = 2) → sales (b = 3). These are illustrative unstandardized coefficients. The Path Workbench estimates standardized coefficients from its own data.</p>
+  <svg class="ex-diagram" viewbox="0 0 440 160" role="img" aria-labelledby="media-funnel-title">
+    <title id="media-funnel-title">Advertising affects sales directly and through search interest</title>
+    <defs><marker id="media-funnel-arrow" markerwidth="7" markerheight="7" refx="6" refy="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#0284C7"></path></marker></defs>
+    <g fill="#EEF2F8" stroke="#8592BE">
+      <rect x="5" y="105" width="112" height="36" rx="6"></rect><rect x="154" y="7" width="132" height="36" rx="6"></rect><rect x="323" y="105" width="112" height="36" rx="6"></rect>
+    </g>
+    <g fill="#282A36" font-size="16" text-anchor="middle">
+      <text x="61" y="128">Advertising</text><text x="220" y="30">Search interest</text><text x="379" y="128">Sales</text>
+      <text x="220" y="114">c = 1</text>
+    </g>
+    <path d="M117 123 H319" stroke="#0284C7" fill="none" marker-end="url(#media-funnel-arrow)"></path>
+    <g id="funnel-indirect">
+      <path d="M93 104 L175 46 M264 46 L345 103" stroke="#0284C7" fill="none" marker-end="url(#media-funnel-arrow)"></path>
+      <text x="104" y="64" fill="#282A36" font-size="16">a = 2</text><text x="314" y="64" fill="#282A36" font-size="16">b = 3</text>
+    </g>
+  </svg>
+  <label>For a one-unit advertising increase
+    <select id="media-funnel-contrast"><option value="direct">Hold search interest fixed</option><option value="total">Let search interest respond</option></select>
+  </label>
+  <p id="media-funnel-result" class="ex-status" role="status"></p>
+  <p>Which contrast supports a decision about the total effect? In the identified linear additive model with no exposure–mediator interaction, the direct effect is c, the indirect effect is a × b and the total is c + a × b. Random assignment of advertising can leave confounding between interest and sales. Calculate products within joint draws, propagate downstream variables for total-effect contrasts, and integrate over the mediator for nonlinear outcomes. <a href="../../effects/causal-graphs-and-identification/#front-door-identification">Review identification through a mediator</a>.</p>
+</section></div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  function plural(n, noun) {
+    return n + ' ' + noun + (n === 1 ? '' : 's');
+  }
+
+  /* ================= numerical engine ================= */
+
+  function matClone(A) { return A.map(function(r) { return r.slice(); }); }
+
+  function invLogDet(A) {
+    var n = A.length, M = matClone(A), I = [], i, j;
+    for (i = 0; i < n; i++) { I.push(new Array(n).fill(0)); I[i][i] = 1; }
+    var logDet = 0, sign = 1;
+    for (var c = 0; c < n; c++) {
+      var piv = c;
+      for (var r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+      if (Math.abs(M[piv][c]) < 1e-12) return null;
+      if (piv !== c) {
+        var tmp = M[piv]; M[piv] = M[c]; M[c] = tmp;
+        tmp = I[piv]; I[piv] = I[c]; I[c] = tmp;
+        sign = -sign;
+      }
+      var d = M[c][c];
+      logDet += Math.log(Math.abs(d));
+      if (d < 0) sign = -sign;
+      for (j = 0; j < n; j++) { M[c][j] /= d; I[c][j] /= d; }
+      for (var r2 = 0; r2 < n; r2++) {
+        if (r2 === c) continue;
+        var f = M[r2][c];
+        if (f === 0) continue;
+        for (var j2 = 0; j2 < n; j2++) { M[r2][j2] -= f * M[c][j2]; I[r2][j2] -= f * I[c][j2]; }
+      }
+    }
+    return { inv: I, logDet: logDet, negDet: sign < 0 };
+  }
+
+  function fmlF(S, Sigma, logDetS) {
+    if (!Sigma) return null;
+    var res = invLogDet(Sigma);
+    if (!res || res.negDet) return null;
+    var p = S.length, tr = 0;
+    for (var i = 0; i < p; i++)
+      for (var j = 0; j < p; j++) tr += S[i][j] * res.inv[j][i];
+    return res.logDet + tr - logDetS - p;
+  }
+
+  function chi2P(x, k) {
+    if (k <= 0) return 1;
+    if (x <= 0) return 1;
+    var a = k / 2, x2 = x / 2;
+    function lgamma(z) {
+      var c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+      if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+      z -= 1;
+      var xx = c[0];
+      for (var i = 1; i < 9; i++) xx += c[i] / (z + i);
+      var t = z + 7.5;
+      return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(xx);
+    }
+    if (x2 < a + 1) {
+      var ap = a, del = 1 / a, sumS = del;
+      for (var i = 0; i < 300; i++) {
+        ap += 1; del *= x2 / ap; sumS += del;
+        if (Math.abs(del) < Math.abs(sumS) * 1e-12) break;
+      }
+      return 1 - sumS * Math.exp(-x2 + a * Math.log(x2) - lgamma(a));
+    }
+    var b = x2 + 1 - a, c2 = 1e300, d = 1 / b, h = d;
+    for (var i2 = 1; i2 < 300; i2++) {
+      var an = -i2 * (i2 - a);
+      b += 2;
+      d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c2 = b + an / c2; if (Math.abs(c2) < 1e-300) c2 = 1e-300;
+      d = 1 / d;
+      var delta = d * c2;
+      h *= delta;
+      if (Math.abs(delta - 1) < 1e-12) break;
+    }
+    return h * Math.exp(-x2 + a * Math.log(x2) - lgamma(a));
+  }
+
+  /* Sample moments from data columns */
+  function covCorr(X) {
+    var p = X.length, n = X[0].length;
+    var mean = X.map(function(c) { var s = 0; for (var i = 0; i < n; i++) s += c[i]; return s / n; });
+    var S = [];
+    for (var i = 0; i < p; i++) {
+      S.push([]);
+      for (var j = 0; j < p; j++) {
+        var s = 0;
+        for (var r = 0; r < n; r++) s += (X[i][r] - mean[i]) * (X[j][r] - mean[j]);
+        S[i].push(s / (n - 1));
+      }
+    }
+    var sd = S.map(function(row, i) { return Math.sqrt(row[i]); });
+    var R = S.map(function(row, i) { return row.map(function(v, j) { return v / (sd[i] * sd[j]); }); });
+    return { mean: mean, S: S, R: R, sd: sd, n: n };
+  }
+
+  /* ML fit of a recursive path model to a correlation matrix R.
+     For a recursive DAG with uncorrelated residuals and freely covarying
+     exogenous variables, the ML solution is closed form: each endogenous
+     variable's coefficients are its OLS regression on its parents, the
+     exogenous block of Psi equals the sample block, and residual variances
+     are the regression leftovers. */
+  function fitPathModel(R, edges) {
+    var p = R.length, i;
+    var B = [], Psi = [];
+    for (i = 0; i < p; i++) { B.push(new Array(p).fill(0)); Psi.push(new Array(p).fill(0)); }
+    var parentsOf = [];
+    for (i = 0; i < p; i++) parentsOf.push([]);
+    edges.forEach(function(e) { parentsOf[e.to].push(e.from); });
+    var exo = [], endo = [];
+    for (i = 0; i < p; i++) (parentsOf[i].length ? endo : exo).push(i);
+    for (var ei = 0; ei < endo.length; ei++) {
+      var j = endo[ei], pa = parentsOf[j];
+      var Rpp = pa.map(function(a) { return pa.map(function(b) { return R[a][b]; }); });
+      var inv = invLogDet(Rpp);
+      if (!inv) return { error: 'collinear', node: j };
+      var b = pa.map(function(_, ai) {
+        var s = 0;
+        for (var bi = 0; bi < pa.length; bi++) s += inv.inv[ai][bi] * R[pa[bi]][j];
+        return s;
+      });
+      var psi = R[j][j];
+      for (var ai2 = 0; ai2 < pa.length; ai2++) psi -= b[ai2] * R[pa[ai2]][j];
+      if (!(psi > 1e-9)) return { error: 'collinear', node: j };
+      for (ai2 = 0; ai2 < pa.length; ai2++) B[j][pa[ai2]] = b[ai2];
+      Psi[j][j] = psi;
+    }
+    exo.forEach(function(a) { exo.forEach(function(b2) { Psi[a][b2] = R[a][b2]; }); });
+    var IB = [];
+    for (i = 0; i < p; i++) { IB.push(new Array(p).fill(0)); IB[i][i] = 1; }
+    edges.forEach(function(e) { IB[e.to][e.from] = -B[e.to][e.from]; });
+    var invIB = invLogDet(IB);
+    if (!invIB) return { error: 'singular' };
+    var A = invIB.inv;
+    var Sigma = [];
+    for (i = 0; i < p; i++) {
+      Sigma.push([]);
+      for (var j2 = 0; j2 < p; j2++) {
+        var s2 = 0;
+        for (var a3 = 0; a3 < p; a3++)
+          for (var b3 = 0; b3 < p; b3++) s2 += A[i][a3] * Psi[a3][b3] * A[j2][b3];
+        Sigma[i].push(s2);
+      }
+    }
+    var ldR = invLogDet(R);
+    if (!ldR || ldR.negDet) return { error: 'data-singular' };
+    var F = fmlF(R, Sigma, ldR.logDet);
+    if (F === null) return { error: 'singular' };
+    var q = edges.length + exo.length + exo.length * (exo.length - 1) / 2 + endo.length;
+    var df = p * (p + 1) / 2 - q;
+    return { B: B, Psi: Psi, Sigma: Sigma, total: A, F: Math.max(0, F), q: q, df: df, exo: exo, endo: endo };
+  }
+
+  /* ================= data: CSV + built-in dataset ================= */
+
+  function parseCSV(text, fname) {
+    text = String(text).replace(/^\uFEFF/, '');
+    var lines = text.split(/\r\n|\r|\n/).filter(function(l) { return l.trim() !== ''; });
+    if (lines.length < 3) return { error: 'Need a header row plus at least two data rows.' };
+    var counts = { ',': (lines[0].match(/,/g) || []).length, '\t': (lines[0].match(/\t/g) || []).length, ';': (lines[0].match(/;/g) || []).length };
+    var delim = ',';
+    if (counts['\t'] > counts[delim]) delim = '\t';
+    if (counts[';'] > counts[delim]) delim = ';';
+    function splitLine(l) {
+      var out = [], cur = '', inQ = false;
+      for (var i = 0; i < l.length; i++) {
+        var ch = l[i];
+        if (inQ) {
+          if (ch === '"') { if (l[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+          else cur += ch;
+        }
+        else if (ch === '"') inQ = true;
+        else if (ch === delim) { out.push(cur); cur = ''; }
+        else cur += ch;
+      }
+      out.push(cur);
+      return out;
+    }
+    var heads = splitLine(lines[0]).map(function(h) { return h.trim(); });
+    if (heads.length < 2) return { error: 'Found only one column — SEM needs at least two.' };
+    if (heads.some(function(h) { return h === ''; })) return { error: 'The header row has an empty column name.' };
+    var keys = heads.map(function(h) { return h.toLowerCase(); });
+    for (var d1 = 0; d1 < keys.length; d1++)
+      for (var d2 = d1 + 1; d2 < keys.length; d2++)
+        if (keys[d1] === keys[d2]) return { error: 'Duplicate column name “' + heads[d1] + '” (matching is case-insensitive).' };
+    var cols = {}, finite = {};
+    keys.forEach(function(k) { cols[k] = []; finite[k] = 0; });
+    for (var r = 1; r < lines.length; r++) {
+      var cells = splitLine(lines[r]);
+      for (var ci = 0; ci < keys.length; ci++) {
+        var raw = (cells[ci] === undefined ? '' : cells[ci]).trim();
+        var v = raw === '' ? NaN : Number(raw);
+        if (isFinite(v)) finite[keys[ci]]++;
+        cols[keys[ci]].push(v);
+      }
+    }
+    return { name: fname || 'uploaded.csv', headers: heads, keys: keys, cols: cols, finite: finite, n: lines.length - 1 };
+  }
+
+  /* Built-in dataset: 400 customers from a known causal process.
+     True standardized structure:
+       corr(satisfaction, convenience) = 0.35 (exogenous, free)
+       loyalty    = 0.55·satisfaction + 0.30·convenience + e   (resid var 0.492)
+       repurchase = 0.65·loyalty      + 0.20·convenience + e   (resid var 0.40945) */
+  function mulberry32(a) {
+    return function() {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function defaultDataset() {
+    var rnd = mulberry32(20260710);
+    function gauss() {
+      var u = 0, v = 0;
+      while (u === 0) u = rnd();
+      while (v === 0) v = rnd();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+    var N = 400, sat = [], conv = [], loy = [], rep = [];
+    for (var i = 0; i < N; i++) {
+      var g = gauss();
+      var satZ = Math.sqrt(0.65) * gauss() + Math.sqrt(0.35) * g;
+      var convZ = Math.sqrt(0.65) * gauss() + Math.sqrt(0.35) * g;
+      var loyZ = 0.55 * satZ + 0.30 * convZ + Math.sqrt(0.492) * gauss();
+      var repZ = 0.65 * loyZ + 0.20 * convZ + Math.sqrt(0.40945) * gauss();
+      sat.push(Math.round((7.1 + 1.3 * satZ) * 10) / 10);
+      conv.push(Math.round((5.6 + 1.2 * convZ) * 10) / 10);
+      loy.push(Math.round(63 + 15 * loyZ));
+      rep.push(Math.round((8.5 + 3.2 * repZ) * 10) / 10);
+    }
+    return {
+      name: 'loyalty_survey_default.csv (built-in)',
+      headers: ['satisfaction', 'convenience', 'loyalty', 'repurchase'],
+      keys: ['satisfaction', 'convenience', 'loyalty', 'repurchase'],
+      cols: { satisfaction: sat, convenience: conv, loyalty: loy, repurchase: rep },
+      finite: { satisfaction: N, convenience: N, loyalty: N, repurchase: N },
+      n: N
+    };
+  }
+
+  /* ================= state ================= */
+
+  var PALETTE = ['#0284C7', '#8A5700', '#6941A5', '#066B4F', '#FF79C6', '#2563EB', '#785138', '#8592BE'];
+  var SLOTS = [
+    { x: 170, y: 110 }, { x: 470, y: 100 }, { x: 700, y: 220 }, { x: 170, y: 330 },
+    { x: 450, y: 340 }, { x: 430, y: 215 }, { x: 690, y: 90 }, { x: 700, y: 370 }
+  ];
+  var NAMES = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+  var state = {
+    nodes: [],        /* {id, name, x, y, color} */
+    edges: [],        /* {from, to} — structure only; coefficients come from the fit */
+    targetId: null,
+    selected: null,
+    editing: null,
+    nodeCounter: 0,
+    data: null,       /* {name, headers, keys, cols, finite, n} */
+    fit: null,        /* results of the last successful fit */
+    stale: false      /* model/data changed since last fit */
+  };
+
+  function nodeById(id) {
+    for (var i = 0; i < state.nodes.length; i++) if (state.nodes[i].id === id) return state.nodes[i];
+    return null;
+  }
+
+  function colKey(name) { return String(name).trim().toLowerCase(); }
+
+  function topoOK(nodes, edges) {
+    var indeg = {}, adj = {};
+    nodes.forEach(function(nd) { indeg[nd.id] = 0; adj[nd.id] = []; });
+    for (var i = 0; i < edges.length; i++) {
+      var e = edges[i];
+      if (indeg[e.to] === undefined || indeg[e.from] === undefined) continue;
+      indeg[e.to]++; adj[e.from].push(e.to);
+    }
+    var queue = nodes.filter(function(nd) { return indeg[nd.id] === 0; }).map(function(nd) { return nd.id; });
+    var seen = 0;
+    while (queue.length) {
+      var k = queue.shift();
+      seen++;
+      adj[k].forEach(function(t) { if (--indeg[t] === 0) queue.push(t); });
+    }
+    return seen === nodes.length;
+  }
+
+  /* ================= status lines ================= */
+
+  function setStatus(msg, cls) {
+    var el = document.getElementById('semb-status');
+    el.className = 'semb-status' + (cls ? ' ' + cls : '');
+    el.textContent = msg;
+  }
+
+  function setFitStatus(msg, cls) {
+    var el = document.getElementById('semb-fit-status');
+    el.className = 'semb-status' + (cls ? ' ' + cls : '');
+    el.style.margin = '0';
+    el.textContent = msg;
+  }
+
+  function unmatchedAdvice(n) {
+    var variable = n === 1 ? 'variable' : 'variables';
+    var pronoun = n === 1 ? 'it' : 'them';
+    return 'Rename the ' + variable + ' to match the column names (case-insensitive), or upload data containing ' + pronoun + '.';
+  }
+
+  function drawStatus() {
+    if (state.nodes.length === 0) setStatus('Click “+ Add Variable” to create your first variable.', '');
+    else if (state.nodes.length === 1) setStatus('Add a second variable, then draw an arrow between them.', '');
+    else if (state.edges.length === 0) setStatus('Draw arrows: use the From → To bar, or click one node then another.', '');
+    else setStatus('Structure: ' + state.nodes.length + ' variables, ' + state.edges.length + ' directed arrow' + (state.edges.length === 1 ? '' : 's') + '.', '');
+  }
+
+  function fmtP(p) { return p < 0.001 ? '<.001' : p.toFixed(3); }
+  function fmtCov(v) { var a = Math.abs(v); return v.toFixed(a >= 100 ? 1 : a >= 10 ? 2 : 3); }
+  function escXml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  /* ================= match validation + fit gate ================= */
+
+  function validateMatch() {
+    var out = { unmatched: [], unusable: [], dup: [] };
+    if (!state.data) return out;
+    var seen = {};
+    state.nodes.forEach(function(nd) {
+      var k = colKey(nd.name);
+      if (seen[k]) out.dup.push(nd.name);
+      seen[k] = true;
+      if (!state.data.cols[k]) out.unmatched.push(nd.name);
+      else if (state.data.finite[k] < 3) out.unusable.push(nd.name);
+    });
+    return out;
+  }
+
+  function updateFitGate() {
+    var btn = document.getElementById('semb-fit');
+    var reason = null, cls = '';
+    if (state.nodes.length < 2) reason = 'Draw a DAG first — at least two variables.';
+    else if (!state.data) reason = 'Load data (step 2) — the fit needs real observations.';
+    else {
+      var v = validateMatch();
+      if (v.dup.length) { reason = 'Two variables share the name “' + v.dup[0] + '” — rename one.'; cls = 'err'; }
+      else if (v.unmatched.length) { reason = 'No data column matches: ' + v.unmatched.join(', ') + '. ' + unmatchedAdvice(v.unmatched.length); cls = 'err'; }
+      else if (v.unusable.length) { reason = 'Column “' + v.unusable[0] + '” has fewer than 3 numeric values — it can’t be modeled.'; cls = 'err'; }
+    }
+    btn.disabled = !!reason;
+    if (reason) setFitStatus(reason, cls);
+    else if (state.fit && !state.stale) setFitStatus('Fitted. Edit the model or load new data, then refit.', 'ok');
+    else if (state.stale) setFitStatus('Model or data changed — press “Fit Model” to re-estimate.', 'warn');
+    else setFitStatus('Ready: ' + state.nodes.length + ' variables matched to “' + state.data.name + '” (N = ' + state.data.n + ').', 'ok');
+  }
+
+  function clearFit() {
+    if (state.fit) { state.fit = null; state.stale = true; }
+    document.getElementById('semb-results').style.display = 'none';
+  }
+
+  /* one call after every mutation keeps every panel in sync */
+  function syncAll() {
+    renderDiagram();
+    renderChips();
+    renderPathBar();
+    renderDataPanel();
+    updateFitGate();
+  }
+
+  /* ================= diagram ================= */
+
+  var NW = 150, NH = 52, VW = 860, VH = 460;
+
+  /* On narrow screens the stored landscape layout is shown top to bottom at a readable size:
+     stored x runs down the page, stored y runs across, and overlapping boxes are pushed apart.
+     Nodes keep their stored positions, so dragging edits the same layout at any width. */
+  var COMPACT_BELOW = 600, CW = 440, CNW = 168, CNH = 60;
+  var view = { compact: false, vw: VW, vh: VH, nw: NW, nh: NH, font: 14.5, kx: 1, ky: 1, pos: {} };
+
+  function compactWanted() {
+    var host = document.getElementById('semb-canvas');
+    return !!host && host.clientWidth > 0 && host.clientWidth < COMPACT_BELOW;
+  }
+
+  function computeView() {
+    if (!compactWanted()) {
+      view = { compact: false, vw: VW, vh: VH, nw: NW, nh: NH, font: 14.5, kx: 1, ky: 1, pos: {} };
+      state.nodes.forEach(function(nd) { view.pos[nd.id] = { x: nd.x, y: nd.y }; });
+      return;
+    }
+    var mx = CNW / 2 + 8, my = CNH / 2 + 14, baseH = 620;
+    var kx = (CW - 2 * mx) / (VH - NH - 28), ky = (baseH - 2 * my) / (VW - NW - 16);
+    var placed = state.nodes.map(function(nd) {
+      return { id: nd.id, x: mx + (nd.y - NH / 2 - 14) * kx, y: my + (nd.x - NW / 2 - 8) * ky };
+    }).sort(function(a, b) { return a.y - b.y; });
+    for (var i = 1; i < placed.length; i++) {
+      for (var j = 0; j < i; j++) {
+        var a = placed[j], b = placed[i];
+        if (Math.abs(a.x - b.x) < CNW + 12 && b.y - a.y < CNH + 36) b.y = a.y + CNH + 36;
+      }
+    }
+    var bottom = placed.reduce(function(m, n) { return Math.max(m, n.y); }, 0);
+    view = { compact: true, vw: CW, vh: Math.max(placed.length ? bottom + my : 0, 360), nw: CNW, nh: CNH, font: 18, kx: kx, ky: ky, pos: {} };
+    placed.forEach(function(n) { view.pos[n.id] = { x: n.x, y: n.y }; });
+  }
+
+  function at(nd) { return view.pos[nd.id] || { x: nd.x, y: nd.y }; }
+
+  function nodeBoundary(fromN, toN, shrink) {
+    var dx = toN.x - fromN.x, dy = toN.y - fromN.y;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var t = 1 / Math.max(Math.abs(dx) / (view.nw / 2 + 6), Math.abs(dy) / (view.nh / 2 + 6), 1e-9);
+    t = Math.min(t, 1);
+    t += (shrink || 0) / len;
+    return { x: fromN.x + dx * t, y: fromN.y + dy * t };
+  }
+
+  function arrowHeadAt(x, y, dirX, dirY, color, size) {
+    var s = size || 11;
+    var len = Math.sqrt(dirX * dirX + dirY * dirY) || 1;
+    var ux = dirX / len, uy = dirY / len;
+    var bx = x - ux * s, by = y - uy * s;
+    var wx = -uy * s * 0.42, wy = ux * s * 0.42;
+    return '<polygon points="' + x.toFixed(1) + ',' + y.toFixed(1) + ' ' +
+      (bx + wx).toFixed(1) + ',' + (by + wy).toFixed(1) + ' ' +
+      (bx - wx).toFixed(1) + ',' + (by - wy).toFixed(1) + '" fill="' + color + '"/>';
+  }
+
+  function diagramSVG(interactive) {
+    computeView();
+    var W = view.vw, H = view.vh, nw = view.nw, nh = view.nh, f = view.font / 14.5;
+    var svg = '<svg' + (interactive ? ' id="semb-svg"' : '') + (view.compact ? ' class="semb-compact"' : '') + ' viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="transparent" data-bg="1"/>';
+
+    if (state.nodes.length === 0) {
+      var hint = view.compact ? ['Click “+ Add Variable”, then click one node', 'and another to draw an arrow.']
+        : ['Click “+ Add Variable”, then click one node and another to draw an arrow.'];
+      svg += '<text x="' + (W / 2) + '" y="' + (H / 2 - 14) + '" text-anchor="middle" fill="#4E5B83" font-size="' + (16 * f) + '" font-weight="600" font-family="Public Sans, sans-serif">The canvas is empty.</text>';
+      hint.forEach(function(line, li) {
+        svg += '<text x="' + (W / 2) + '" y="' + (H / 2 + 14 + li * 20 * f) + '" text-anchor="middle" fill="#4E5B83" font-size="' + (14 * f) + '" font-family="Public Sans, sans-serif">' + line + '</text>';
+      });
+    }
+
+    /* coefficients exist only after a fit, and are printed only on the
+       results copy — the drawing canvas never shows numbers */
+    var betas = !interactive && state.fit && !state.stale ? state.fit.betas : null;
+
+    state.edges.forEach(function(e, ei) {
+      var nf0 = nodeById(e.from), nt0 = nodeById(e.to);
+      if (!nf0 || !nt0) return;
+      var color = nf0.color, nf = at(nf0), nt = at(nt0);
+      var b = betas ? betas[e.from + '>' + e.to] : undefined;
+      var p1 = nodeBoundary(nf, nt, 2), p2 = nodeBoundary(nt, nf, 4);
+      var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+      var nx = -(p2.y - p1.y), ny = p2.x - p1.x;
+      var nl = Math.sqrt(nx * nx + ny * ny) || 1;
+      var edx = p2.x - p1.x, edy = p2.y - p1.y;
+      var elen = Math.sqrt(edx * edx + edy * edy) || 1;
+      svg += '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + (p2.x - edx / elen * 9) + '" y2="' + (p2.y - edy / elen * 9) + '" stroke="' + color + '" stroke-width="2"/>';
+      svg += arrowHeadAt(p2.x, p2.y, edx, edy, color);
+      if (b !== undefined) {
+        svg += '<text x="' + (mx + nx / nl * 13) + '" y="' + (my + ny / nl * 13) + '" text-anchor="middle" fill="' + color + '" font-size="' + (13 * f) + '" font-weight="700" font-family="Public Sans, sans-serif">' + b.toFixed(2) + '</text>';
+      }
+      if (interactive) {
+        svg += '<line class="semb-edge-hit" data-edge="' + ei + '" x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="rgba(0,0,0,0)" stroke-width="16"><title>Click to highlight this path’s chip</title></line>';
+      }
+    });
+
+    state.nodes.forEach(function(nd) {
+      var sel = interactive && state.selected === nd.id;
+      var isTarget = state.targetId === nd.id;
+      var q = at(nd);
+      svg += '<g' + (interactive ? ' class="semb-node" data-node="' + nd.id + '"' : '') + '>';
+      if (sel) svg += '<rect x="' + (q.x - nw / 2 - 5) + '" y="' + (q.y - nh / 2 - 5) + '" width="' + (nw + 10) + '" height="' + (nh + 10) + '" rx="12" fill="none" stroke="' + nd.color + '" stroke-width="1.5" stroke-dasharray="4,4"/>';
+      svg += '<rect x="' + (q.x - nw / 2) + '" y="' + (q.y - nh / 2) + '" width="' + nw + '" height="' + nh + '" rx="9" fill="rgba(98,114,164,0.2)" stroke="' + nd.color + '" stroke-width="' + (sel || isTarget ? 3 : 2) + '"/>';
+      svg += '<text x="' + q.x + '" y="' + (q.y + (isTarget ? -2 * f : 5 * f)) + '" text-anchor="middle" fill="' + nd.color + '" font-size="' + view.font + '" font-weight="700" font-family="Public Sans, sans-serif" pointer-events="none">' + escXml(nd.name) + '</text>';
+      if (isTarget) {
+        svg += '<text x="' + q.x + '" y="' + (q.y + 16 * f) + '" text-anchor="middle" fill="#066B4F" font-size="' + (11 * f) + '" font-weight="700" font-family="Public Sans, sans-serif" pointer-events="none">◎ Target outcome</text>';
+      }
+      svg += '</g>';
+    });
+
+    svg += '</svg>';
+    return svg;
+  }
+
+  var lastCompact = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(function() {
+      var compact = compactWanted();
+      if (lastCompact !== null && compact !== lastCompact) {
+        renderDiagram();
+        if (state.fit && !state.stale) document.getElementById('semb-fitted').innerHTML = diagramSVG(false);
+      }
+      lastCompact = compact;
+    }).observe(document.getElementById('semb-canvas'));
+  }
+
+  function renderDiagram() {
+    document.getElementById('semb-canvas').innerHTML = diagramSVG(true);
+
+    var svgEl = document.getElementById('semb-svg');
+    var nodes = svgEl.querySelectorAll('[data-node]');
+    for (var ni = 0; ni < nodes.length; ni++) {
+      nodes[ni].addEventListener('pointerdown', onNodePointerDown);
+    }
+    var hits = svgEl.querySelectorAll('[data-edge]');
+    for (var hi = 0; hi < hits.length; hi++) {
+      hits[hi].addEventListener('click', function(ev) {
+        ev.stopPropagation();
+        focusChip(+this.getAttribute('data-edge'));
+      });
+    }
+    svgEl.addEventListener('pointerdown', function(ev) {
+      if (ev.target.getAttribute && ev.target.getAttribute('data-bg')) {
+        if (state.selected) { state.selected = null; renderDiagram(); }
+      }
+    });
+  }
+
+  function focusChip(i) {
+    var chip = document.querySelector('#semb-chips [data-chipwrap="' + i + '"]');
+    if (chip) {
+      chip.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      chip.classList.remove('flash');
+      void chip.offsetWidth;
+      chip.classList.add('flash');
+    }
+  }
+
+  function renderChips() {
+    var el = document.getElementById('semb-chips');
+    if (state.edges.length === 0) {
+      el.innerHTML = '<span class="semb-none">No paths drawn yet.</span>';
+      return;
+    }
+    el.innerHTML = state.edges.map(function(e, i) {
+      var nf = nodeById(e.from), nt = nodeById(e.to);
+      return '<span class="semb-chip" data-chipwrap="' + i + '">' + escXml(nf.name) + ' → ' + escXml(nt.name) +
+        '<button type="button" class="flip" data-flip="' + i + '" title="Reverse direction" aria-label="Reverse direction">⇄</button>' +
+        '<button type="button" data-chip="' + i + '" title="Remove path" aria-label="Remove path">×</button></span>';
+    }).join('');
+    var btns = el.querySelectorAll('[data-chip]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function() { removeEdge(+this.getAttribute('data-chip')); });
+    }
+    var flips = el.querySelectorAll('[data-flip]');
+    for (var f = 0; f < flips.length; f++) {
+      flips[f].addEventListener('click', function() { flipEdge(+this.getAttribute('data-flip')); });
+    }
+  }
+
+  function renderPathBar() {
+    var fromSel = document.getElementById('semb-path-from');
+    var toSel = document.getElementById('semb-path-to');
+    var keepF = fromSel.value, keepT = toSel.value;
+    var opts = state.nodes.map(function(nd) {
+      return '<option value="' + nd.id + '">' + escXml(nd.name) + '</option>';
+    }).join('');
+    // With no variables yet, the empty selects say what they will hold.
+    fromSel.innerHTML = opts || '<option value="">From variable</option>';
+    toSel.innerHTML = opts || '<option value="">To variable</option>';
+    if (state.nodes.some(function(nd) { return nd.id === keepF; })) fromSel.value = keepF;
+    if (state.nodes.some(function(nd) { return nd.id === keepT; })) toSel.value = keepT;
+    else if (state.nodes.length > 1 && toSel.value === fromSel.value) toSel.selectedIndex = 1;
+    var off = state.nodes.length < 2;
+    fromSel.disabled = off;
+    toSel.disabled = off;
+    document.getElementById('semb-path-add').disabled = off;
+  }
+
+  /* ================= data panel ================= */
+
+  function renderDataPanel(errMsg) {
+    var el = document.getElementById('semb-data-panel');
+    var html = '';
+    if (errMsg) html += '<div class="semb-data-issues" style="margin:0 0 10px;">' + escXml(errMsg) + '</div>';
+    if (!state.data) {
+      el.innerHTML = html + '<span class="semb-none">No data loaded yet.</span>';
+      return;
+    }
+    var d = state.data;
+    html += '<div class="semb-data-meta">' +
+      '<span>Dataset: <strong>' + escXml(d.name) + '</strong></span>' +
+      '<span>N = <strong>' + d.n + '</strong> rows (read from the data)</span>' +
+      '<span><strong>' + d.headers.length + '</strong> columns</span></div>';
+    html += '<div class="semb-cols">' + d.headers.map(function(h, i) {
+      var k = d.keys[i];
+      var usable = d.finite[k] >= 3;
+      var matched = state.nodes.some(function(nd) { return colKey(nd.name) === k; });
+      if (!usable) return '<span class="semb-col-chip bad" title="Fewer than 3 numeric values — can’t be modeled">' + escXml(h) + ' — not numeric</span>';
+      if (matched) return '<span class="semb-col-chip ok" title="Matched to a variable on the canvas">✓ ' + escXml(h) + '</span>';
+      return '<span class="semb-col-chip">' + escXml(h) +
+        '<button type="button" data-addcol="' + i + '" title="Add as a variable on the canvas" aria-label="Add ' + escXml(h) + ' to the canvas">+</button></span>';
+    }).join('') + '</div>';
+    var v = validateMatch();
+    if (v.unmatched.length) {
+      html += '<div class="semb-data-issues">No data column for: ' + v.unmatched.map(escXml).join(', ') + '. ' + unmatchedAdvice(v.unmatched.length) + '</div>';
+    }
+    if (v.dup.length) {
+      html += '<div class="semb-data-issues">Two canvas variables share the name “' + escXml(v.dup[0]) + '” — rename one.</div>';
+    }
+    el.innerHTML = html;
+    var adds = el.querySelectorAll('[data-addcol]');
+    for (var ai = 0; ai < adds.length; ai++) {
+      adds[ai].addEventListener('click', function() {
+        addNode(state.data.headers[+this.getAttribute('data-addcol')]);
+      });
+    }
+  }
+
+  /* ================= fit ================= */
+
+  function runFit() {
+    var d = state.data;
+    var ids = state.nodes.map(function(nd) { return nd.id; });
+    var keys = state.nodes.map(function(nd) { return colKey(nd.name); });
+    var p = ids.length;
+
+    /* listwise deletion over the modeled columns */
+    var use = [];
+    for (var r = 0; r < d.n; r++) {
+      var ok = true;
+      for (var c = 0; c < p; c++) if (!isFinite(d.cols[keys[c]][r])) { ok = false; break; }
+      if (ok) use.push(r);
+    }
+    var nUsed = use.length;
+    if (nUsed < 10 || nUsed <= p + 1) {
+      setFitStatus('Only ' + plural(nUsed, 'complete row') + ' across the modeled columns — not enough to fit.', 'err');
+      return;
+    }
+    var X = keys.map(function(k) { return use.map(function(ri) { return d.cols[k][ri]; }); });
+    var mom = covCorr(X);
+    for (var si = 0; si < p; si++) {
+      if (!(mom.sd[si] > 1e-9)) {
+        setFitStatus('Column “' + state.nodes[si].name + '” is constant — it has no variance to model.', 'err');
+        return;
+      }
+    }
+    var pos = {};
+    ids.forEach(function(id, i) { pos[id] = i; });
+    var idxEdges = state.edges.map(function(e) { return { from: pos[e.from], to: pos[e.to] }; });
+    var fit = fitPathModel(mom.R, idxEdges);
+    if (fit.error) {
+      setFitStatus(fit.error === 'collinear'
+        ? 'The parents of “' + state.nodes[fit.node].name + '” are collinear in this data — the regression is not identified. Remove an arrow.'
+        : 'The data matrix is singular — check for duplicated columns.', 'err');
+      return;
+    }
+    var chi2 = (nUsed - 1) * fit.F;
+    var pval = chi2P(chi2, fit.df);
+    var betas = {};
+    state.edges.forEach(function(e) { betas[e.from + '>' + e.to] = fit.B[pos[e.to]][pos[e.from]]; });
+
+    state.fit = {
+      ids: ids, betas: betas, B: fit.B, Psi: fit.Psi, total: fit.total,
+      S: mom.S, R: mom.R, sd: mom.sd,
+      chi2: chi2, df: fit.df, p: pval, q: fit.q, nUsed: nUsed, dropped: d.n - nUsed,
+      endo: fit.endo
+    };
+    state.stale = false;
+    renderResults();
+    syncAll();
+    setFitStatus('Fitted by maximum likelihood: ' + state.edges.length + (state.edges.length === 1 ? ' path' : ' paths') + ' estimated from N = ' + nUsed + ' rows.', 'ok');
+  }
+
+  /* ================= results ================= */
+
+  function gofItem(name, val, rule, good) {
+    var cls = good === null ? '' : (good ? ' good' : ' bad');
+    return '<div class="sem-gof-item' + cls + '"><strong>' + name + '</strong><span class="gof-val">' + val + '</span><span class="gof-rule">' + rule + '</span></div>';
+  }
+
+  function matrixTable(M, fmt, markNoArrow) {
+    var directPair = null;
+    if (markNoArrow) {
+      directPair = {};
+      state.edges.forEach(function(e) {
+        directPair[e.from + '|' + e.to] = true;
+        directPair[e.to + '|' + e.from] = true;
+      });
+    }
+    var html = '<table class="semb-grid"><tr><th></th>';
+    state.nodes.forEach(function(nd) { html += '<th title="' + escXml(nd.name) + '">' + escXml(nd.name) + '</th>'; });
+    html += '</tr>';
+    state.nodes.forEach(function(ri, i) {
+      html += '<tr><th title="' + escXml(ri.name) + '">' + escXml(ri.name) + '</th>';
+      state.nodes.forEach(function(ci, j) {
+        if (i === j) { html += '<td class="diag">' + fmt(M[i][j]) + '</td>'; return; }
+        var noArrow = directPair && !directPair[ri.id + '|' + ci.id] && Math.abs(M[i][j]) > 0.005;
+        html += '<td' + (noArrow ? ' class="induced" title="No direct arrow in your model — if the model fits, this correlation flows through chains and shared causes"' : '') + '>' + fmt(M[i][j]) + '</td>';
+      });
+      html += '</tr>';
+    });
+    return html + '</table>';
+  }
+
+  function renderResults() {
+    var f = state.fit;
+    var box = document.getElementById('semb-results');
+    if (!f || state.stale) { box.style.display = 'none'; return; }
+    box.style.display = '';
+
+    document.getElementById('semb-fitted').innerHTML = diagramSVG(false);
+
+    document.getElementById('semb-smatrix').innerHTML = matrixTable(f.S, fmtCov, false);
+    document.getElementById('semb-rmatrix').innerHTML = matrixTable(f.R, function(v) { return v.toFixed(2); }, true);
+
+    /* causal effects */
+    var pos = {};
+    f.ids.forEach(function(id, i) { pos[id] = i; });
+    var eh = '';
+    if (state.targetId && pos[state.targetId] !== undefined) {
+      var t = pos[state.targetId];
+      var tgt = nodeById(state.targetId);
+      eh += '<div class="sem-table-wrap"><table class="sem-table"><tr><th>Paths to target “' + escXml(tgt.name) + '”</th><th>Direct β</th><th>Total (direct + indirect)</th><th>Observed correlation</th></tr>';
+      f.ids.forEach(function(id, ix) {
+        if (ix === t) return;
+        eh += '<tr><td>' + escXml(nodeById(id).name) + '</td><td>' + f.B[t][ix].toFixed(3) + '</td><td class="accent-cell">' + f.total[t][ix].toFixed(3) + '</td><td>' + f.R[t][ix].toFixed(3) + '</td></tr>';
+      });
+      if (f.endo.indexOf(t) >= 0) {
+        eh += '<tr><td>R² of the target (variance explained by its predictors)</td><td colspan="3" class="accent-cell">' + (1 - f.Psi[t][t]).toFixed(3) + '</td></tr>';
+      }
+      eh += '</table></div>';
+      eh += '<p style="font-size:12px;color:var(--text-dim);margin:2px 0 0;">The total adds the fitted direct and indirect paths. A difference from the observed correlation reflects the paths and assumptions in the specified graph. The coefficients use standard deviation units. Interpreting them as the result of an intervention requires causal identification.</p>';
+    } else {
+      eh += '<p class="semb-none" style="margin:4px 0;">No target designated. Double-click a variable and tick <em>Is Target</em> to show the total fitted path coefficient from each variable.</p>';
+    }
+    if (f.endo.length > 0) {
+      eh += '<div class="sem-table-wrap"><table class="sem-table"><tr><th>Endogenous variable</th><th>R² (variance explained)</th><th>Residual variance</th></tr>';
+      f.endo.forEach(function(ix) {
+        eh += '<tr><td>' + escXml(nodeById(f.ids[ix]).name) + '</td><td class="accent-cell">' + (1 - f.Psi[ix][ix]).toFixed(3) + '</td><td>' + f.Psi[ix][ix].toFixed(3) + '</td></tr>';
+      });
+      eh += '</table></div>';
+    }
+    document.getElementById('semb-effects').innerHTML = eh;
+
+    /* goodness of fit */
+    var saturated = f.df === 0;
+    document.getElementById('semb-gof').innerHTML =
+      gofItem('χ²', f.chi2.toFixed(2), 'model vs. data', saturated || f.p >= 0.05) +
+      gofItem('df', String(f.df), 'moments − free params', null) +
+      gofItem('p-value', saturated ? '—' : fmtP(f.p), 'p ≥ .05: not rejected', saturated || f.p >= 0.05) +
+      gofItem('N', String(f.nUsed), f.dropped > 0 ? f.dropped + ' incomplete row' + (f.dropped === 1 ? '' : 's') + ' dropped' : 'rows, read from the data', null);
+
+    var verdict = document.getElementById('semb-verdict');
+    if (saturated) {
+      verdict.className = 'semb-verdict na';
+      verdict.innerHTML = '<strong>The model is saturated</strong> (df = 0): it has as many free parameters as the data has distinct moments, so it reproduces S exactly and the test has no power. Remove an arrow to make the model falsifiable.';
+    } else if (f.p >= 0.05) {
+      verdict.className = 'semb-verdict nosig';
+      verdict.innerHTML = '<span class="delta">χ²(' + f.df + ') = ' + f.chi2.toFixed(2) + ', p = ' + fmtP(f.p) + '</span><br>' +
+        '<strong>Not rejected at α = .05:</strong> the global test does not detect a departure from the model’s joint covariance restrictions at N = ' + f.nUsed + '. This result leaves alternative structures possible. Arrow direction needs identification or substantive assumptions.';
+    } else {
+      verdict.className = 'semb-verdict sig';
+      verdict.innerHTML = '<span class="delta">χ²(' + f.df + ') = ' + f.chi2.toFixed(2) + ', p ' + (f.p < 0.001 ? '< .001' : '= ' + fmtP(f.p)) + '</span><br>' +
+        '<strong>Rejected at α = .05:</strong> the global test rejects the model’s joint covariance restrictions for these N = ' + f.nUsed + ' rows under the reference model for independent, multivariate-normal observations. Inspect covariance residuals and consider alternative specifications, measurement error and omitted common causes. Arrow direction needs separate evidence.';
+    }
+  }
+
+  /* ================= variable editor ================= */
+
+  function openEditor(id, focusName) {
+    state.editing = id;
+    renderEditor(focusName);
+  }
+  function closeEditor() {
+    state.editing = null;
+    document.getElementById('semb-editor').style.display = 'none';
+  }
+  function renderEditorIfOpen() { if (state.editing) renderEditor(); }
+
+  function renderEditor(focusName) {
+    var nd = nodeById(state.editing);
+    var panel = document.getElementById('semb-editor');
+    if (!nd) { closeEditor(); return; }
+    panel.style.display = '';
+
+    var others = state.nodes.filter(function(o) { return o.id !== nd.id; });
+    var outEdges = {};
+    state.edges.forEach(function(e, i) { if (e.from === nd.id) outEdges[e.to] = i; });
+
+    var html = '<div class="ed-top">' +
+      '<div class="fld"><label class="fl">Name (must match a data column)</label><input type="text" id="semb-ed-name" value="' + escXml(nd.name).replace(/"/g, '&quot;') + '" maxlength="24"></div>' +
+      '<label class="ed-row" style="align-self:center;"><input type="checkbox" id="semb-ed-target"' + (state.targetId === nd.id ? ' checked' : '') + '> <span><strong style="color:var(--accent);">Is Target</strong> — the outcome we measure</span></label>' +
+      '<span style="flex:1;"></span>' +
+      '<button class="ebtn danger" id="semb-ed-del" type="button">Delete variable</button>' +
+      '<button class="ebtn" id="semb-ed-done" type="button">Done</button>' +
+      '</div>';
+
+    html += '<div class="ed-section"><label class="fl">Where it points to</label>';
+    if (others.length === 0) {
+      html += '<p class="ed-note">No other variables yet — add another variable first.</p>';
+    } else {
+      html += '<div class="ed-rows">' + others.map(function(o) {
+        var has = outEdges[o.id] !== undefined;
+        return '<label class="ed-row" style="gap:6px;"><input type="checkbox" data-edpoint="' + o.id + '"' + (has ? ' checked' : '') + '> → ' + escXml(o.name) + '</label>';
+      }).join('') + '</div>';
+      html += '<p class="ed-note">Tick a variable to draw the arrow.</p>';
+    }
+    html += '</div>';
+
+    panel.innerHTML = html;
+
+    var nameInput = document.getElementById('semb-ed-name');
+    nameInput.addEventListener('input', function(e) {
+      nd.name = e.target.value || 'unnamed';
+      clearFit();
+      syncAll();
+    });
+    document.getElementById('semb-ed-del').addEventListener('click', function() { deleteNode(nd.id); });
+    document.getElementById('semb-ed-done').addEventListener('click', closeEditor);
+    document.getElementById('semb-ed-target').addEventListener('change', function(e) {
+      state.targetId = e.target.checked ? nd.id : null;
+      renderDiagram();
+      renderResults(); /* target choice only changes which effects are shown */
+    });
+
+    var pointChecks = panel.querySelectorAll('input[data-edpoint]');
+    for (var pi = 0; pi < pointChecks.length; pi++) {
+      pointChecks[pi].addEventListener('change', function(e) {
+        var toId = this.getAttribute('data-edpoint');
+        if (e.target.checked) {
+          var ok = addDirectedPath(nd.id, toId, true);
+          if (!ok) { e.target.checked = false; return; }
+          renderEditor();
+        } else {
+          var idx = -1;
+          state.edges.forEach(function(ed, i2) { if (ed.from === nd.id && ed.to === toId) idx = i2; });
+          if (idx >= 0) removeEdge(idx);
+        }
+      });
+    }
+
+    if (focusName) { nameInput.focus(); nameInput.select(); }
+  }
+
+  function createNode(name, x, y) {
+    return {
+      id: 'n' + (++state.nodeCounter),
+      name: name,
+      x: x,
+      y: y,
+      color: PALETTE[(state.nodeCounter - 1) % PALETTE.length]
+    };
+  }
+
+  function addNode(name) {
+    var slot = SLOTS[state.nodes.length % SLOTS.length];
+    var jitter = Math.floor(state.nodes.length / SLOTS.length) * 22;
+    var node = createNode(name,
+      Math.min(VW - NW / 2 - 10, slot.x + jitter),
+      Math.min(VH - NH / 2 - 14, slot.y + jitter));
+    state.nodes.push(node);
+    clearFit();
+    syncAll();
+    drawStatus();
+    return node.id;
+  }
+
+  function deleteNode(id) {
+    state.nodes = state.nodes.filter(function(nd) { return nd.id !== id; });
+    state.edges = state.edges.filter(function(e) { return e.from !== id && e.to !== id; });
+    if (state.selected === id) state.selected = null;
+    if (state.targetId === id) state.targetId = null;
+    if (state.editing === id) closeEditor();
+    clearFit();
+    syncAll();
+    drawStatus();
+  }
+
+  /* ================= canvas interactions ================= */
+
+  var drag = null;
+  var lastClick = { id: null, t: 0 };
+
+  function onNodePointerDown(ev) {
+    ev.preventDefault();
+    var id = this.getAttribute('data-node');
+    var nd = nodeById(id);
+    if (!nd) return;
+    drag = { id: id, startCX: ev.clientX, startCY: ev.clientY, origX: nd.x, origY: nd.y, moved: false };
+    window.addEventListener('pointermove', onWinPointerMove);
+    window.addEventListener('pointerup', onWinPointerUp);
+  }
+
+  function onWinPointerMove(ev) {
+    if (!drag) return;
+    var dx = ev.clientX - drag.startCX, dy = ev.clientY - drag.startCY;
+    if (!drag.moved && dx * dx + dy * dy < 36) return;
+    drag.moved = true;
+    var nd = nodeById(drag.id);
+    if (!nd) return;
+    var svgEl = document.getElementById('semb-svg');
+    var r = svgEl.getBoundingClientRect();
+    var ux = dx * view.vw / r.width, uy = dy * view.vh / r.height;
+    var storedDX = view.compact ? uy / view.ky : ux, storedDY = view.compact ? ux / view.kx : uy;
+    nd.x = Math.max(NW / 2 + 8, Math.min(VW - NW / 2 - 8, drag.origX + storedDX));
+    nd.y = Math.max(NH / 2 + 14, Math.min(VH - NH / 2 - 14, drag.origY + storedDY));
+    renderDiagram();
+  }
+
+  function stopDragging() {
+    drag = null;
+    window.removeEventListener('pointermove', onWinPointerMove);
+    window.removeEventListener('pointerup', onWinPointerUp);
+  }
+
+  function onWinPointerUp() {
+    if (!drag) return;
+    var wasClick = !drag.moved;
+    var id = drag.id;
+    stopDragging();
+    if (wasClick) handleNodeClick(id);
+    else if (state.fit && !state.stale) document.getElementById('semb-fitted').innerHTML = diagramSVG(false);
+  }
+
+  function handleNodeClick(id) {
+    var now = Date.now();
+    if (lastClick.id === id && now - lastClick.t < 400) {
+      lastClick = { id: null, t: 0 };
+      state.selected = null;
+      openEditor(id, true);
+      renderDiagram();
+      return;
+    }
+    lastClick = { id: id, t: now };
+
+    if (state.selected === null) {
+      state.selected = id;
+      setStatus('Selected “' + nodeById(id).name + '” — click another variable to draw an arrow, or double-click to edit.', '');
+      renderDiagram();
+      return;
+    }
+    if (state.selected === id) {
+      state.selected = null;
+      renderDiagram();
+      return;
+    }
+    var from = state.selected, to = id;
+    state.selected = null;
+    var sameIdx = -1;
+    state.edges.forEach(function(e, i) {
+      if (e.from === from && e.to === to) sameIdx = i;
+    });
+    if (sameIdx >= 0) {
+      focusChip(sameIdx);
+      renderDiagram();
+      return;
+    }
+    addDirectedPath(from, to);
+  }
+
+  /* Shared by canvas gesture, From→To bar, and editor checkboxes.
+     Structural validation: DAG cycle check only. */
+  function addDirectedPath(from, to, quiet) {
+    if (from === to) {
+      setStatus('Pick two different variables for a path.', 'err');
+      return false;
+    }
+    var sameIdx = -1, revIdx = -1;
+    state.edges.forEach(function(e, i) {
+      if (e.from === from && e.to === to) sameIdx = i;
+      if (e.from === to && e.to === from) revIdx = i;
+    });
+    if (sameIdx >= 0) {
+      setStatus('That path is already drawn: ' + nodeById(from).name + ' → ' + nodeById(to).name + '.', 'warn');
+      return true;
+    }
+    var candidate = state.edges.slice();
+    if (revIdx >= 0) candidate.splice(revIdx, 1);
+    candidate.push({ from: from, to: to });
+    if (!topoOK(state.nodes, candidate)) {
+      setStatus('That path would create a cycle — structural models must be a recursive DAG.', 'err');
+      renderDiagram();
+      return false;
+    }
+    state.edges = candidate;
+    clearFit();
+    syncAll();
+    if (!quiet) renderEditorIfOpen();
+    setStatus((revIdx >= 0 ? 'Reversed the existing path: now ' : 'Added path ') + nodeById(from).name + ' → ' + nodeById(to).name + '.', 'ok');
+    return true;
+  }
+
+  function flipEdge(i) {
+    var e = state.edges[i];
+    if (!e) return;
+    var candidate = state.edges.map(function(ee, j) {
+      return j === i ? { from: e.to, to: e.from } : ee;
+    });
+    if (!topoOK(state.nodes, candidate)) {
+      setStatus('Reversing ' + nodeById(e.from).name + ' → ' + nodeById(e.to).name + ' would create a cycle.', 'err');
+      return;
+    }
+    state.edges = candidate;
+    clearFit();
+    syncAll();
+    renderEditorIfOpen();
+    setStatus('Reversed direction: now ' + nodeById(e.to).name + ' → ' + nodeById(e.from).name + '.', 'ok');
+  }
+
+  function removeEdge(i) {
+    if (!state.edges[i]) return;
+    state.edges.splice(i, 1);
+    clearFit();
+    syncAll();
+    renderEditorIfOpen();
+    drawStatus();
+  }
+
+  /* ================= toolbar + data loading ================= */
+
+  var dataLoadId = 0;
+
+  function loadDefaultExample() {
+    dataLoadId++;
+    state.data = defaultDataset();
+
+    stopDragging();
+    lastClick = { id: null, t: 0 };
+    state.selected = null;
+    closeEditor();
+    state.nodeCounter = 0;
+
+    var layout = {
+      satisfaction: [170, 95],
+      convenience: [170, 375],
+      loyalty: [435, 145],
+      repurchase: [700, 250]
+    };
+    var ids = {};
+    state.nodes = state.data.headers.map(function(name) {
+      var position = layout[name];
+      var node = createNode(name, position[0], position[1]);
+      ids[name] = node.id;
+      return node;
+    });
+    state.edges = [
+      { from: ids.satisfaction, to: ids.loyalty },
+      { from: ids.convenience, to: ids.loyalty },
+      { from: ids.loyalty, to: ids.repurchase },
+      { from: ids.convenience, to: ids.repurchase }
+    ];
+    state.targetId = ids.repurchase;
+
+    clearFit();
+    syncAll();
+    drawStatus();
+  }
+
+  document.getElementById('semb-add').addEventListener('click', function() {
+    var name = NAMES[(state.nodeCounter) % NAMES.length];
+    if (state.nodeCounter + 1 > NAMES.length) name += Math.ceil((state.nodeCounter + 1) / NAMES.length);
+    var id = addNode(name);
+    openEditor(id, true);
+  });
+
+  document.getElementById('semb-path-add').addEventListener('click', function() {
+    var from = document.getElementById('semb-path-from').value;
+    var to = document.getElementById('semb-path-to').value;
+    if (!from || !to) return;
+    addDirectedPath(from, to);
+  });
+
+  document.getElementById('semb-upload-btn').addEventListener('click', function() {
+    document.getElementById('semb-file').click();
+  });
+
+  document.getElementById('semb-file').addEventListener('change', function(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var loadId = ++dataLoadId;
+    var reader = new FileReader();
+    reader.onload = function() {
+      if (loadId !== dataLoadId) return;
+      var parsed = parseCSV(reader.result, file.name);
+      if (parsed.error) {
+        renderDataPanel('Could not load “' + file.name + '”: ' + parsed.error);
+        return;
+      }
+      state.data = parsed;
+      clearFit();
+      syncAll();
+    };
+    reader.onerror = function() {
+      if (loadId === dataLoadId) renderDataPanel('Could not read the file.');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('semb-default-btn').addEventListener('click', loadDefaultExample);
+
+  document.getElementById('semb-fit').addEventListener('click', runFit);
+
+  /* ================= boot ================= */
+  syncAll();
+  drawStatus();
+});
+</script><script type="module" src="../../assets/causal-discovery.js"></script><script type="module" src="../../assets/media-panels.js"></script><script src="../../assets/guide.js"></script>
+</body>
+</html>

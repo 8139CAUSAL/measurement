@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markov Attribution | Marketing Measurement Science</title>
+  <meta name="description" content="Fit a transition matrix from ordered journeys and compare modeled removal effects.">
+  <link rel="canonical" href="https://8139causal.github.io/measurement/credit/markov-attribution/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Marketing Measurement Science">
+  <meta property="og:url" content="https://8139causal.github.io/measurement/credit/markov-attribution/">
+  <meta property="og:title" content="Markov Attribution | Marketing Measurement Science">
+  <meta property="og:description" content="Fit a transition matrix from ordered journeys and compare modeled removal effects.">
+  <meta property="og:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta property="og:image:width" content="576">
+  <meta property="og:image:height" content="576">
+  <meta property="og:image:alt" content="Causal Science logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Markov Attribution | Marketing Measurement Science">
+  <meta name="twitter:description" content="Fit a transition matrix from ordered journeys and compare modeled removal effects.">
+  <meta name="twitter:image" content="https://8139causal.github.io/measurement/assets/causal-science-logo.jpg">
+  <meta name="twitter:image:alt" content="Causal Science logo">
+  <link rel="stylesheet" href="../../assets/legacy/measurement.css"><style>
+    /* === Markov Page Styles === */
+    .journey-input { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 16px; }
+    .input-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .journeys-list { margin-top: 16px; }
+    .journey-item {
+      background: var(--bg-card-raised); padding: 12px 16px; border-radius: 8px;
+      margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+      border: 1px solid var(--brand-border-dim);
+    }
+    .journey-path { font-family: 'Courier New', monospace; font-weight: 600; font-size: 13px; color: var(--brand-text); }
+
+    .transition-matrix { overflow-x: auto; margin-top: 20px; }
+    .matrix-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--brand-border-dim); }
+    .matrix-table th, .matrix-table td { padding: 10px 12px; text-align: center; border: 1px solid var(--brand-border-dim); font-size: 13px; }
+    .matrix-table th { background: var(--bg-card-raised); color: var(--brand-accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .matrix-table td { color: var(--brand-text-muted); }
+    .probability-value { font-weight: 700; color: var(--brand-text); }
+    .matrix-table small { color: var(--brand-text-muted); opacity: 0.6; font-size: 11px; }
+
+    .calculations { margin-top: 20px; }
+    .calc-step {
+      margin-bottom: 12px; padding: 16px 20px; background: var(--bg-card); border-radius: 8px;
+      border-left: 3px solid var(--brand-accent); font-size: 14px; line-height: 1.6; color: var(--brand-text-muted);
+    }
+    .calc-step strong { color: var(--brand-text); }
+
+    .revenue-input { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .revenue-input label { font-weight: 600; color: var(--brand-text); font-size: 14px; }
+    .revenue-input input { width: 140px; }
+
+    .channel-removal { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+    .channel-card {
+      background: var(--bg-card-raised); padding: 20px; border-radius: 10px; text-align: center;
+      border: 1px solid var(--brand-border-dim); transition: transform 0.3s, border-color 0.3s;
+    }
+    @media (hover: hover) {
+      .channel-card:hover { transform: translateY(-3px); border-color: var(--brand-accent); }
+    }
+    .channel-name { font-size: 0.9rem; font-weight: 700; color: var(--brand-text); margin-bottom: 8px; }
+    .channel-value { font-size: 1.8rem; font-weight: 700; color: var(--brand-accent); margin-bottom: 6px; }
+    .channel-revenue { font-size: 0.95rem; color: var(--brand-success); font-weight: 600; }
+
+    .mk-tooltip-trigger { cursor: help; touch-action: manipulation; }
+    .mk-tooltip-trigger:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+    .mk-tooltip {
+      position: fixed; top: 0; left: 0; z-index: 10;
+      width: 26rem; box-sizing: border-box; padding: .65rem .8rem; border-radius: 6px;
+      text-align: left; line-height: 1.45; overflow-wrap: anywhere; overflow: auto; cursor: auto;
+    }
+    .channel-removal .mk-tooltip { width: 23rem; }
+    .mk-tooltip .tooltip-title { display: block; font-weight: 700; margin-bottom: .3rem; }
+    .mk-tooltip > div + div { margin-top: .3rem; }
+
+    .insights {
+      background: var(--bg-card); border: 1px solid var(--brand-border-dim); border-radius: 10px;
+      padding: 24px; margin-top: 24px;
+    }
+    .insights h3 { margin-bottom: 16px; font-size: 1rem; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.5px; }
+    .insights ul { list-style: none; padding-left: 0; margin: 0; }
+    .insights li { margin-bottom: 10px; padding-left: 24px; position: relative; font-size: 14px; line-height: 1.6; color: var(--brand-text-muted); }
+    .insights li::before { content: "\2192"; position: absolute; left: 0; color: var(--brand-accent); font-weight: bold; }
+
+    @media (max-width: 600px) {
+      .journey-input { grid-template-columns: 1fr; }
+      .input-actions { justify-content: center; }
+      .channel-removal { grid-template-columns: 1fr 1fr; }
+      .channel-value { font-size: 1.4rem; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/guide.css">
+  <link rel="stylesheet" href="../../assets/legacy-theme.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+</head>
+<body class="mg-lesson measurement">
+  <a class="mg-skip" href="#guide-main">Skip to content</a>
+<header class="mg-header">
+  <div class="mg-header-inner">
+    <a class="mg-wordmark" href="../../"><img class="mg-wordmark-logo" src="../../assets/causal-science-logo.jpg" width="20" height="20" alt="">Marketing Measurement Science</a>
+    <button class="mg-menu-toggle" type="button" aria-expanded="false" aria-controls="guide-navigation" hidden>Menu</button>
+    <nav class="mg-nav" id="guide-navigation" aria-label="Guide">
+      <details class="mg-menu"><summary>Plan Measurement</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../plan/">Plan Measurement overview</a></div><ul class="mg-links"><li><a href="../../plan/measurement-plan/">Measurement Plan</a></li><li><a href="../../plan/measurement-plan/without-vs-with/">Without vs. With a Plan</a></li><li><a href="../../plan/measurement-plan/builder/">Plan Builder</a></li></ul></div></details><details class="mg-menu"><summary>Estimate Effects</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../effects/">Estimate Effects overview</a></div><ul class="mg-links"><li><a href="../../effects/incrementality/">Incrementality</a></li><li><a href="../../effects/randomized-assignment/">Randomized Assignment and Blocking</a></li><li><a href="../../effects/p-values/">P-Values</a></li><li><a href="../../effects/sample-size-and-power/">Sample Size &amp; Power</a></li><li><a href="../../effects/p-hacking-and-replication/">P-Hacking and Replication</a></li><li><a href="../../effects/analyzing-ab-tests/">Analyzing A/B Tests</a></li><li><a href="../../effects/randomized-experiment/">Offer Experiment</a></li><li><a href="../../effects/incremental-lift-report/">Incremental Lift Report</a></li><li><a href="../../effects/uplift-modeling/">Uplift Modeling</a></li><li><a href="../../effects/causal-graphs-and-identification/">Causal Graphs and Identification</a></li><li><a href="../../effects/matching/">Propensity Scores, Matching, and Weighting</a></li><li><a href="../../effects/difference-in-differences/">Difference-in-Differences</a></li><li><a href="../../effects/regression-discontinuity/">Regression Discontinuity</a></li><li><a href="../../effects/heckman-selection/">Heckman Selection Correction</a></li></ul></div></details><details class="mg-menu mg-nav-current"><summary>Reconcile Credit</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../">Reconcile Credit overview</a></div><ul class="mg-links"><li><a href="../attribution-rules/">Attribution Rules</a></li><li><a href="./">Markov Attribution</a></li><li><a href="../holdout-calibration/#platform-overlap">Platform Credit Overlap</a></li><li><a href="../holdout-calibration/#exercise">Holdout Calibration</a></li><li><a href="../survey-attribution/">Survey Attribution</a></li></ul></div></details><details class="mg-menu"><summary>Model Outcomes</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../models/">Model Outcomes overview</a></div><div class="mg-menu-group"><a href="../../models/regression-and-structure/">Regression and Structure</a><ul class="mg-links"><li><a href="../../models/reading-regressions/">Reading Regressions</a></li><li><a href="../../models/path-analysis/">Path Analysis</a></li></ul></div><div class="mg-menu-group"><a href="../../models/media-response/">Media Response</a><ul class="mg-links"><li><a href="../../models/saturation-and-carryover/">Saturation &amp; Carryover</a></li><li><a href="../../models/marketing-mix/readiness/">MMM Readiness</a></li><li><a href="../../models/marketing-mix/">Marketing Mix Modeling</a></li><li><a href="../../models/marketing-mix/calibration/">Calibrating an MMM with a Lift Test</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customer-value/">Customer Value</a><ul class="mg-links"><li><a href="../../models/churn/">Churn</a></li><li><a href="../../models/retention/">Retention</a></li><li><a href="../../models/customer-lifetime-value/">Customer Lifetime Value</a></li><li><a href="../../models/customer-lifetime-value/contract-types/">Contractual and Non-Contractual CLV</a></li></ul></div><div class="mg-menu-group"><a href="../../models/customers-and-markets/">Customers and Markets</a><ul class="mg-links"><li><a href="../../models/segmentation/">Segmentation</a></li><li><a href="../../models/segmentation/prizm/">PRIZM</a></li><li><a href="../../models/market-basket/">Market Basket Analysis</a></li><li><a href="../../models/huff-model/">Huff Model</a></li></ul></div></div></details><details class="mg-menu"><summary>Make Decisions</summary><div class="mg-dropdown"><div class="mg-menu-overview"><a href="../../decisions/">Make Decisions overview</a></div><ul class="mg-links"><li><a href="../../decisions/budget/">Budget Decision Engine</a></li><li><a href="../../decisions/retention-interventions/">Retention Interventions</a></li><li><a href="../../decisions/loyalty-programs/">Evaluate a Loyalty Program</a></li></ul></div></details>
+      <a class="mg-reference-link" href="../../reference/">Reference &amp; Tools</a>
+      <details class="mg-menu mg-search" hidden>
+        <summary><svg class="mg-search-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg>Search</summary>
+        <div class="mg-dropdown" role="search">
+          <label for="guide-search">Search the guide</label>
+          <input id="guide-search" type="search" autocomplete="off" spellcheck="false">
+          <p class="mg-search-status" role="status"></p>
+          <ol class="mg-search-results"></ol>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+  <main id="guide-main" tabindex="-1">
+    <nav class="mg-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="../../">Home</a></li><li><a href="../">Reconcile Credit</a></li><li aria-current="page">Markov Attribution</li></ol></nav>
+    <header class="mg-lesson-intro"><h1>Markov Attribution</h1></header><div class="mg-source"><div class="page">
+    
+
+    <p class="problem-statement">Fit a first-order transition matrix to ordered journeys. Allocate revenue in proportion to how much each channel’s removal changes the model’s conversion probability.</p>
+
+    <div class="tab-selector" data-guide-tablist="Markov Attribution views">
+      <button class="tab-btn active" data-tab="math" type="button" data-guide-tab="mk-panel-math">The Math</button>
+      <button class="tab-btn" data-tab="build" type="button" data-guide-tab="mk-panel-build">Build a Model</button>
+    </div>
+
+    <!-- TAB 1: THE MATH -->
+    <div class="tab-panel active" id="mk-panel-math">
+      <div class="stage">
+        <h2 id="transitions-and-removal-effects">Transitions and removal effects</h2>
+        <p class="prose">Count every transition from Start through the observed channels to Conversion or No Conversion. Divide by the total number of transitions out of that state. A first-order model uses only the current state to predict the next one. The two outcomes are absorbing and have a self-transition probability of 1.</p>
+        <p class="prose">Solve for the probability of eventually reaching Conversion from Start. To remove a channel, redirect any transition into that channel to No Conversion and keep the other probabilities fixed. Divide the resulting drop by the baseline probability. Normalize the drops to allocate the entered revenue when their sum is positive.</p>
+        <p class="prose">The scores describe dependence within the fitted journey model under this removal rule. Customers might switch channels if a campaign stopped. Estimate the effect of a real spending or delivery change using separate causal evidence.</p>
+      </div>
+    </div>
+
+    <!-- TAB 2: BUILD A MODEL -->
+    <div class="tab-panel" id="mk-panel-build">
+      <div class="section" id="mk-journeySection">
+        <h2 id="customer-journeys"><span class="step-number">1</span> Customer Journeys</h2>
+        <p>Enter a path such as <strong>D → S → Conversion</strong> or <strong>S → No Conversion</strong>. Enter revenue separately in Total Revenue. The model allocates it across channels by removal effect.</p>
+        <p><strong>Channels:</strong> D (Display), F (Facebook), S (Search), E (Email)</p>
+        <div class="journey-input">
+          <input type="text" id="mk-journeyInput" aria-label="Customer journey" placeholder="e.g., D → F → S → Conversion">
+          <div class="input-actions">
+            <button class="btn btn-primary" id="mk-btnAdd" type="button">Add</button>
+            <button class="btn btn-secondary" id="mk-btnExample" type="button">Load Example</button>
+          </div>
+        </div>
+        <p id="mk-journeyStatus" role="status"></p>
+        <div class="journeys-list" id="mk-journeysList"></div>
+      </div>
+
+      <div class="section hidden" id="mk-matrixSection">
+        <h2 id="transition-matrix"><span class="step-number">2</span> Transition Matrix</h2>
+        <p>This matrix shows the probability of moving from one state to another based on your journey data.</p>
+        <div class="transition-matrix" id="mk-transitionMatrix"></div>
+      </div>
+
+      <div class="section hidden" id="mk-calculationSection">
+        <h2 id="removal-effects"><span class="step-number">3</span> Removal Effects</h2>
+        <div class="revenue-input">
+          <label for="mk-totalRevenue">Total Revenue: $</label>
+          <input type="number" id="mk-totalRevenue" value="850" min="0" step="0.01" required>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" id="mk-btnCalculate" type="button">Calculate Attribution</button>
+          <button class="btn btn-ghost" id="mk-btnReset" type="button">Reset</button>
+        </div>
+        <div class="calculations" id="mk-calculations"></div>
+      </div>
+
+      <div class="section hidden" id="mk-resultsSection">
+        <h2 id="attribution-results"><span class="step-number">4</span> Attribution Results</h2>
+        <div class="channel-removal" id="mk-channelResults"></div>
+      </div>
+    </div>
+  </div></div>
+  </main>
+  <footer class="mg-footer"><div><a href="../../">Marketing Measurement Science</a><span class="mg-attribution"><strong>Aaron Goodin</strong><br>Causal science and marketing measurement practitioner at <a href="https://causalscience.com/">Causal Science</a>.</span><a href="../../reference/">Reference &amp; Tools</a></div></footer>
+  <script>
+  (function(){
+  'use strict';
+
+  var journeys = [];
+  var model;
+  var activeTooltip = null;
+  var canHover = window.matchMedia('(any-hover: hover)');
+  var ARROW = ' \u2192 ';
+
+  function $(id) { return document.getElementById(id); }
+  var els = {
+    journeyInput: $('mk-journeyInput'),
+    journeyStatus: $('mk-journeyStatus'),
+    btnAdd: $('mk-btnAdd'),
+    btnExample: $('mk-btnExample'),
+    btnCalculate: $('mk-btnCalculate'),
+    btnReset: $('mk-btnReset'),
+    journeysList: $('mk-journeysList'),
+    matrixSection: $('mk-matrixSection'),
+    calculationSection: $('mk-calculationSection'),
+    resultsSection: $('mk-resultsSection'),
+    transitionMatrix: $('mk-transitionMatrix'),
+    totalRevenue: $('mk-totalRevenue'),
+    calculations: $('mk-calculations'),
+    channelResults: $('mk-channelResults')
+  };
+
+  var channelNames = { 'D': 'Display Ads', 'F': 'Facebook Ads', 'S': 'Search Ads', 'E': 'Email Marketing' };
+  function getChannelName(code) { return channelNames[code] || code; }
+
+  /* Tab switching */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+  function activateTab(tabId) {
+    closeTooltip();
+    for (var i = 0; i < tabBtns.length; i++) tabBtns[i].classList[tabBtns[i].dataset.tab === tabId ? 'add' : 'remove']('active');
+    for (var j = 0; j < tabPanels.length; j++) tabPanels[j].classList[tabPanels[j].id === 'mk-panel-' + tabId ? 'add' : 'remove']('active');
+  }
+  for (var ti = 0; ti < tabBtns.length; ti++) {
+    tabBtns[ti].addEventListener('click', function() { activateTab(this.dataset.tab); });
+  }
+
+  /* Journey management */
+  function parseJourney(label) {
+    var path = label.split(/\s*(?:→|->)\s*/);
+    var outcome = path.pop();
+    if (/^conversion(?:\s*\(\$[\d,.]+\))?$/i.test(outcome)) outcome = 'Conversion';
+    else if (/^no conversion$/i.test(outcome)) outcome = 'No Conversion';
+    else return null;
+    path = path.map(function(channel) { return channel.toUpperCase(); });
+    if (path.some(function(channel) { return !Object.hasOwn(channelNames, channel); })) return null;
+    return { label: label, path: ['Start'].concat(path, outcome) };
+  }
+
+  function addJourney() {
+    var label = els.journeyInput.value.trim();
+    if (!label) return;
+    var journey = parseJourney(label);
+    if (!journey) {
+      els.journeyStatus.textContent = 'Use D, F, S or E and end the path with Conversion or No Conversion.';
+      return;
+    }
+    journeys.push(journey);
+    els.journeyInput.value = '';
+    els.journeyStatus.textContent = label.endsWith(')')
+      ? 'Per-journey amounts are ignored. The allocation uses Total Revenue.' : '';
+    updateModel();
+  }
+
+  function removeJourney(index) {
+    journeys.splice(index, 1);
+    updateModel();
+  }
+
+  function updateModel() {
+    updateJourneysList();
+    invalidateResults();
+    els.matrixSection.classList.toggle('hidden', !journeys.length);
+    els.calculationSection.classList.toggle('hidden', !journeys.length);
+    if (journeys.length) buildTransitionMatrix();
+  }
+
+  function invalidateResults() {
+    closeTooltip();
+    els.calculations.replaceChildren();
+    els.channelResults.replaceChildren();
+    els.resultsSection.classList.add('hidden');
+  }
+
+  function updateJourneysList() {
+    var list = els.journeysList;
+    list.innerHTML = '';
+    for (var i = 0; i < journeys.length; i++) {
+      var item = document.createElement('div');
+      item.className = 'journey-item';
+      var pathSpan = document.createElement('span');
+      pathSpan.className = 'journey-path';
+      pathSpan.textContent = journeys[i].label;
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-danger';
+      removeBtn.textContent = 'Remove';
+      removeBtn.setAttribute('data-index', i);
+      removeBtn.addEventListener('click', function() { removeJourney(parseInt(this.getAttribute('data-index'), 10)); });
+      item.appendChild(pathSpan);
+      item.appendChild(removeBtn);
+      list.appendChild(item);
+    }
+  }
+
+  function loadExampleData() {
+    journeys = [
+      'D' + ARROW + 'F' + ARROW + 'S' + ARROW + 'Conversion',
+      'D' + ARROW + 'F' + ARROW + 'No Conversion',
+      'S' + ARROW + 'Conversion',
+      'D' + ARROW + 'S' + ARROW + 'Conversion',
+      'F' + ARROW + 'S' + ARROW + 'E' + ARROW + 'Conversion',
+      'E' + ARROW + 'No Conversion',
+      'D' + ARROW + 'F' + ARROW + 'S' + ARROW + 'Conversion',
+      'F' + ARROW + 'E' + ARROW + 'S' + ARROW + 'Conversion',
+      'D' + ARROW + 'No Conversion',
+      'S' + ARROW + 'E' + ARROW + 'Conversion'
+    ].map(parseJourney);
+    els.journeyStatus.textContent = '';
+    updateModel();
+  }
+
+  function buildTransitionMatrix() {
+    var observed = new Set(journeys.flatMap(function(journey) { return journey.path; }));
+    var channels = Object.keys(channelNames).filter(function(channel) { return observed.has(channel); });
+    var states = ['Start'].concat(channels, 'Conversion', 'No Conversion');
+    var index = new Map(states.map(function(state, i) { return [state, i]; }));
+    var conversion = index.get('Conversion');
+    var count = states.map(function() { return states.map(function() { return 0; }); });
+    journeys.forEach(function(journey) {
+      for (var i = 1; i < journey.path.length; i++) {
+        count[index.get(journey.path[i - 1])][index.get(journey.path[i])]++;
+      }
+    });
+
+    var probabilities = count.map(function(row, i) {
+      if (i >= conversion) return row.map(function(_, j) { return i === j ? 1 : 0; });
+      var total = row.reduce(function(sum, n) { return sum + n; }, 0);
+      return row.map(function(n) { return n / total; });
+    });
+    model = { channels: channels, probabilities: probabilities, conversion: conversion };
+
+    var html = '<table class="matrix-table"><thead><tr><th>From / To</th>' +
+      states.map(function(state) { return '<th scope="col">' + state + '</th>'; }).join('') + '</tr></thead><tbody>';
+    states.forEach(function(state, i) {
+      html += '<tr><th scope="row">' + state + '</th>';
+      probabilities[i].forEach(function(probability, j) {
+        var cell = probability ? '<span class="probability-value">' + probability.toFixed(3) + '</span>' : '–';
+        if (count[i][j]) cell += '<br><small>(' + count[i][j] + ')</small>';
+        html += '<td>' + cell + '</td>';
+      });
+      html += '</tr>';
+    });
+    els.transitionMatrix.innerHTML = html + '</tbody></table>';
+  }
+
+  function conversionProbability(removed) {
+    var probabilities = model.probabilities;
+    var transient = Array.from({ length: model.conversion }, function(_, i) { return i; })
+      .filter(function(i) { return i !== removed; });
+    // Solve (I - Q)x = p(convert). Omitting the removed column routes
+    // its probability mass to No Conversion, whose conversion probability is zero.
+    var equations = transient.map(function(i) {
+      return transient.map(function(j) { return Number(i === j) - probabilities[i][j]; })
+        .concat(probabilities[i][model.conversion]);
+    });
+    var n = equations.length;
+    for (var i = 0; i < n; i++) {
+      var pivot = i;
+      for (var j = i + 1; j < n; j++) {
+        if (Math.abs(equations[j][i]) > Math.abs(equations[pivot][i])) pivot = j;
+      }
+      var swapped = equations[pivot];
+      equations[pivot] = equations[i];
+      equations[i] = swapped;
+      var divisor = swapped[i];
+      for (var k = i; k <= n; k++) swapped[k] /= divisor;
+      for (var row = 0; row < n; row++) {
+        if (row === i) continue;
+        var factor = equations[row][i];
+        for (var col = i; col <= n; col++) equations[row][col] -= factor * swapped[col];
+      }
+    }
+    return Math.min(1, Math.max(0, equations[0][n]));
+  }
+
+  function calculateAttribution() {
+    if (!els.totalRevenue.reportValidity()) return;
+    invalidateResults();
+    var totalRevenue = els.totalRevenue.valueAsNumber;
+    var baseline = conversionProbability();
+    var html = '<div class="calc-step"><strong>Model conversion probability:</strong> ' + pct(baseline) + '</div>';
+    if (!baseline) {
+      els.calculations.innerHTML = html + '<p>Attribution is undefined because the model has no converting paths.</p>';
+      return;
+    }
+
+    var effects = model.channels.map(function(channel, i) {
+      var without = conversionProbability(i + 1);
+      var effect = Math.max(0, (baseline - without) / baseline);
+      var name = getChannelName(channel);
+      var baselineLabel = pct(baseline, 3);
+      var withoutLabel = pct(without, 3);
+      html += channelTooltip('calc-step', channel,
+        '<strong>' + name + '</strong><br>Conversion probability after removal: ' + pct(without) +
+        '<br>Relative drop: ' + pct(effect), name + ' removal effect', [
+          'Removing ' + name + ' redirects transitions into that channel to No Conversion.',
+          'Baseline conversion probability: ' + baselineLabel,
+          'Conversion probability without ' + name + ': ' + withoutLabel,
+          '(' + baselineLabel + ' − ' + withoutLabel + ') ÷ ' + baselineLabel + ' ≈ ' + pct(effect, 3)
+        ]);
+      return { channel: channel, effect: effect };
+    });
+    var totalEffect = effects.reduce(function(sum, item) { return sum + item.effect; }, 0);
+    if (totalEffect > 0) {
+      displayResults(effects, totalEffect, totalRevenue);
+    } else {
+      html += '<p>No channel has a positive removal effect to allocate.</p>';
+    }
+    els.calculations.innerHTML = html;
+    bindTooltips(els.calculations);
+  }
+
+  function pct(rate, digits = 1) { return (100 * rate).toFixed(digits) + '%'; }
+
+  function displayResults(effects, totalEffect, totalRevenue) {
+    var totalLabel = pct(totalEffect, 3);
+    var effectSum = effects.map(function(item) {
+      return getChannelName(item.channel) + ' ' + pct(item.effect, 3);
+    }).join(' + ');
+    var sortedEffects = effects.slice().sort(function(a, b) { return b.effect - a.effect; });
+    els.channelResults.innerHTML = sortedEffects.map(function(item) {
+      var name = getChannelName(item.channel);
+      var share = item.effect / totalEffect;
+      var shareLabel = pct(share, 3);
+      var revenue = '$' + (totalRevenue * share).toFixed(2);
+      return channelTooltip('channel-card', item.channel,
+        '<div class="channel-name">' + name + '</div><div class="channel-value">' + pct(share) +
+        '</div><div class="channel-revenue">' + revenue + '</div>', name + ' share of credit', [
+          'Sum of removal effects:<br>' + effectSum + ' ≈ ' + totalLabel,
+          'Share of credit: ' + pct(item.effect, 3) + ' ÷ ' + totalLabel + ' ≈ ' + shareLabel,
+          'Attributed revenue: ' + shareLabel + ' × $' + totalRevenue.toFixed(2) + ' ≈ ' + revenue,
+          'Removal effects can add up to more than 100% because removing different channels can each affect the same modeled conversion path.',
+          'Calculations use unrounded values.'
+        ]);
+    }).join('');
+    bindTooltips(els.channelResults);
+    els.resultsSection.classList.remove('hidden');
+  }
+
+  function channelTooltip(className, channel, content, title, lines) {
+    var id = 'mk-' + className + '-tip-' + channel;
+    return '<div class="' + className + ' mk-tooltip-trigger" tabindex="0" aria-describedby="' + id + '">' +
+      content + '</div><div class="tooltip-content mk-tooltip" id="' + id + '" role="tooltip" hidden>' +
+      '<span class="tooltip-title">' + title + '</span><div>' + lines.join('</div><div>') + '</div></div>';
+  }
+
+  function positionTooltip() {
+    if (!activeTooltip) return;
+    var panel = activeTooltip.panel;
+    var viewport = document.documentElement;
+    var gutter = 16;
+    var triggerBounds = activeTooltip.trigger.getBoundingClientRect();
+    if (triggerBounds.bottom <= gutter || triggerBounds.top >= viewport.clientHeight - gutter) {
+      closeTooltip();
+      return;
+    }
+    panel.style.maxWidth = Math.max(0, viewport.clientWidth - 2 * gutter) + 'px';
+    panel.style.maxHeight = '';
+    var panelBounds = panel.getBoundingClientRect();
+    // Keep the panel in contact with the card even during its 3px hover lift.
+    var belowEdge = Math.max(gutter, triggerBounds.bottom - 4);
+    var aboveEdge = Math.min(viewport.clientHeight - gutter, triggerBounds.top + 4);
+    var roomBelow = viewport.clientHeight - belowEdge - gutter;
+    var roomAbove = aboveEdge - gutter;
+    var above = panelBounds.height > roomBelow && roomAbove > roomBelow;
+    var height = Math.min(panelBounds.height, above ? roomAbove : roomBelow);
+    var left = Math.max(gutter, Math.min(triggerBounds.left, viewport.clientWidth - gutter - panelBounds.width));
+    panel.style.maxHeight = height + 'px';
+    panel.style.left = left + 'px';
+    panel.style.top = (above ? aboveEdge - height : belowEdge) + 'px';
+  }
+
+  function closeTooltip() {
+    if (!activeTooltip) return;
+    activeTooltip.panel.hidden = true;
+    activeTooltip = null;
+  }
+
+  function showTooltip(trigger, mode) {
+    if (activeTooltip?.trigger === trigger) {
+      activeTooltip.mode = mode;
+      return;
+    }
+    closeTooltip();
+    var panel = trigger.nextElementSibling;
+    activeTooltip = { trigger: trigger, panel: panel, mode: mode };
+    panel.hidden = false;
+    positionTooltip();
+  }
+
+  function bindTooltips(container) {
+    container.querySelectorAll('.mk-tooltip-trigger').forEach(function(trigger) {
+      var panel = trigger.nextElementSibling;
+      function closeOnPointerLeave(event) {
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'hover' &&
+            !trigger.contains(event.relatedTarget) && !panel.contains(event.relatedTarget)) closeTooltip();
+      }
+      trigger.addEventListener('pointerenter', function(event) {
+        if (canHover.matches && event.pointerType !== 'touch' && activeTooltip?.trigger !== trigger) {
+          showTooltip(trigger, 'hover');
+        }
+      });
+      trigger.addEventListener('pointerleave', closeOnPointerLeave);
+      panel.addEventListener('pointerleave', closeOnPointerLeave);
+      trigger.addEventListener('focus', function() {
+        if (trigger.matches(':focus-visible')) showTooltip(trigger, 'focus');
+      });
+      trigger.addEventListener('blur', function() {
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'focus') closeTooltip();
+      });
+      trigger.addEventListener('click', function() {
+        if (activeTooltip?.trigger === trigger && activeTooltip.mode === 'tap') closeTooltip();
+        else showTooltip(trigger, 'tap');
+      });
+    });
+  }
+
+  function resetAll() {
+    journeys = [];
+    model = undefined;
+    els.journeyStatus.textContent = '';
+    els.totalRevenue.value = '850';
+    updateModel();
+  }
+
+  els.totalRevenue.addEventListener('input', invalidateResults);
+  els.btnAdd.addEventListener('click', addJourney);
+  els.journeyInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') addJourney(); });
+  els.btnExample.addEventListener('click', loadExampleData);
+  els.btnCalculate.addEventListener('click', calculateAttribution);
+  els.btnReset.addEventListener('click', resetAll);
+  document.addEventListener('pointerdown', function(event) {
+    if (activeTooltip && !activeTooltip.trigger.contains(event.target) &&
+        !activeTooltip.panel.contains(event.target)) closeTooltip();
+  });
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeTooltip();
+  });
+  window.addEventListener('resize', positionTooltip);
+  window.addEventListener('scroll', positionTooltip, { passive: true });
+  })();
+  </script><script src="../../assets/guide.js"></script>
+</body>
+</html>

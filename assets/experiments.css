@@ -1,0 +1,249 @@
+.ex-content {
+  width: min(100%, 56.25rem);
+  margin-inline: auto;
+  padding-inline: min(var(--mg-gutter), 1.5rem);
+}
+
+.ex-content [hidden], .ex-extension [hidden] { display: none !important; }
+.ex-content h2, .ex-extension h2 { margin: 0 0 .6rem; }
+.ex-content h3, .ex-extension h3 { margin: .9rem 0 .4rem; }
+.ex-content p, .ex-extension p { margin: .65rem 0; }
+.ex-content :is(p, li), .ex-extension :is(p, li) { max-width: 78ch; }
+.ex-content details, .ex-extension details { margin-block: .8rem; }
+.ex-content details > summary, .ex-extension details > summary {
+  cursor: pointer;
+  color: var(--mg-link);
+  font-size: 14px;
+}
+.ex-content details > summary:hover, .ex-extension details > summary:hover { color: var(--mg-link-hover); }
+
+.ex-tabs, .ex-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  align-items: center;
+}
+
+.ex-tabs { margin: 0 0 1rem; }
+.ex-card {
+  min-width: 0;
+  padding: clamp(.8rem, 2.5vw, 1.2rem);
+  background: var(--mg-surface);
+  border: 1px solid var(--mg-border);
+  border-radius: .65rem;
+  margin-bottom: .9rem;
+}
+
+.ex-content button, .ex-extension button {
+  cursor: pointer;
+  background: var(--mg-background);
+  color: var(--mg-text);
+  border: 1px solid var(--mg-border);
+  border-radius: .35rem;
+  padding: .45rem .7rem;
+  font: 650 14px / 1.4 var(--mg-sans);
+}
+
+.ex-content button.active {
+  background: var(--mg-surface);
+  border-color: var(--mg-link);
+  color: var(--mg-link-hover);
+}
+
+.ex-content button.ex-primary, .ex-extension button.ex-primary {
+  background: var(--mg-button);
+  color: var(--mg-text);
+}
+.ex-content button.ex-primary:not(:disabled):hover, .ex-extension button.ex-primary:not(:disabled):hover {
+  background: var(--mg-button-hover);
+}
+.ex-content button:disabled, .ex-extension button:disabled { cursor: default; opacity: .55; }
+.ex-content button:not(:disabled):hover, .ex-extension button:not(:disabled):hover { border-color: var(--mg-accent); }
+.ex-fields, .ex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: .65rem .85rem;
+  margin-block: .75rem;
+}
+.ex-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18.5rem), 1fr)); align-items: start; }
+.ex-content label, .ex-extension label { display: block; color: var(--mg-text); }
+.ex-content label:has(input[type="checkbox"]) { display: flex; gap: .45rem; align-items: center; }
+.ex-content :is(input:not([type="checkbox"]), select, textarea), .ex-extension :is(input, select) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: .2rem 0 0;
+  padding: .45rem .55rem;
+  color: var(--mg-text);
+  background: var(--mg-background);
+  border: 1px solid var(--mg-supporting);
+  border-radius: .3rem;
+  font: 14px / 1.35 var(--mg-sans);
+}
+.ex-content input[type="checkbox"] { accent-color: var(--mg-accent); }
+/* Computed values read as values, not as fields to edit. */
+.ex-content input[readonly] { color: var(--mg-text); background: transparent; border-color: transparent; padding-inline: 0; font-weight: 650; }
+.ex-content textarea { min-height: 5rem; resize: vertical; }
+.ex-note, .ex-extension .ex-note { color: var(--mg-secondary); }
+.ex-status, .ex-extension .ex-status {
+  margin-block: .7rem;
+  padding: .6rem .85rem;
+  background: var(--mg-background);
+  border-inline-start: 2px solid var(--mg-accent);
+  overflow-wrap: anywhere;
+}
+.ex-status:empty { display: none; }
+.ex-table { overflow: auto; margin-block: .65rem; }
+.ex-table table { width: 100%; border-collapse: collapse; line-height: 1.4; }
+.ex-table caption { text-align: left; font-weight: 700; padding-block: .3rem; }
+.ex-table th, .ex-table td { padding: .5rem .55rem; text-align: left; border-bottom: 1px solid var(--mg-border); }
+.ex-table th { color: var(--mg-text); }
+.ex-table td { color: var(--mg-secondary); font-variant-numeric: tabular-nums; }
+.ex-table td label { min-width: 5rem; }
+.ex-table ul { padding-left: 1em; }
+.ex-chart {
+  position: relative;
+  min-width: 0;
+  height: clamp(13rem, 36vw, 18rem);
+  margin-top: .55rem;
+  overflow: hidden;
+}
+.ex-chart.matching-chart { height: clamp(18rem, 36vw, 21rem); }
+/* A chart placed inside an imported lesson needs its own space before the next paragraph. */
+.mg-source .ex-chart { margin-bottom: 1rem; }
+.ex-chart.did-gap-chart { height: clamp(17rem, 40vw, 20rem); }
+.ex-chart.heckman-chart { height: clamp(22rem, 52vw, 28rem); }
+.ex-chart.overlap-chart { height: auto; overflow-x: auto; padding: .35rem .45rem; }
+#overlap-plot { display: block; height: auto; }
+#overlap-plot text { fill: var(--mg-secondary); }
+#overlap-plot :is(.axis-line, .guide-line) { stroke-width: 1; shape-rendering: crispEdges; }
+#overlap-plot .axis-line { stroke: rgba(98, 114, 164, .55); }
+#overlap-plot .guide-line { stroke: rgba(98, 114, 164, .2); }
+#overlap-plot .whisker { stroke-width: 2; }
+#overlap-plot .box-rect { stroke-width: 1.5; }
+.overlap-scroll-note { display: none; }
+@media (max-width: 600px) {
+  #overlap-plot { min-width: 520px; }
+  .overlap-scroll-note { display: block; }
+}
+.ex-diagram { display: block; width: 100%; max-width: 28rem; height: auto; margin: .7rem auto; }
+.ex-formula { display: inline-block; overflow-wrap: anywhere; font-weight: 650; color: var(--mg-text); }
+.ex-report { white-space: pre-line; }
+.ex-steps { display: flex; flex-wrap: wrap; gap: .45rem 1.2rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+#pw-panel-binary :is(p, table) { color: var(--mg-text); }
+#comparison-families { margin-top: 1.2rem; }
+
+.ex-content .mg-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 36rem) {
+  .ex-table :is(th, td) { padding-inline: .35rem; }
+}
+
+.causal-figure { margin: .75rem 0; }
+.ex-fields.causal-fields { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.causal-figure figcaption { color: var(--mg-secondary); margin-top: .35rem; }
+/* Synthetic counterfactual figure on the causal comparison page. */
+/* Two columns: comparison stores on the left, counterfactual and campaign store on the right. */
+.causal-legend { display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; justify-content: start; gap: .35rem 2.5rem; margin: 0 0 .5rem; padding: 0; list-style: none; font-size: 14px; color: var(--mg-text); }
+@media (max-width: 30rem) { .causal-legend { grid-template-rows: none; grid-auto-flow: row; } }
+.causal-legend li { display: flex; align-items: center; gap: .6rem; }
+.causal-legend svg { flex: none; width: 2.5rem; height: 1rem; }
+/* Plot geometry is in percentages of the plot box and marks and text are in pixels,
+   so the chart fills the card at any width without scaling its labels. The padding holds the axes. */
+.ex-chart.causal-synthetic-chart { height: clamp(18rem, 42vw, 22rem); padding: 2.5rem 1rem 3.25rem 2.5rem; overflow: visible; }
+.causal-synthetic-svg { display: block; width: 100%; height: 100%; overflow: visible; font: 13px / 1 var(--mg-sans); font-variant-numeric: tabular-nums; }
+.causal-synthetic-svg text { fill: var(--mg-secondary); }
+.causal-synthetic-svg .causal-axis-title { fill: var(--mg-text); }
+.causal-synthetic-svg .causal-launch-label { font-weight: 600; }
+.causal-synthetic-svg .causal-grid line { stroke: rgba(98, 114, 164, 0.18); stroke-width: 1; }
+.causal-synthetic-svg .causal-axis line { stroke: var(--mg-secondary); stroke-width: 1; }
+.causal-synthetic-svg .causal-launch { stroke: var(--mg-secondary); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.causal-synthetic-svg .causal-series line { stroke-width: 2.5; }
+.causal-synthetic-svg .causal-line-dotted line { stroke-dasharray: 3 6; stroke-linecap: round; }
+.causal-synthetic-svg .causal-line-dashed line { stroke-dasharray: 10 6; }
+/* Marks take a surface ring. The counterfactual's larger diamonds have none, so their tips
+   show around the campaign store's circles where the two series coincide before launch. */
+.causal-synthetic-svg .causal-marks { stroke: var(--mg-background); stroke-width: 2; }
+.causal-synthetic-svg .causal-marks-under { stroke: none; }
+.causal-synthetic-svg .causal-hover rect { fill: transparent; stroke: none; }
+@media (max-width: 36rem) { .causal-synthetic-svg { font-size: 12px; } }
+.causal-exposure { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
+.causal-exposure li { flex: 1 1 10rem; padding: .55rem .75rem; background: var(--mg-background); border-inline-start: 2px solid var(--mg-accent); }
+.causal-exposure span { display: block; color: var(--mg-secondary); }
+/* Spend pattern under each market name in the dose table. */
+.causal-path-note { display: block; font-weight: 400; color: var(--mg-secondary); }
+.causal-chooser-facts { margin: .6rem 0; }
+.causal-chooser-facts dt { font-weight: 700; }
+.causal-chooser-facts dd { margin: 0 0 .5rem; }
+.causal-diagram { display: block; width: 100%; max-width: 35rem; height: auto; }
+/* Charts and diagrams share the light plot surface. */
+.ex-chart, .ex-diagram, .causal-diagram { background-color: var(--mg-background); border: 1px solid var(--mg-border); border-radius: .35rem; }
+.ex-extension.ex-card { margin-block: 1rem; }
+.causal-highlight { color: var(--mg-text); font-weight: 700; }
+.ex-table td.rollout-used { color: var(--mg-text); background: var(--mg-background); box-shadow: inset 0 -2px var(--mg-accent); }
+.ex-table [data-rollout-table] { table-layout: fixed; }
+.ex-table [data-rollout-table] :is(th, td) { overflow-wrap: anywhere; }
+.ex-table [data-cohort="never"] th { border-inline-start: 2px solid var(--mg-counterfactual); }
+.causal-frame { border: 1px solid var(--mg-border); border-radius: .35rem; padding: .65rem; margin-block: .7rem; }
+.ex-content fieldset { min-width: 0; border: 1px solid var(--mg-border); border-radius: .35rem; }
+.causal-chart-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+.causal-chart-pair > * { min-width: 0; }
+.ex-content input[type="range"], .ex-extension input[type="range"] { padding: 0; accent-color: var(--mg-accent); }
+.ex-content output, .ex-extension output { font-variant-numeric: tabular-nums; }
+#orient-arrows { max-width: 100%; }
+@media (min-width: 49rem) {
+  .causal-chart-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.media-timeline { height: 12rem; }
+/* Model equations are blocks, so a long equation never splits into several dark chips. */
+.media-equation { overflow-wrap: anywhere; }
+#guide-main .media-equation code { display: block; width: fit-content; max-width: 100%; padding: .55rem .75rem; white-space: pre-wrap; line-height: 1.6; }
+#media-transfer fieldset > label, #geo-test label:has(input[type="checkbox"]) {
+  display: flex;
+  width: fit-content;
+  align-items: baseline;
+  gap: .5rem;
+}
+.media-two-studies { height: 20rem; }
+.media-credit-chart { height: 10rem; }
+#media-cut-option[hidden] { display: none; }
+
+/* Labels that wrap to two lines keep their inputs on the same line as their neighbours'. */
+.ex-fields > label:not(:has(input[type="checkbox"], input[type="radio"])) { display: flex; flex-direction: column; gap: .2rem; }
+.ex-fields > label:not(:has(input[type="checkbox"], input[type="radio"])) > :is(input, select, textarea) { margin-top: auto; }
+.ex-fields:has(select) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.ex-fields.causal-fields { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+
+
+/* Record layout: each row becomes a block with its row heading, then label and value pairs.
+   .ex-records applies at every width; .ex-stack applies on phones. */
+.ex-records :is(table, thead, tbody, tr, th, td, caption) { display: block; }
+.ex-records thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.ex-records tr { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr); gap: .25rem 1rem; padding: .7rem 0; border-bottom: 1px solid var(--mg-border); }
+.ex-records tr > th[scope="row"] { grid-column: 1 / -1; padding: 0 0 .15rem; border: 0; color: var(--mg-text); font-weight: 650; }
+.ex-records td { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; padding: 0; border: 0; color: var(--mg-text); }
+.ex-records td::before { content: attr(data-label); color: var(--mg-secondary); }
+@media (max-width: 36rem) {
+  .ex-stack :is(table, thead, tbody, tr, th, td, caption) { display: block; }
+  .ex-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ex-stack tr { padding: .65rem 0; border-bottom: 1px solid var(--mg-border); }
+  .ex-stack tr > th[scope="row"] { padding: 0 0 .2rem; border: 0; color: var(--mg-text); font-weight: 650; }
+  .ex-stack td { padding: .1rem 0; border: 0; color: var(--mg-text); }
+  .ex-stack td::before { content: attr(data-label); display: block; color: var(--mg-secondary); font-size: 13px; }
+  .ex-records tr { grid-template-columns: minmax(0, 1fr); }
+  .ex-records td { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Preset choices are ordinary secondary buttons. */
+.ex-actions button { min-height: 2.25rem; }
+/* Causal diagrams sit centred in their figure. */
+.causal-diagram { margin-inline: auto; }
